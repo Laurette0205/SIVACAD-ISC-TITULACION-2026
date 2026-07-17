@@ -1,25 +1,8 @@
-# SIVACAD - paquete ejecutable
+# pytest cache directory #
 
-## Estructura
-- `backend/`: API Node.js + Express + MySQL
-- `frontend/`: React + Vite
-- `database/`: SQL base
+This directory contains data from the pytest's cache plugin,
+which provides the `--lf` and `--ff` options, as well as the `cache` fixture.
 
-## Ejecución
-### Backend
-```bash
-cd backend
-cp .env.example .env
-npm install
-npm run dev
-```
+**Do not** commit this to version control.
 
-### Frontend
-```bash
-cd frontend
-cp .env.example .env
-npm install
-npm run dev
-```
-
-Importa `database/sivacad_isc.sql` en MySQL/XAMPP.
+See [the docs](https://docs.pytest.org/en/stable/how-to/cache.html) for more information.
