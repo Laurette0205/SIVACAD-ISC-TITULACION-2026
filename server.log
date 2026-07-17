@@ -1,0 +1,11 @@
+
+=========================================
+🚀 SIVACAD Backend iniciado correctamente
+=========================================
+🌐 URL: http://localhost:3000
+⚙️ Entorno: development
+🔑 GEMINI_API_KEY: OK
+🧠 GEMINI_MODEL: OK
+=========================================
+  
+[0mGET /api/ia/desercion/auditoria [33m401[0m 3.143 ms - 47[0m
