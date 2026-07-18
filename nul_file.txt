@@ -1,2 +1,2 @@
-Error: Argumento u opci¢n no v lido - "F:/".
-Escriba "TASKKILL /?" para su uso.
+Error: Argumento u opci¢n no v lido - "C:/Program Files/Git/FI".
+Escriba "TASKLIST /?" para su uso.
