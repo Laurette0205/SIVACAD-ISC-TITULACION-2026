@@ -1,0 +1,24 @@
+# Suprimir display_errors para los endpoints PDF/Excel
+php_flag display_errors off
+php_value error_reporting E_ALL & ~E_WARNING & ~E_NOTICE & ~E_DEPRECATED
+
+# Tiempo máximo de ejecución (Dompdf/PhpSpreadsheet puede tardar)
+php_value max_execution_time 120
+php_value memory_limit 256M
+
+# Permitir acceso directo a los generadores
+<Files "generar_desercion.php">
+    Order Allow,Deny
+    Allow from all
+</Files>
+
+<Files "generar_desercion_excel.php">
+    Order Allow,Deny
+    Allow from all
+</Files>
+
+# Denegar acceso a otros archivos PHP (servicio, controlador, plantilla)
+<FilesMatch "\.php$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>

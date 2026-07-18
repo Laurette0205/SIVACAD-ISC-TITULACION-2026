@@ -1,0 +1,43 @@
+# ==============================
+# SIVACAD - .gitignore
+# ==============================
+
+# Entorno
+.env
+.env.local
+.env.production
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Backend uploads (reportes generados dinámicamente)
+backend/uploads/reportes/*
+!backend/uploads/reportes/.gitkeep
+backend/uploads/qr/*
+!backend/uploads/qr/.gitkeep
+backend/uploads/qrs/*
+!backend/uploads/qrs/.gitkeep
+backend/uploads/actas-ocr/*
+!backend/uploads/actas-ocr/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+frontend/dist/
+backend/dist/

@@ -1,0 +1,90 @@
+SIVACAD-ISC — REPORTE DE FEATURES ENGINEERING
+Generado: 2026-07-14 21:10:55.254337
+============================================================
+
+MÓDULO: IA DE DESERCIÓN
+Registros: 500
+Features (27):
+  • id_alumno                           int64      nulos=0
+  • promedio_general                    float64    nulos=0
+  • creditos_cursados                   int64      nulos=0
+  • materias_reprobadas_total           int64      nulos=0
+  • tasa_aprobacion                     float64    nulos=0
+  • promedio_parcial_1                  float64    nulos=0
+  • promedio_parcial_2                  float64    nulos=0
+  • promedio_parcial_3                  float64    nulos=0
+  • pendiente_calificacion              float64    nulos=0
+  • riesgos_acumulados                  int64      nulos=0
+  • materias_cursadas_total             int64      nulos=0
+  • alumnos_activos_promedio            float64    nulos=0
+  • alumnos_desertores_total            int64      nulos=0
+  • variabilidad_calificacion           float64    nulos=0
+  • estatus_irregular                   int64      nulos=0
+  • probabilidad_desercion              float64    nulos=0
+  • promedio_x_credito                  float64    nulos=0
+  • tasa_reprobacion                    float64    nulos=0
+  • indice_rendimiento                  float64    nulos=0
+  • alerta_roja                         int32      nulos=0
+  • genero_M                            int32      nulos=0
+  • genero_F                            int32      nulos=0
+  • tend_Declive                        bool       nulos=0
+  • tend_Estable                        bool       nulos=0
+  • tend_Mejora                         bool       nulos=0
+  • target_binario                      int64      nulos=0
+  • target_multiclase                   str        nulos=0
+
+Distribución target binario:
+  0 (No deserción): 377
+  1 (Deserción):    123
+
+Distribución target multiclase:
+  Bajo: 318
+  Medio: 119
+  Alto: 46
+  Critico: 17
+
+============================================================
+
+MÓDULO: IA DE BIENESTAR
+Registros: 300
+Features (23):
+  • animo                               int64      nulos=0
+  • energia                             int64      nulos=0
+  • sueno                               int64      nulos=0
+  • estres                              int64      nulos=0
+  • apoyo                               int64      nulos=0
+  • ambiente                            int64      nulos=0
+  • carga_academica                     int64      nulos=0
+  • carga_laboral                       int64      nulos=0
+  • enfoque                             int64      nulos=0
+  • bienestar_score                     float64    nulos=0
+  • indice_riesgo                       float64    nulos=0
+  • dimensiones_promedio                float64    nulos=0
+  • dimensiones_min                     int64      nulos=0
+  • dimensiones_std                     float64    nulos=0
+  • dimensiones_riesgo_count            int64      nulos=0
+  • estres_sqrt                         float64    nulos=0
+  • nivel_riesgo                        str        nulos=0
+  • nivel_riesgo_encoded                int32      nulos=0
+  • requiere_derivacion                 int64      nulos=0
+  • crisis_911                          int64      nulos=0
+  • plant_ACOMPANAMIENTO_ACADEMICO      bool       nulos=0
+  • plant_BIENESTAR_GENERAL             bool       nulos=0
+  • plant_BIENESTAR_LABORAL             bool       nulos=0
+
+Nivel de riesgo (encoded): {'Alto': 0, 'Bajo': 1, 'Medio': 2}
+
+Distribución nivel_riesgo:
+  Bajo: 2
+  Medio: 243
+  Alto: 55
+  Critico: 0
+
+Distribución requiere_derivacion:
+requiere_derivacion
+0    245
+1     55
+
+Distribución crisis_911:
+crisis_911
+0    300

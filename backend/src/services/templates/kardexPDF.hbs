@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { margin: 30px 40px; size: letter; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; font-size: 11px; line-height: 1.4; }
+
+  .watermark {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0.06; z-index: -1; pointer-events: none;
+    font-size: 120px; font-weight: 900; color: #1e40af;
+    transform: rotate(-30deg);
+    letter-spacing: 8px; white-space: pre;
+  }
+
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .header img { height: 50px; }
+  .header-center { text-align: center; flex: 1; }
+  .header-center h1 { font-size: 18px; color: #0f172a; margin-bottom: 2px; }
+  .header-center h2 { font-size: 13px; color: #1e40af; font-weight: 600; margin-bottom: 2px; }
+  .header-center small { font-size: 7.5px; color: #475569; }
+
+  .folio-line {
+    text-align: center; font-size: 7.5px; color: #475569;
+    padding: 4px 0 8px; border-bottom: 1px solid #cbd5e1; margin-bottom: 14px;
+  }
+
+  .section-title {
+    font-size: 12px; font-weight: 700; color: #1e40af;
+    border-bottom: 2px solid #1e40af;
+    padding-bottom: 3px; margin-bottom: 10px; text-transform: uppercase;
+  }
+
+  .columns { display: flex; gap: 16px; }
+  .col-left { flex: 1.6; }
+  .col-right { flex: 1; display: flex; flex-direction: column; align-items: center; }
+
+  .data-row { display: flex; margin-bottom: 3px; }
+  .data-label { font-weight: 700; color: #0f172a; min-width: 130px; font-size: 10px; }
+  .data-value { color: #334155; font-size: 10px; }
+
+  .photo-frame {
+    width: 142px; height: 80px; border: 1.5px solid #cbd5e1;
+    border-radius: 4px; overflow: hidden; display: flex;
+    align-items: center; justify-content: center;
+    background: #f8fafc; margin-bottom: 8px;
+  }
+  .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-placeholder { text-align: center; color: #94a3b8; font-size: 6px; padding: 4px; line-height: 1.3; }
+
+  .qr-section { margin: 6px 0; text-align: center; }
+  .qr-section img { width: 60px; height: 60px; }
+  .qr-section small { display: block; color: #64748b; font-size: 5.5px; }
+  .qr-placeholder { text-align: center; color: #94a3b8; font-size: 5.5px; line-height: 1.3; }
+
+  .firma-section {
+    margin-top: 6px; padding-top: 5px; border-top: 1px solid #cbd5e1;
+    text-align: center; width: 100%;
+  }
+  .firma-section .title { font-weight: 700; font-size: 7px; color: #334155; }
+  .firma-section .hash { font-size: 5.5px; color: #64748b; word-break: break-all; font-family: monospace; margin-top: 2px; }
+
+  .sellos-grid {
+    display: flex; justify-content: center; gap: 30px; margin: 24px 0 12px; flex-wrap: wrap;
+  }
+  .sello { text-align: center; width: 150px; }
+  .sello svg { width: 110px; height: 110px; margin-bottom: 4px; }
+  .sello .sello-nombre { font-size: 8px; font-weight: 700; color: #0f172a; }
+  .sello .sello-desc { font-size: 6.5px; color: #64748b; }
+
+  .nota {
+    font-size: 7.5px; color: #475569; text-align: justify;
+    border-top: 1px solid #cbd5e1; padding-top: 10px; margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  .footer {
+    border-top: 1px solid #cbd5e1; padding-top: 6px; margin-top: 18px;
+    text-align: center; font-size: 6.5px; color: #94a3b8;
+  }
+
+  .historial-section { margin-top: 20px; }
+  .historial-section h3 { font-size: 11px; color: #1e40af; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 8px; }
+  th { background: #1e40af; color: #fff; padding: 4px 6px; text-align: left; font-weight: 600; }
+  td { padding: 3px 6px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+  tr:nth-child(even) td { background: #f8fafc; }
+</style>
+</head>
+<body>
+
+<div class="watermark">SIVACAD</div>
+
+<div class="header">
+  {{#if logo_tecnm}}<img src="{{logo_tecnm}}" alt="TecNM">{{/if}}
+  <div class="header-center">
+    <h1>KARDEX DEL ALUMNO</h1>
+    <h2>SISTEMA INTEGRAL DE VALIDACIÓN Y CONTROL ACADÉMICO</h2>
+    <small>SIVACAD — Tecnológico Nacional de México / TESI</small>
+  </div>
+  {{#if logo_tesi}}<img src="{{logo_tesi}}" alt="TESI">{{/if}}
+</div>
+
+<div class="folio-line">
+  Folio: <strong>{{folio}}</strong> &nbsp;|&nbsp; Emitido: <strong>{{fecha_emision}}</strong> &nbsp;|&nbsp; Zona horaria: <strong>{{zona_horaria}}</strong>
+</div>
+
+<div class="section-title">DATOS DEL ALUMNO</div>
+
+<div class="columns">
+  <div class="col-left">
+    <div class="data-row"><span class="data-label">Nombre Completo:</span><span class="data-value">{{alumno.nombre_completo}}</span></div>
+    <div class="data-row"><span class="data-label">Matrícula:</span><span class="data-value">{{alumno.matricula}}</span></div>
+    <div class="data-row"><span class="data-label">CURP:</span><span class="data-value">{{alumno.curp}}</span></div>
+    <div class="data-row"><span class="data-label">Carrera:</span><span class="data-value">{{alumno.carrera}}</span></div>
+    <div class="data-row"><span class="data-label">Semestre:</span><span class="data-value">{{alumno.semestre}}</span></div>
+    <div class="data-row"><span class="data-label">Promedio General:</span><span class="data-value">{{alumno.promedio}}</span></div>
+    <div class="data-row"><span class="data-label">Créditos Cubiertos:</span><span class="data-value">{{alumno.creditos_cubiertos}}</span></div>
+    <div class="data-row"><span class="data-label">Estatus:</span><span class="data-value">{{alumno.estatus}}</span></div>
+  </div>
+  <div class="col-right">
+    <div class="photo-frame">
+      {{#if url_foto}}
+        <img src="{{url_foto}}" alt="Foto institucional">
+      {{else}}
+        <div class="photo-placeholder">
+          Aquí se inserta la foto<br>institucional del alumno del<br>siguiente tamaño: 5 x 2.5cm
+        </div>
+      {{/if}}
+    </div>
+    <div class="qr-section">
+      {{#if url_qr}}
+        <img src="{{url_qr}}" alt="QR">
+      {{else}}
+        <div class="qr-placeholder">
+          Aquí se inserta el código<br>QR y FIRMA ELECTRÓNICA<br>DEL SISTEMA SIVACAD<br>generado por el sistema<br>SIVACAD
+        </div>
+      {{/if}}
+    </div>
+    <div class="firma-section">
+      <div class="title">FIRMA ELECTRÓNICA DEL SISTEMA SIVACAD</div>
+      <div class="hash">SHA-256: {{firma_hash}}</div>
+    </div>
+  </div>
+</div>
+
+<div class="sellos-grid">
+  {{#each sellos}}
+  <div class="sello">
+    {{{img}}}
+    <div class="sello-nombre">{{titulo}}</div>
+    <div class="sello-desc">{{descripcion}}</div>
+  </div>
+  {{/each}}
+</div>
+
+<div class="nota">
+  Si quieres visualizar o verificar qué materias acreditaste, estás en 2da oportunidad, si estás en
+  recurse o te fuiste a materia especial, visita la plataforma oficial SIGAA (Sistema Integral de
+  Gestión Académica y Administrativa) para más información. El link de la plataforma oficial es el
+  siguiente: <strong>https://sigaa.tesi.org.mx/index.php</strong>
+</div>
+
+{{#if historial.length}}
+<div class="historial-section">
+  <h3>DETALLE ACADÉMICO — MATERIAS CURSADAS</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Período</th>
+        <th>Clave</th>
+        <th>Materia</th>
+        <th>Calificación</th>
+        <th>Créditos</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each historial}}
+      <tr>
+        <td>{{periodo}}</td>
+        <td>{{clave}}</td>
+        <td>{{materia}}</td>
+        <td>{{calificacion}}</td>
+        <td>{{creditos}}</td>
+        <td>{{estado}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>
+{{/if}}
+
+<div class="footer">
+  Documento generado electrónicamente el {{fecha_emision}} &nbsp;|&nbsp; Folio: {{folio}} &nbsp;|&nbsp;
+  Zona horaria: {{zona_horaria}} &nbsp;|&nbsp; SIVACAD
+</div>
+
+</body>
+</html>

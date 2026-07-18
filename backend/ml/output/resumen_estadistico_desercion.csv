@@ -1,0 +1,9 @@
+estadistica,id_parcial,id_alumno,numero_parcial,calificacion_promedio,riesgos_detectados,materias_reprobadas,alumnos_activos,alumnos_desertores
+count,9.0,9.0,9.0,9.0,9.0,9.0,9.0,9.0
+mean,5.0,2.0,2.0,70.2,2.56,1.33,1.67,1.33
+std,2.74,0.87,0.87,22.18,2.3,1.58,0.5,0.5
+min,1.0,1.0,1.0,38.5,0.0,0.0,1.0,1.0
+25%,3.0,1.0,1.0,45.0,1.0,0.0,1.0,1.0
+50%,5.0,2.0,2.0,78.0,2.0,1.0,2.0,1.0
+75%,7.0,3.0,3.0,88.5,5.0,3.0,2.0,2.0
+max,9.0,3.0,3.0,92.0,6.0,4.0,2.0,2.0
