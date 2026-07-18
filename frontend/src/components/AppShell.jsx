@@ -19,7 +19,8 @@ import {
   HeartPulse,
   Brain,
   Shield,
-  AlertTriangle
+  AlertTriangle,
+  Folders
 } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
@@ -76,6 +77,7 @@ const ROLE_SECTIONS = {
       title: 'Administración',
       items: [
         { to: '/app/usuarios', label: 'Usuarios', icon: Users },
+        { to: '/app/admin/tramites', label: 'Trámites', icon: Folders },
         { to: '/app/admin/inscripciones', label: 'Admin Inscripciones', icon: Shield },
         { to: '/app/admin/reinscripciones', label: 'Admin Reinscripciones', icon: ClipboardList }
       ]
@@ -92,7 +94,8 @@ const ROLE_SECTIONS = {
     {
       title: 'Gestión académica',
       items: [
-        { to: '/app/coordinador/inscripciones', label: 'Inscripciones', icon: ClipboardList },
+        { to: '/app/coordinador/tramites', label: 'Trámites', icon: ClipboardList },
+        { to: '/app/coordinador/inscripciones', label: 'Inscripciones', icon: Shield },
         { to: '/app/coordinador/reinscripciones', label: 'Reinscripciones', icon: ClipboardCheck },
         { to: '/app/coordinador/kardex', label: 'Kardex', icon: FileText },
         { to: '/app/evaluaciones', label: 'Evaluaciones', icon: BookOpen }
@@ -130,6 +133,7 @@ const ROLE_SECTIONS = {
         { to: '/app/docente/inscripciones', label: 'Inscripciones', icon: ClipboardList },
         { to: '/app/docente/reinscripciones', label: 'Reinscripciones', icon: ClipboardCheck },
         { to: '/app/docente/kardex', label: 'Kardex', icon: FileText },
+        { to: '/app/docente/tramites', label: 'Trámites académicos', icon: ClipboardList },
         { to: '/app/docente-evaluaciones', label: 'Evaluaciones', icon: BookOpen }
       ]
     },
@@ -157,6 +161,7 @@ const ROLE_SECTIONS = {
       items: [
         { to: '/app/alumno/inscripciones', label: 'Inscripciones', icon: ClipboardList },
         { to: '/app/alumno/reinscripciones', label: 'Reinscripciones', icon: ClipboardCheck },
+        { to: '/app/alumno/tramites', label: 'Trámites', icon: ClipboardList },
         { to: '/app/kardex', label: 'Kardex', icon: FileText },
         { to: '/app/estudiante-evaluaciones', label: 'Evaluaciones', icon: BookOpen }
       ]

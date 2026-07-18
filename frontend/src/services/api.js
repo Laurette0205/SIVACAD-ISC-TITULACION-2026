@@ -1467,6 +1467,167 @@ iaBienestarSoporteRutas: (token) =>
   iaBienestarAdminActualizarEstadoAlerta: (token, body) =>
     request('/bienestar-admin/actualizar-estado-alerta', { token, method: 'POST', body }),
 
+  adminTramites: {
+    resumen: (token) =>
+      request('/admin-tramites/resumen', { token }),
+
+    catalogos: (token) =>
+      request('/admin-tramites/catalogos', { token }),
+
+    listar: (token, params = {}) => {
+      const qs = Object.entries(params)
+        .filter(([, v]) => v !== undefined && v !== null && v !== '')
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
+      return request(`/admin-tramites${qs ? '?' + qs : ''}`, { token });
+    },
+
+    obtener: (token, id) =>
+      request(`/admin-tramites/${id}`, { token }),
+
+    crear: (token, body) =>
+      request('/admin-tramites', {
+        token, method: 'POST', body
+      }),
+
+    validarSolicitud: (token, id, body = {}) =>
+      request(`/admin-tramites/${id}/validar-solicitud`, {
+        token, method: 'PUT', body
+      }),
+
+    emitirDictamen: (token, id, body) =>
+      request(`/admin-tramites/${id}/emitir-dictamen`, {
+        token, method: 'PUT', body
+      }),
+
+    rechazar: (token, id, body) =>
+      request(`/admin-tramites/${id}/rechazar`, {
+        token, method: 'PUT', body
+      }),
+
+    autorizarControlEscolar: (token, id, body = {}) =>
+      request(`/admin-tramites/${id}/autorizar-control-escolar`, {
+        token, method: 'PUT', body
+      }),
+
+    autorizarDivisionISC: (token, id, body = {}) =>
+      request(`/admin-tramites/${id}/autorizar-division-isc`, {
+        token, method: 'PUT', body
+      }),
+
+    emitirDocumento: (token, id, body) =>
+      request(`/admin-tramites/${id}/emitir-documento`, {
+        token, method: 'PUT', body
+      }),
+
+    cerrar: (token, id, body = {}) =>
+      request(`/admin-tramites/${id}/cerrar`, {
+        token, method: 'PUT', body
+      }),
+
+    subirDocumento: (token, id, formData) =>
+      request(`/admin-tramites/${id}/documentos`, {
+        token, method: 'POST', body: formData, form: true
+      }),
+
+    documentos: (token, id) =>
+      request(`/admin-tramites/${id}/documentos`, { token }),
+
+    bitacora: (token, params = {}) => {
+      const qs = Object.entries(params)
+        .filter(([, v]) => v !== undefined && v !== null && v !== '')
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
+      return request(`/admin-tramites/bitacora${qs ? '?' + qs : ''}`, { token });
+    },
+
+    auditoria: (token, params = {}) => {
+      const qs = Object.entries(params)
+        .filter(([, v]) => v !== undefined && v !== null && v !== '')
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
+      return request(`/admin-tramites/auditoria${qs ? '?' + qs : ''}`, { token });
+    },
+
+    configuracion: (token) =>
+      request('/admin-tramites/configuracion', { token }),
+
+    actualizarConfig: (token, id, valor) =>
+      request(`/admin-tramites/configuracion/${id}`, {
+        token, method: 'PUT', body: { valor }
+      })
+  },
+
+  coordinadorTramites: {
+    resumen: (token) =>
+      request('/coordinador-tramites/resumen', { token }),
+
+    catalogos: (token) =>
+      request('/coordinador-tramites/catalogos', { token }),
+
+    bandeja: (token, params = {}) => {
+      const qs = Object.entries(params)
+        .filter(([, v]) => v !== undefined && v !== null && v !== '')
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
+      return request(`/coordinador-tramites/bandeja${qs ? '?' + qs : ''}`, { token });
+    },
+
+    obtener: (token, id) =>
+      request(`/coordinador-tramites/${id}`, { token }),
+
+    pasarARevision: (token, id, body = {}) =>
+      request(`/coordinador-tramites/${id}/pasar-revision`, {
+        token, method: 'PUT', body
+      }),
+
+    pasarAAnalisis: (token, id, body) =>
+      request(`/coordinador-tramites/${id}/pasar-analisis`, {
+        token, method: 'PUT', body
+      }),
+
+    determinarProcedencia: (token, id, body) =>
+      request(`/coordinador-tramites/${id}/determinar-procedencia`, {
+        token, method: 'PUT', body
+      }),
+
+    validar: (token, id, body = {}) =>
+      request(`/coordinador-tramites/${id}/validar`, {
+        token, method: 'PUT', body
+      }),
+
+    rechazar: (token, id, body) =>
+      request(`/coordinador-tramites/${id}/rechazar`, {
+        token, method: 'PUT', body
+      }),
+
+    agregarObservacion: (token, id, body) =>
+      request(`/coordinador-tramites/${id}/observaciones`, {
+        token, method: 'POST', body
+      }),
+
+    validarDocumento: (token, id, idDocumento, body = {}) =>
+      request(`/coordinador-tramites/${id}/documentos/${idDocumento}/validar`, {
+        token, method: 'PUT', body
+      }),
+
+    reportes: (token, params = {}) => {
+      const qs = Object.entries(params)
+        .filter(([, v]) => v !== undefined && v !== null && v !== '')
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
+      return request(`/coordinador-tramites/reportes${qs ? '?' + qs : ''}`, { token });
+    },
+
+    bitacora: (token, params = {}) => {
+      const qs = Object.entries(params)
+        .filter(([, v]) => v !== undefined && v !== null && v !== '')
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
+      return request(`/coordinador-tramites/bitacora${qs ? '?' + qs : ''}`, { token });
+    }
+  },
+
   reportPdf: (token, query = '') =>
     download(`/reportes/pdf${query}`, token),
 
@@ -1743,6 +1904,103 @@ iaBienestarSoporteRutas: (token) =>
 
   docenteReinscripcionesCargaAcademica: (token) =>
     request('/docente-reinscripciones/carga-academica', { token }),
+
+  docenteTramites: {
+    resumen: (token) =>
+      request('/docente-tramites/resumen', { token }),
+
+    catalogos: (token) =>
+      request('/docente-tramites/catalogos', { token }),
+
+    misGrupos: (token) =>
+      request('/docente-tramites/mis-grupos', { token }),
+
+    bandeja: (token, params = {}) => {
+      const qs = Object.entries(params)
+        .filter(([, v]) => v !== undefined && v !== null && v !== '')
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
+      return request(`/docente-tramites/bandeja${qs ? '?' + qs : ''}`, { token });
+    },
+
+    obtener: (token, id) =>
+      request(`/docente-tramites/${id}`, { token }),
+
+    trayectoria: (token, id) =>
+      request(`/docente-tramites/${id}/trayectoria`, { token }),
+
+    emitirOpinion: (token, id, body) =>
+      request(`/docente-tramites/${id}/emitir-opinion`, {
+        token, method: 'PUT', body
+      }),
+
+    confirmarCompatibilidad: (token, id, body) =>
+      request(`/docente-tramites/${id}/confirmar-compatibilidad`, {
+        token, method: 'PUT', body
+      }),
+
+    validarObservaciones: (token, id, body = {}) =>
+      request(`/docente-tramites/${id}/validar-observaciones`, {
+        token, method: 'PUT', body
+      }),
+
+    agregarObservacion: (token, id, body) =>
+      request(`/docente-tramites/${id}/observaciones`, {
+        token, method: 'POST', body
+      }),
+
+    alumnosGrupo: (token, idGrupo, idPeriodo) =>
+      request(`/docente-tramites/grupos/${idGrupo}/periodo/${idPeriodo}/alumnos`, { token }),
+
+    reportes: (token, params = {}) => {
+      const qs = Object.entries(params)
+        .filter(([, v]) => v !== undefined && v !== null && v !== '')
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
+      return request(`/docente-tramites/reportes${qs ? '?' + qs : ''}`, { token });
+    },
+
+    bitacora: (token, params = {}) => {
+      const qs = Object.entries(params)
+        .filter(([, v]) => v !== undefined && v !== null && v !== '')
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
+      return request(`/docente-tramites/bitacora${qs ? '?' + qs : ''}`, { token });
+    }
+  },
+
+  alumnoTramites: {
+    catalogos: (token) =>
+      request('/alumno-tramites/catalogos', { token }),
+
+    misTramites: (token, params = {}) => {
+      const qs = Object.entries(params)
+        .filter(([, v]) => v !== undefined && v !== null && v !== '')
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
+      return request(`/alumno-tramites/mis-tramites${qs ? '?' + qs : ''}`, { token });
+    },
+
+    historial: (token) =>
+      request('/alumno-tramites/historial', { token }),
+
+    obtener: (token, id) =>
+      request(`/alumno-tramites/${id}`, { token }),
+
+    seguimiento: (token, id) =>
+      request(`/alumno-tramites/${id}/seguimiento`, { token }),
+
+    solicitar: (token, body) =>
+      request('/alumno-tramites/solicitar', { token, method: 'POST', body }),
+
+    subirDocumento: (token, id, formData) =>
+      request(`/alumno-tramites/${id}/documentos`, {
+        token, method: 'POST', body: formData, form: true, timeoutMs: 30000
+      }),
+
+    descargarDocumento: (token, id, idDocumento) =>
+      download(`/alumno-tramites/${id}/documentos/${idDocumento}/descargar`, token, 30000)
+  },
 
   // Soporte Inscripciones endpoints
   soporteInscripcionesPanel: (token) =>

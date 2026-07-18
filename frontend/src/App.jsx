@@ -30,6 +30,10 @@ import EvaluacionesPage from './pages/EvaluacionesPage';
 import PeriodosPage from './pages/PeriodosPage';
 import GruposPage from './pages/GruposPage';
 import BajasPage from './pages/BajasPage';
+import AdminTramitesPage from './pages/AdminTramitesPage';
+import CoordinadorTramitesPage from './pages/CoordinadorTramitesPage';
+import DocenteTramitesPage from './pages/DocenteTramitesPage';
+import AlumnoTramitesPage from './pages/AlumnoTramitesPage';
 import ChatbotPage from './pages/ChatbotPage';
 import AsistentePage from './pages/AsistentePage';
 import AsistenteAdminPage from './pages/AsistenteAdminPage';
@@ -346,6 +350,20 @@ function AppRoutes() {
         />
 
         <Route
+          path="coordinador/tramites"
+          element={
+            <ProtectedRoute allowedRoles={[
+              ROLE_NAMES.COORDINADOR,
+              2,
+              ROLE_NAMES.ADMINISTRADOR,
+              1
+            ]}>
+              <CoordinadorTramitesPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="docente"
           element={
             <ProtectedRoute allowedRoles={[
@@ -373,6 +391,22 @@ function AppRoutes() {
               1
             ]}>
               <DocenteInscripcionesPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="docente/tramites"
+          element={
+            <ProtectedRoute allowedRoles={[
+              ROLE_NAMES.DOCENTE,
+              3,
+              ROLE_NAMES.COORDINADOR,
+              2,
+              ROLE_NAMES.ADMINISTRADOR,
+              1
+            ]}>
+              <DocenteTramitesPage />
             </ProtectedRoute>
           }
         />
@@ -423,6 +457,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[ROLE_NAMES.ALUMNO, 4]}>
               <AlumnoInscripcionesPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="alumno/tramites"
+          element={
+            <ProtectedRoute allowedRoles={[ROLE_NAMES.ALUMNO, 4]}>
+              <AlumnoTramitesPage />
             </ProtectedRoute>
           }
         />
@@ -855,6 +898,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[ROLE_NAMES.COORDINADOR, ROLE_NAMES.ADMINISTRADOR, 1, 2]}>
               <ActasOCRCoordinadorPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="admin/tramites"
+          element={
+            <ProtectedRoute allowedRoles={[ROLE_NAMES.ADMINISTRADOR, 1]}>
+              <AdminTramitesPage />
             </ProtectedRoute>
           }
         />

@@ -42,6 +42,31 @@ exports.uploadAlumnoFoto = multer({
   fileFilter: imageFileFilter
 });
 
+// ========================================
+// ALMACENAMIENTO PARA DOCUMENTOS GENERALES
+// (Trámites, actas, etc.)
+// ========================================
+const DOCS_DIR = path.join(UPLOADS_ROOT, 'documentos');
+if (!fs.existsSync(DOCS_DIR)) {
+  fs.mkdirSync(DOCS_DIR, { recursive: true });
+}
+
+const docStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, DOCS_DIR),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || '.bin';
+    const name = `doc-${Date.now()}-${crypto.randomUUID()}${ext}`;
+    cb(null, name);
+  }
+});
+
+exports.docUpload = multer({
+  storage: docStorage,
+  limits: {
+    fileSize: 20 * 1024 * 1024
+  }
+});
+
 exports.UPLOADS_ROOT = UPLOADS_ROOT;
 exports.ALUMNOS_DIR = ALUMNOS_DIR;
 exports.QR_DIR = QR_DIR;
