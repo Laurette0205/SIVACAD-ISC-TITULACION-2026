@@ -1,0 +1,88 @@
+{
+  "_comment": "Parámetros para generación de datos sintéticos SIVACAD-ISC",
+  "desercion": {
+    "total_alumnos": 500,
+    "start_id": 4,
+    "semestres": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    "distribucion_semestre": [0.15, 0.14, 0.13, 0.12, 0.11, 0.10, 0.09, 0.08, 0.08],
+    "calif_media_por_semestre": [72, 74, 76, 77, 78, 80, 81, 82, 83],
+    "calif_std_por_semestre": [13, 12, 11, 10, 10, 9, 9, 8, 8],
+    "materias_por_semestre": [6, 6, 6, 6, 5, 5, 5, 5, 4],
+    "tasa_desercion_base": 0.18,
+    "pesos_desercion": {
+      "intercept": -2.5,
+      "penalizacion_bajo_promedio": 0.06,
+      "penalizacion_materias_reprobadas": 0.45,
+      "penalizacion_declive": 0.6,
+      "penalizacion_semestre_bajo": 0.25
+    },
+    "thresholds_riesgo": {
+      "Bajo": 0.0,
+      "Medio": 0.25,
+      "Alto": 0.50,
+      "Critico": 0.75
+    },
+    "nombres_masculinos": ["Luis", "Carlos", "Jose", "Miguel", "Alejandro", "Juan", "Fernando", "Jorge", "Ricardo", "Daniel", "Manuel", "Pedro", "Andres", "David", "Francisco", "Jesus", "Antonio", "Sergio", "Rafael", "Eduardo", "Hector", "Pablo", "Gabriel", "Oscar", "Victor"],
+    "nombres_femeninos": ["Maria", "Ana", "Gabriela", "Sofia", "Valeria", "Ximena", "Fernanda", "Daniela", "Carmen", "Alejandra", "Diana", "Rosa", "Paola", "Claudia", "Liliana", "Patricia", "Andrea", "Veronica", "Elena", "Sara", "Laura", "Natalia", "Martha", "Guadalupe"],
+    "apellidos": ["Garcia", "Martinez", "Lopez", "Hernandez", "Gonzalez", "Perez", "Rodriguez", "Sanchez", "Ramirez", "Cruz", "Flores", "Morales", "Ortiz", "Reyes", "Vazquez", "Jimenez", "Torres", "Moreno", "Rivera", "Diaz", "Mendoza", "Castillo", "Romero", "Alvarez", "Delgado", "Aguilar", "Molina", "Soto", "Castro", "Medina"]
+  },
+  "bienestar": {
+    "total_checkins": 300,
+    "dimensiones": ["animo", "energia", "sueno", "estres", "apoyo", "ambiente", "carga_academica", "carga_laboral", "enfoque"],
+    "dimensiones_medias": {
+      "animo": 6.5,
+      "energia": 6.0,
+      "sueno": 6.0,
+      "estres": 5.0,
+      "apoyo": 6.0,
+      "ambiente": 6.5,
+      "carga_academica": 6.0,
+      "carga_laboral": 4.5,
+      "enfoque": 6.0
+    },
+    "dimensiones_std": 1.8,
+    "dimension_riesgo_invertida": ["estres", "carga_academica", "carga_laboral"],
+    "pesos_bienestar_score": {
+      "animo": 0.15,
+      "energia": 0.10,
+      "sueno": 0.10,
+      "estres": 0.15,
+      "apoyo": 0.15,
+      "ambiente": 0.10,
+      "carga_academica": 0.10,
+      "carga_laboral": 0.05,
+      "enfoque": 0.10
+    },
+    "thresholds_riesgo": {
+      "Bajo": 0.0,
+      "Medio": 0.35,
+      "Alto": 0.55,
+      "Critico": 0.75
+    },
+    "plantillas": ["BIENESTAR_GENERAL", "ACOMPANAMIENTO_ACADEMICO", "BIENESTAR_LABORAL"],
+    "pesos_plantilla": [0.4, 0.35, 0.25],
+    "respuestas_ia": {
+      "Bajo": [
+        "¡Qué bueno que te sientes bien! Sigue manteniendo esos hábitos saludables.",
+        "Me alegra ver que todo va bien. Recuerda tomar descansos periódicos.",
+        "Tu bienestar se ve estable. Continúa así y no descuides el sueño."
+      ],
+      "Medio": [
+        "Noto que hay áreas que podrían mejorar. ¿Te gustaría hablar más sobre el estrés?",
+        "Hay señales de alerta moderadas. Te recomiendo establecer una rutina de descanso.",
+        "Veo que la carga académica te preocupa. Vamos a crear un plan de organización."
+      ],
+      "Alto": [
+        "Estoy viendo indicadores altos de riesgo. Es importante que hables con un tutor.",
+        "Tu nivel de estrés es preocupante. ¿Podemos hablar de lo que te está afectando?",
+        "Recomiendo que busques apoyo con consejería estudiantil para evitar una crisis."
+      ],
+      "Critico": [
+        "🚨 Esto es una crisis. Necesitas hablar con un profesional de inmediato.",
+        "🚨 Tu bienestar está en nivel crítico. Por favor contacta a servicios de apoyo.",
+        "🚨 Es importante que busques ayuda ahora. Puedes llamar a la línea de crisis."
+      ]
+    },
+    "respuestas_crisis_911": "🚨 ALERTA DE CRISIS: Se recomienda contactar a servicios de emergencia (911) o a la línea de apoyo psicosológico de inmediato. Se ha notificado a tu coordinador académico."
+  }
+}

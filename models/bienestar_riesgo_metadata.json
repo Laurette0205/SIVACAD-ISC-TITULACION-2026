@@ -1,0 +1,110 @@
+{
+  "modelo": "Random Forest Bienestar",
+  "fecha_entrenamiento": "2026-07-14T22:08:08.960411",
+  "dataset": "dataset_bienestar.csv",
+  "registros_entrenamiento": 240,
+  "registros_prueba": 60,
+  "features": [
+    "animo",
+    "energia",
+    "sueno",
+    "estres",
+    "apoyo",
+    "ambiente",
+    "carga_academica",
+    "carga_laboral",
+    "enfoque",
+    "bienestar_score",
+    "indice_riesgo",
+    "dimensiones_promedio",
+    "dimensiones_min",
+    "dimensiones_std",
+    "dimensiones_riesgo_count",
+    "estres_sqrt",
+    "plant_ACOMPANAMIENTO_ACADEMICO",
+    "plant_BIENESTAR_GENERAL",
+    "plant_BIENESTAR_LABORAL"
+  ],
+  "target": "nivel_riesgo",
+  "clases": [
+    "Alto",
+    "Bajo",
+    "Medio"
+  ],
+  "distribucion_train": {
+    "Alto": 44,
+    "Bajo": 2,
+    "Medio": 194
+  },
+  "distribucion_test": {
+    "Alto": 11,
+    "Bajo": 0,
+    "Medio": 49
+  },
+  "metricas": {
+    "accuracy": 1.0
+  },
+  "top_features": [
+    {
+      "feature": "indice_riesgo",
+      "importance": 0.2592188502105325
+    },
+    {
+      "feature": "bienestar_score",
+      "importance": 0.24877563669643613
+    },
+    {
+      "feature": "dimensiones_promedio",
+      "importance": 0.18327651477552975
+    },
+    {
+      "feature": "carga_academica",
+      "importance": 0.05769392109338481
+    },
+    {
+      "feature": "animo",
+      "importance": 0.05179382967143975
+    },
+    {
+      "feature": "dimensiones_riesgo_count",
+      "importance": 0.039845328279160104
+    },
+    {
+      "feature": "estres",
+      "importance": 0.032008988997027775
+    },
+    {
+      "feature": "estres_sqrt",
+      "importance": 0.031042515290094618
+    },
+    {
+      "feature": "dimensiones_min",
+      "importance": 0.028126769952960942
+    },
+    {
+      "feature": "apoyo",
+      "importance": 0.02259907858070764
+    }
+  ],
+  "hiperparametros": {
+    "bootstrap": "True",
+    "ccp_alpha": "0.0",
+    "class_weight": "balanced",
+    "criterion": "gini",
+    "max_depth": "10",
+    "max_features": "sqrt",
+    "max_leaf_nodes": "None",
+    "max_samples": "None",
+    "min_impurity_decrease": "0.0",
+    "min_samples_leaf": "2",
+    "min_samples_split": "5",
+    "min_weight_fraction_leaf": "0.0",
+    "monotonic_cst": "None",
+    "n_estimators": "200",
+    "n_jobs": "-1",
+    "oob_score": "False",
+    "random_state": "42",
+    "verbose": "0",
+    "warm_start": "False"
+  }
+}
