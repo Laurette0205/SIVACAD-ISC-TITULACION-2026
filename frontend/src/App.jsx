@@ -77,6 +77,7 @@ import AlumnoReinscripcionesPage from './pages/AlumnoReinscripcionesPage';
 import AdminKardexPage from './pages/AdminKardexPage';
 import CoordinadorKardexPage from './pages/CoordinadorKardexPage';
 import SoporteKardexPage from './pages/SoporteKardexPage';
+import SoporteTramitesPage from './pages/SoporteTramitesPage';
 
 const ROLE_NAMES = {
   ADMINISTRADOR: 'ADMINISTRADOR',
@@ -538,6 +539,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[ROLE_NAMES.SOPORTE, 5, ROLE_NAMES.ADMINISTRADOR, 1]}>
               <SoporteKardexPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="soporte/tramites"
+          element={
+            <ProtectedRoute allowedRoles={[ROLE_NAMES.SOPORTE, 5, ROLE_NAMES.ADMINISTRADOR, 1]}>
+              <SoporteTramitesPage />
             </ProtectedRoute>
           }
         />

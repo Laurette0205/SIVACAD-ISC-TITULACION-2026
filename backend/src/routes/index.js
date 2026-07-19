@@ -91,6 +91,7 @@ mountIfAvailable('/ia/becas/coordinador', './iaBecasCoordinador');
 mountIfAvailable('/ia/becas/alumno', './iaBecasAlumno');
 mountIfAvailable('/ia/becas', './iaBecasDocente');
 mountIfAvailable('/ia/becas', './iaBecasSoporte');
+mountIfAvailable('/soporte-tramites', './soporte-tramites');
 mountIfAvailable('/admin-tramites', './admin-tramites');
 mountIfAvailable('/coordinador-tramites', './coordinador-tramites');
 mountIfAvailable('/docente-tramites', './docente-tramites');

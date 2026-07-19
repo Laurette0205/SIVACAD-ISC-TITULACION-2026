@@ -2270,7 +2270,53 @@ iaBienestarSoporteRutas: (token) =>
     request('/kardex-soporte/monitoreo-carga', { token }),
 
   soporteKardexVerificarIntegridad: (token) =>
-    request('/kardex-soporte/verificar-integridad', { token, method: 'POST' })
+    request('/kardex-soporte/verificar-integridad', { token, method: 'POST' }),
+
+  // ── Soporte Trámites ──
+  soporteTramitesPanel: (token) =>
+    request('/soporte-tramites/panel', { token }),
+
+  soporteTramitesIncidencias: (token, params = {}) =>
+    request(`/soporte-tramites/incidencias?${new URLSearchParams(params).toString()}`, { token }),
+
+  soporteTramitesCrearIncidencia: (token, body) =>
+    request('/soporte-tramites/incidencias', { token, method: 'POST', body }),
+
+  soporteTramitesActualizarIncidencia: (token, id, body) =>
+    request(`/soporte-tramites/incidencias/${id}`, { token, method: 'PUT', body }),
+
+  soporteTramitesArchivos: (token, params = {}) =>
+    request(`/soporte-tramites/archivos?${new URLSearchParams(params).toString()}`, { token }),
+
+  soporteTramitesValidarArchivo: (token, id, body) =>
+    request(`/soporte-tramites/archivos/${id}/validar`, { token, method: 'PUT', body }),
+
+  soporteTramitesRecuperacion: (token, params = {}) =>
+    request(`/soporte-tramites/recuperacion?${new URLSearchParams(params).toString()}`, { token }),
+
+  soporteTramitesRealizarRecuperacion: (token, body) =>
+    request('/soporte-tramites/recuperacion', { token, method: 'POST', body }),
+
+  soporteTramitesValidarIntegridad: (token) =>
+    request('/soporte-tramites/validar-integridad', { token, method: 'POST' }),
+
+  soporteTramitesHistorial: (token, params = {}) =>
+    request(`/soporte-tramites/historial?${new URLSearchParams(params).toString()}`, { token }),
+
+  soporteTramitesErrores: (token) =>
+    request('/soporte-tramites/errores', { token }),
+
+  soporteTramitesReintentar: (token, id) =>
+    request(`/soporte-tramites/reintentar/${id}`, { token, method: 'POST' }),
+
+  soporteTramitesValidarCompatibilidad: (token, body) =>
+    request('/soporte-tramites/validar-compatibilidad', { token, method: 'POST', body }),
+
+  soporteTramitesTramites: (token, params = {}) =>
+    request(`/soporte-tramites/tramites?${new URLSearchParams(params).toString()}`, { token }),
+
+  soporteTramitesEspeciales: (token) =>
+    request('/soporte-tramites/tramites-especiales', { token })
 };
 
 export { api, canAccessDesercionIA, canAccessDesercionDocenteIA, canAccessDesercionAlumnoIA, canAccessDesercionSoporteIA, canAccessBienestarAdminIA, canAccessBienestarDocenteIA, canAccessBecasSoporteIA };

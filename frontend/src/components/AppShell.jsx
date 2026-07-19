@@ -191,6 +191,7 @@ const ROLE_SECTIONS = {
         { to: '/app/soporte/inscripciones', label: 'Inscripciones', icon: ClipboardList },
         { to: '/app/soporte/reinscripciones', label: 'Reinscripciones', icon: ClipboardCheck },
         { to: '/app/soporte/kardex', label: 'Kardex', icon: FileText },
+        { to: '/app/soporte/tramites', label: 'Trámites (Baja, Cambio Escuela/Carrera)', icon: ClipboardList },
         { to: '/app/soporte-evaluaciones', label: 'Evaluaciones', icon: BookOpen }
       ]
     },
