@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual de Administración — SIVACAD</title>
+<style>
+  :root { --bg: #ffffff; --text: #1e293b; --accent: #2563eb; --border: #e2e8f0; --code-bg: #f1f5f9; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; padding: 2.5rem; max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 2rem; color: #0f172a; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 0.25rem; }
+  .subtitle { color: #64748b; margin-bottom: 2rem; font-size: 0.95rem; }
+  h2 { font-size: 1.5rem; color: #0f172a; margin: 2.5rem 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; page-break-before: always; }
+  h2:first-of-type { page-break-before: avoid; }
+  h3 { font-size: 1.15rem; color: #1e293b; margin: 1.5rem 0 0.5rem; }
+  p { margin-bottom: 0.8rem; }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+  li { margin-bottom: 0.3rem; }
+  code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
+  pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 0.8rem 0; font-size: 0.85rem; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+  th { background: #1e3a5f; color: #fff; padding: 0.6rem; text-align: left; }
+  td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); }
+  tr:nth-child(even) { background: #f8fafc; }
+  .toc { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; margin: 2rem 0; }
+  .toc h2 { margin-top: 0; page-break-before: avoid; border-bottom: none; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .header-inst { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--accent); }
+  .header-inst h1 { border-bottom: none; margin-bottom: 0.2rem; }
+  .header-inst .sistema { font-size: 1.1rem; font-weight: 600; color: #0f172a; }
+  .header-inst .autoras { font-size: 0.9rem; color: #64748b; }
+  .header-inst .version { font-size: 0.8rem; color: #94a3b8; margin-top: 0.3rem; }
+  .footer-page { text-align: center; font-size: 0.75rem; color: #94a3b8; margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+  @media print {
+    @page { margin: 2cm 2.5cm; size: A4; @top-center { content: "SIVACAD — Manual de Administración"; font-size: 8pt; color: #94a3b8; } @bottom-center { content: counter(page); font-size: 8pt; color: #94a3b8; } }
+    @page { margin: 2cm 2.5cm 2.5cm 2.5cm; size: A4; }
+    body { padding: 0; font-size: 11pt; line-height: 1.5; color: #000; background: #fff; }
+    h1 { font-size: 18pt; }
+    h2 { font-size: 14pt; page-break-before: always; margin-top: 0; padding-top: 0; }
+    h2:first-of-type { page-break-before: avoid; }
+    h3 { font-size: 12pt; page-break-after: avoid; }
+    h4 { font-size: 11pt; page-break-after: avoid; }
+    p, li { font-size: 11pt; }
+    table { font-size: 9pt; page-break-inside: avoid; }
+    tr { page-break-inside: avoid; }
+    pre { font-size: 8pt; white-space: pre-wrap; word-break: break-word; page-break-inside: avoid; }
+    code { font-size: 8pt; }
+    .toc { page-break-after: always; }
+    .toc h2 { page-break-before: avoid; }
+    .header-inst { page-break-before: avoid; }
+    a { color: #000; text-decoration: none; }
+    .print-footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 8pt; color: #666; border-top: 0.5pt solid #ccc; padding: 4pt 0 2pt; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header-inst">
+  <h1>Manual de Administración</h1>
+  <div class="sistema">Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos (SIVACAD)</div>
+  <div class="autoras">Autoras: Bárcenas González Laura Casandra &amp; Morales Ibarra Sandivel</div>
+  <div class="autoras">TESI Ixtapaluca — Ingeniería en Sistemas Computacionales</div>
+  <div class="version">Versión 1.0 — Julio 2026</div>
+</div>
+
+<div class="toc">
+  <h2>Índice</h2>
+  <ol>
+    <li><a href="#s1">Introducción</a></li>
+    <li><a href="#s2">Gestión de Usuarios</a></li>
+    <li><a href="#s3">Roles y Permisos</a></li>
+    <li><a href="#s4">Gestión de Módulos</a></li>
+    <li><a href="#s5">Gestión de Periodos Académicos</a></li>
+    <li><a href="#s6">Reportes Institucionales</a></li>
+    <li><a href="#s7">Auditoría y Bitácora</a></li>
+    <li><a href="#s8">Sesiones Activas</a></li>
+    <li><a href="#s9">Parámetros del Sistema</a></li>
+    <li><a href="#s10">Supervisión General</a></li>
+    <li><a href="#s11">Buenas Prácticas</a></li>
+  </ol>
+</div>
+
+<h2 id="s1">1. Introducción</h2>
+<p>Este manual está dirigido al <strong>Administrador del sistema SIVACAD</strong>. Describe las tareas de gestión general de la plataforma: administración de usuarios, asignación de roles, configuración de módulos, generación de reportes institucionales, supervisión de auditoría y monitoreo del sistema.</p>
+<p>El administrador tiene el nivel más alto de privilegios en el sistema y es responsable de garantizar su correcto funcionamiento, seguridad y disponibilidad.</p>
+
+<h2 id="s2">2. Gestión de Usuarios</h2>
+
+<h3>2.1 Acceso al módulo</h3>
+<p>Inicie sesión con una cuenta con rol <strong>Administrador</strong>. En el menú lateral, seleccione <strong>Usuarios</strong>.</p>
+
+<h3>2.2 Listado de usuarios</h3>
+<p>Visualiza una tabla con todos los usuarios registrados: nombre, correo, rol, estado (Activo/Inactivo), fecha de registro. Use los campos de búsqueda para filtrar.</p>
+
+<h3>2.3 Crear un nuevo usuario</h3>
+<ol>
+  <li>Haga clic en <strong>+ Nuevo Usuario</strong>.</li>
+  <li>Complete los campos obligatorios: nombres, apellidos, correo institucional, contraseña (mín. 8 caracteres), rol y datos adicionales según el rol.</li>
+  <li>Haga clic en <strong>Guardar</strong>.</li>
+</ol>
+
+<h3>2.4 Editar un usuario</h3>
+<p>Localice al usuario en el listado, haga clic en <strong>Editar</strong>, modifique los campos necesarios y guarde.</p>
+
+<h3>2.5 Desactivar / Activar un usuario</h3>
+<p>Use el toggle de estado (Activo/Inactivo). Un usuario inactivo no puede iniciar sesión. Sus datos históricos se conservan.</p>
+
+<h3>2.6 Eliminar un usuario</h3>
+<p>Haga clic en <strong>Eliminar</strong> y confirme. Esta operación es irreversible. Considere desactivar en lugar de eliminar.</p>
+
+<h2 id="s3">3. Roles y Permisos</h2>
+
+<h3>3.1 Roles del sistema</h3>
+<table>
+  <tr><th>Rol</th><th>Nivel</th><th>Módulos disponibles</th></tr>
+  <tr><td>Administrador</td><td>Total</td><td>Todos los módulos (CRUD)</td></tr>
+  <tr><td>Coordinador</td><td>Alto</td><td>Gestión académica sin usuarios ni auditoría global</td></tr>
+  <tr><td>Docente</td><td>Medio</td><td>Sus grupos, evaluaciones, trámites (opinar)</td></tr>
+  <tr><td>Alumno</td><td>Bajo</td><td>Autogestión: inscripciones, kardex, trámites, bienestar</td></tr>
+  <tr><td>Soporte</td><td>Consulta+</td><td>Lectura + logs, conectividad</td></tr>
+</table>
+
+<h3>3.2 Matriz de permisos</h3>
+<table>
+  <tr><th>Módulo</th><th>Admin</th><th>Coord</th><th>Docente</th><th>Alumno</th><th>Soporte</th></tr>
+  <tr><td>Dashboard</td><td>CRUD</td><td>CRUD</td><td>CRUD</td><td>CRUD</td><td>CRUD</td></tr>
+  <tr><td>Usuarios</td><td>CRUD</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+  <tr><td>Alumnos</td><td>CRUD</td><td>CRUD</td><td>R</td><td>R</td><td>R</td></tr>
+  <tr><td>Docentes</td><td>CRUD</td><td>CRUD</td><td>R</td><td>—</td><td>R</td></tr>
+  <tr><td>Periodos</td><td>CRUD</td><td>CRUD</td><td>R</td><td>R</td><td>R</td></tr>
+  <tr><td>Grupos</td><td>CRUD</td><td>CRUD</td><td>R</td><td>R</td><td>R</td></tr>
+  <tr><td>Inscripciones</td><td>CRUD</td><td>CRUD</td><td>R</td><td>CR</td><td>R</td></tr>
+  <tr><td>Kardex</td><td>CRUD</td><td>CRUD</td><td>R</td><td>R</td><td>R</td></tr>
+  <tr><td>Evaluaciones</td><td>CRUD</td><td>CRUD</td><td>parcial</td><td>parcial</td><td>R</td></tr>
+  <tr><td>Trámites</td><td>CRUD</td><td>CRUD</td><td>R</td><td>CR</td><td>R</td></tr>
+  <tr><td>Actas OCR</td><td>CRUD</td><td>CRUD</td><td>R</td><td>R</td><td>R</td></tr>
+  <tr><td>IA Deserción</td><td>CRUD</td><td>CRUD</td><td>R</td><td>R</td><td>R</td></tr>
+  <tr><td>IA Bienestar</td><td>CRUD</td><td>CRUD</td><td>R</td><td>CRUD</td><td>R</td></tr>
+  <tr><td>IA Becas</td><td>CRUD</td><td>CRUD</td><td>R</td><td>CR</td><td>R</td></tr>
+  <tr><td>Asistente/Chatbot</td><td>CRUD</td><td>CRUD</td><td>CRUD</td><td>CRUD</td><td>CRUD</td></tr>
+  <tr><td>Reportes</td><td>CRUD</td><td>CRUD</td><td>CRUD</td><td>CRUD</td><td>CRUD</td></tr>
+  <tr><td>Auditoría</td><td>CRUD</td><td>R</td><td>—</td><td>—</td><td>CRUD</td></tr>
+</table>
+
+<h2 id="s4">4. Gestión de Módulos</h2>
+
+<h3>4.1 Habilitar / Deshabilitar módulos</h3>
+<p>El backend usa <code>mountIfAvailable</code> en <code>routes/index.js</code>. Para deshabilitar un módulo, elimine o renombre el archivo de ruta en <code>backend/src/routes/</code>. Para habilitarlo, asegúrese de que el archivo exista.</p>
+
+<h3>4.2 Módulos disponibles</h3>
+<ol>
+  <li><strong>Autenticación:</strong> Login, Register, Forgot/Reset</li>
+  <li><strong>Dashboard:</strong> Resumen por rol</li>
+  <li><strong>Alumnos:</strong> CRUD con filtros</li>
+  <li><strong>Docentes:</strong> CRUD</li>
+  <li><strong>Periodos:</strong> Gestión académica</li>
+  <li><strong>Grupos:</strong> Asignación materia-docente</li>
+  <li><strong>Inscripciones:</strong> Inscripción/reinscripción</li>
+  <li><strong>Kardex:</strong> Historial, fotos, QR, PDF, Excel</li>
+  <li><strong>Evaluaciones:</strong> 5 tipos, 4 estados</li>
+  <li><strong>Actas OCR:</strong> Subida y validación</li>
+  <li><strong>Trámites:</strong> Baja, cambio escuela/carrera</li>
+  <li><strong>IA Deserción:</strong> Predicción y alertas</li>
+  <li><strong>IA Bienestar:</strong> Check-in, chat, supervisión</li>
+  <li><strong>IA Becas:</strong> Catálogo, elegibilidad</li>
+  <li><strong>Asistente:</strong> Clasificador + RAG</li>
+  <li><strong>Chatbot:</strong> Conversación Gemini</li>
+  <li><strong>Reportes:</strong> PDF (PDFKit/Dompdf), Excel</li>
+  <li><strong>Auditoría:</strong> Bitácora SHA-256</li>
+</ol>
+
+<h2 id="s5">5. Gestión de Periodos Académicos</h2>
+<ol>
+  <li>Navegue a <strong>Periodos</strong>.</li>
+  <li>Para crear: capture clave única, nombre, fecha inicio/fin, estado inicial.</li>
+  <li>Para cerrar: cambie el estado a Inactivo o Finalizado.</li>
+  <li>Visualice totales: grupos, inscripciones activas por periodo.</li>
+</ol>
+
+<h2 id="s6">6. Reportes Institucionales</h2>
+
+<h3>6.1 Reporte PDF</h3>
+<p>Navegue a Reportes → Generar PDF. El documento incluye encabezado TESI, tarjetas de métricas, gráfico de barras y fecha de generación.</p>
+
+<h3>6.2 Reporte Excel</h3>
+<p>Navegue a Reportes → Generar Excel. El archivo contiene portada, resumen con colores institucionales y detalle de datos.</p>
+
+<h3>6.3 Exportación Bienestar</h3>
+<p>En Bienestar Admin, use Exportar TXT o Exportar CSV con filtro por rango de fechas.</p>
+
+<h2 id="s7">7. Auditoría y Bitácora</h2>
+
+<h3>7.1 Bitácora de auditoría</h3>
+<p>Cada operación se registra en <code>bitacora_auditoria</code> con: id_usuario, acción, tabla, id_registro, valores_anteriores, valores_nuevos, IP origen, fecha_hora.</p>
+
+<h3>7.2 Auditoría global con integridad</h3>
+<p>La tabla <code>auditoria_global</code> usa hash SHA-256 encadenado. Cada registro contiene el hash del anterior, garantizando integridad y no-repudio.</p>
+
+<h3>7.3 Consultar auditoría</h3>
+<p>Navegue a Auditoría. Filtre por usuario, acción, fecha o tabla. Los resultados muestran fecha, usuario, acción, tabla y detalles.</p>
+
+<h2 id="s8">8. Sesiones Activas</h2>
+
+<h3>8.1 Consultar sesiones</h3>
+<p>Navegue a Auditoría → Sesiones Activas. Visualice usuario, rol, inicio de sesión, última actividad, IP y estado.</p>
+
+<h3>8.2 Cerrar sesión de usuario</h3>
+<p>Localice la sesión y haga clic en Cerrar Sesión. El usuario será forzado a salir en su próximo request.</p>
+
+<h2 id="s9">9. Parámetros del Sistema</h2>
+
+<h3>9.1 Dominios de correo</h3>
+<pre>const WHITELIST_DOMAINS = [
+  'tesi.edu.mx',
+  'ixtapaluca.tecnm.mx'
+];</pre>
+
+<h3>9.2 Configuración CORS</h3>
+<p>En <code>backend/src/app.js</code> se definen orígenes permitidos, incluyendo regex para IPs LAN (192.168.x.x, 10.x.x.x, 172.16-31.x.x).</p>
+
+<h3>9.3 Rate limiting</h3>
+<p>Ruta forgot-password: máximo 5 solicitudes cada 15 minutos.</p>
+
+<h2 id="s10">10. Supervisión General</h2>
+
+<h3>10.1 Dashboard ejecutivo</h3>
+<table>
+  <tr><th>Indicador</th><th>Descripción</th></tr>
+  <tr><td>Total de alumnos</td><td>Conteo de alumnos activos</td></tr>
+  <tr><td>Total de docentes</td><td>Conteo de docentes activos</td></tr>
+  <tr><td>Periodos activos</td><td>Periodos en curso</td></tr>
+  <tr><td>Inscripciones activas</td><td>Inscripciones del periodo actual</td></tr>
+  <tr><td>Trámites pendientes</td><td>Solicitudes sin resolver</td></tr>
+  <tr><td>Alertas de deserción</td><td>Alertas activas</td></tr>
+  <tr><td>Check-ins bienestar</td><td>Registros últimas 24h</td></tr>
+</table>
+
+<h3>10.2 Supervisión de Bienestar</h3>
+<p>Bienestar Admin con 5 pestañas: Resumen Ejecutivo, Indicadores de Riesgo, Catálogo de Alertas, Historial Seguimientos, Auditoría.</p>
+
+<h3>10.3 Supervisión de Deserción</h3>
+<p>IA Deserción: ver alertas activas, ejecutar predicción, crear planes de seguimiento, consultar historial.</p>
+
+<h2 id="s11">11. Buenas Prácticas</h2>
+
+<h3>11.1 Seguridad</h3>
+<ul>
+  <li>Cambie la contraseña por defecto inmediatamente después de instalar.</li>
+  <li>No comparta cuentas de administrador.</li>
+  <li>Revise la bitácora de auditoría periódicamente.</li>
+  <li>Mantenga actualizadas las dependencias.</li>
+</ul>
+
+<h3>11.2 Gestión de usuarios</h3>
+<ul>
+  <li>Desactive (no elimine) usuarios que ya no pertenezcan a la institución.</li>
+  <li>Asigne el rol Soporte solo a personal técnico de confianza.</li>
+</ul>
+
+<h3>11.3 Periodos académicos</h3>
+<ul>
+  <li>Cree el nuevo periodo antes de que termine el anterior.</li>
+  <li>No elimine periodos históricos; márquelos como finalizados.</li>
+</ul>
+
+<h3>11.4 Respaldo de datos</h3>
+<ul>
+  <li>Realice respaldos periódicos de la BD.</li>
+  <li>Guarde los archivos subidos en almacenamiento externo.</li>
+  <li>Documente los cambios de configuración.</li>
+</ul>
+
+<h3>11.5 Monitoreo</h3>
+<ul>
+  <li>Revise el dashboard diariamente.</li>
+  <li>Configure alertas de errores del servidor.</li>
+  <li>Supervise consumo de recursos (RAM, CPU, disco).</li>
+</ul>
+
+<div class="footer-page">Fin del Manual de Administración — SIVACAD v1.0 — TESI Ixtapaluca — ISC 2026</div>
+
+<div class="print-footer">SIVACAD &mdash; Manual de Administración &mdash; TESI Ixtapaluca &mdash; ISC 2026</div>
+</body>
+</html>

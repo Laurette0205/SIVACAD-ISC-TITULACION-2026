@@ -321,7 +321,7 @@ function ReportesOCR({ token }) {
       {data?.porPeriodo?.length > 0 && (
         <SectionCard title="Por periodo académico" subtitle="Cargas y validaciones por periodo">
           <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead><tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                 <th style={{ padding: '0.4rem' }}>Periodo</th><th style={{ padding: '0.4rem' }}>Cargas</th>
                 <th style={{ padding: '0.4rem' }}>Validadas</th><th style={{ padding: '0.4rem' }}>Pendientes</th>
@@ -337,7 +337,7 @@ function ReportesOCR({ token }) {
                   <td style={{ padding: '0.4rem' }}>{Number(r.confianza_promedio || 0).toFixed(1)}%</td>
                 </tr>
               ))}</tbody>
-            </table>
+            </table></div>
           </div>
         </SectionCard>
       )}
@@ -345,7 +345,7 @@ function ReportesOCR({ token }) {
       {data?.porGrupo?.length > 0 && (
         <SectionCard title="Por grupo" subtitle="Actas agrupadas por grupo académico">
           <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead><tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                 <th style={{ padding: '0.4rem' }}>Grupo</th><th style={{ padding: '0.4rem' }}>Sem.</th>
                 <th style={{ padding: '0.4rem' }}>Carrera</th><th style={{ padding: '0.4rem' }}>Cargas</th>
@@ -361,7 +361,7 @@ function ReportesOCR({ token }) {
                   <td style={{ padding: '0.4rem' }}>{Number(r.confianza_promedio || 0).toFixed(1)}%</td>
                 </tr>
               ))}</tbody>
-            </table>
+            </table></div>
           </div>
         </SectionCard>
       )}
@@ -383,7 +383,7 @@ function ReportesOCR({ token }) {
       {data?.recientes?.length > 0 && (
         <SectionCard title="Actas recientes" subtitle="Últimas 20 actas cargadas">
           <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead><tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                 <th style={{ padding: '0.3rem' }}>Archivo</th><th style={{ padding: '0.3rem' }}>Periodo</th>
                 <th style={{ padding: '0.3rem' }}>Grupo</th><th style={{ padding: '0.3rem' }}>Estado</th>
@@ -399,7 +399,7 @@ function ReportesOCR({ token }) {
                   <td style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>{formatDate(r.created_at)}</td>
                 </tr>
               ))}</tbody>
-            </table>
+            </table></div>
           </div>
         </SectionCard>
       )}

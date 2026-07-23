@@ -222,7 +222,7 @@ export default function AsistenteAlumnoPage() {
               </div>
               {kardex.historial?.length > 0 ? (
                 <div style={{ overflowX: 'auto' }}>
-                  <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+                  <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                     <thead>
                       <tr>
                         <th>Periodo</th>
@@ -249,7 +249,7 @@ export default function AsistenteAlumnoPage() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 </div>
               ) : <p className="muted">No hay historial académico registrado.</p>}
             </>
@@ -265,7 +265,7 @@ export default function AsistenteAlumnoPage() {
           </div>
           {inscripciones.length > 0 ? (
             <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
                 <thead>
                   <tr>
                     <th>Periodo</th>
@@ -294,7 +294,7 @@ export default function AsistenteAlumnoPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : <p className="muted">No tienes inscripciones registradas.</p>}
         </div>
@@ -308,7 +308,7 @@ export default function AsistenteAlumnoPage() {
           </div>
           {evaluaciones.length > 0 ? (
             <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
                 <thead>
                   <tr>
                     <th>Título</th>
@@ -333,7 +333,7 @@ export default function AsistenteAlumnoPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : <p className="muted">No hay evaluaciones disponibles.</p>}
         </div>

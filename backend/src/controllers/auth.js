@@ -400,6 +400,23 @@ exports.register = async (req, res) => {
       extra = { id_docente: docenteResult.insertId };
     }
 
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.connection?.remoteAddress || '0.0.0.0';
+    const ua = req.headers['user-agent'] || '';
+    const versionDoc = '2026.1';
+    const aceptaciones = [
+      { tipo: 'terminos', version: versionDoc },
+      { tipo: 'privacidad', version: versionDoc },
+      { tipo: 'propiedad_intelectual', version: versionDoc }
+    ];
+    for (const a of aceptaciones) {
+      await conn.execute(
+        `INSERT INTO aceptaciones_legales
+         (id_usuario, tipo_aceptacion, version_documento, ip_origen, user_agent)
+         VALUES (?, ?, ?, ?, ?)`,
+        [id_usuario, a.tipo, a.version, ip, ua]
+      );
+    }
+
     await conn.commit();
 
     const token = generateToken({

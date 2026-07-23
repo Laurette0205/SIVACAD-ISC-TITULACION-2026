@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual de Usuario — SIVACAD</title>
+<style>
+  :root { --bg: #ffffff; --text: #1e293b; --accent: #2563eb; --border: #e2e8f0; --code-bg: #f1f5f9; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; padding: 2.5rem; max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 2rem; color: #0f172a; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 0.25rem; }
+  .subtitle { color: #64748b; margin-bottom: 2rem; font-size: 0.95rem; }
+  h2 { font-size: 1.5rem; color: #0f172a; margin: 2.5rem 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; page-break-before: always; }
+  h2:first-of-type { page-break-before: avoid; }
+  h3 { font-size: 1.15rem; color: #1e293b; margin: 1.5rem 0 0.5rem; }
+  h4 { font-size: 1rem; color: #334155; margin: 1rem 0 0.3rem; }
+  p { margin-bottom: 0.8rem; }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+  li { margin-bottom: 0.3rem; }
+  code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
+  pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 0.8rem 0; font-size: 0.85rem; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+  th { background: #1e3a5f; color: #fff; padding: 0.6rem; text-align: left; }
+  td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); }
+  tr:nth-child(even) { background: #f8fafc; }
+  .toc { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; margin: 2rem 0; }
+  .toc h2 { margin-top: 0; page-break-before: avoid; border-bottom: none; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .header-inst { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--accent); }
+  .header-inst h1 { border-bottom: none; margin-bottom: 0.2rem; }
+  .header-inst .sistema { font-size: 1.1rem; font-weight: 600; color: #0f172a; }
+  .header-inst .autoras { font-size: 0.9rem; color: #64748b; }
+  .header-inst .version { font-size: 0.8rem; color: #94a3b8; margin-top: 0.3rem; }
+  .footer-page { text-align: center; font-size: 0.75rem; color: #94a3b8; margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+  @media print {
+    @page { margin: 2cm 2.5cm 2.5cm 2.5cm; size: A4; }
+    body { padding: 0; font-size: 11pt; line-height: 1.5; color: #000; background: #fff; }
+    h1 { font-size: 18pt; }
+    h2 { font-size: 14pt; page-break-before: always; margin-top: 0; padding-top: 0; }
+    h2:first-of-type { page-break-before: avoid; }
+    h3 { font-size: 12pt; page-break-after: avoid; }
+    h4 { font-size: 11pt; page-break-after: avoid; }
+    p, li { font-size: 11pt; }
+    table { font-size: 9pt; page-break-inside: avoid; }
+    tr { page-break-inside: avoid; }
+    pre { font-size: 8pt; white-space: pre-wrap; word-break: break-word; page-break-inside: avoid; }
+    code { font-size: 8pt; }
+    .toc { page-break-after: always; }
+    .toc h2 { page-break-before: avoid; }
+    .header-inst { page-break-before: avoid; }
+    a { color: #000; text-decoration: none; }
+    .print-footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 8pt; color: #666; border-top: 0.5pt solid #ccc; padding: 4pt 0 2pt; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header-inst">
+  <h1>Manual de Usuario</h1>
+  <div class="sistema">Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos (SIVACAD)</div>
+  <div class="autoras">Autoras: Bárcenas González Laura Casandra &amp; Morales Ibarra Sandivel</div>
+  <div class="autoras">TESI Ixtapaluca — Ingeniería en Sistemas Computacionales</div>
+  <div class="version">Versión 1.0 — Julio 2026</div>
+</div>
+
+<div class="toc">
+  <h2>Índice</h2>
+  <ol>
+    <li><a href="#s1">Introducción</a></li>
+    <li><a href="#s2">Acceso al Sistema</a></li>
+    <li><a href="#s3">Inicio de Sesión</a></li>
+    <li><a href="#s4">Navegación General</a></li>
+    <li><a href="#s5">Panel del Administrador</a></li>
+    <li><a href="#s6">Panel del Coordinador</a></li>
+    <li><a href="#s7">Panel del Docente</a></li>
+    <li><a href="#s8">Panel del Alumno</a></li>
+    <li><a href="#s9">Panel de Soporte</a></li>
+    <li><a href="#s10">Exportación de Reportes</a></li>
+    <li><a href="#s11">Cierre de Sesión</a></li>
+  </ol>
+</div>
+
+<h2 id="s1">1. Introducción</h2>
+<p>El Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos (SIVACAD) es una plataforma web integral diseñada para la gestión académica del TESI Ixtapaluca. Permite administrar inscripciones, reinscripciones, evaluaciones, kardex, trámites escolares, detección de deserción, bienestar estudiantil, consulta de becas y generación de reportes institucionales.</p>
+<p>Este manual describe el uso del sistema para cada uno de los cinco roles que interactúan en la plataforma.</p>
+
+<h2 id="s2">2. Acceso al Sistema</h2>
+<h3>2.1 Requisitos técnicos</h3>
+<ul>
+  <li>Navegador web moderno: Chrome 90+, Firefox 88+, Edge 90+, Safari 14+</li>
+  <li>Conexión a internet o red local institucional</li>
+  <li>Resolución mínima: 720 × 1024 píxeles (responsive hasta 320 px)</li>
+</ul>
+
+<h3>2.2 Dirección de acceso</h3>
+<pre>Entorno desarrollo: http://localhost:5173
+Entorno producción: https://sivacad.tesi.edu.mx</pre>
+
+<h2 id="s3">3. Inicio de Sesión</h2>
+<h3>3.1 Pantalla de login</h3>
+<ol>
+  <li>Abra la URL del sistema en su navegador.</li>
+  <li>Ingrese su <strong>correo institucional</strong> (dominio @tesi.edu.mx o @ixtapaluca.tecnm.mx).</li>
+  <li>Ingrese su <strong>contraseña</strong>.</li>
+  <li>Haga clic en <strong>Iniciar Sesión</strong>.</li>
+</ol>
+
+<h3>3.2 Recuperación de contraseña</h3>
+<ol>
+  <li>En la pantalla de login, haga clic en <strong>¿Olvidaste tu contraseña?</strong></li>
+  <li>Ingrese su correo institucional.</li>
+  <li>Recibirá un enlace de restablecimiento en su bandeja de entrada.</li>
+  <li>Siga el enlace y establezca una nueva contraseña (mínimo 8 caracteres).</li>
+</ol>
+
+<h3>3.3 Registro de nuevo usuario</h3>
+<ol>
+  <li>En la pantalla de login, haga clic en <strong>Registrarse</strong>.</li>
+  <li>Complete el formulario con: nombres, apellidos, correo institucional, contraseña y seleccione su rol.</li>
+  <li>Si es alumno, proporcione matrícula, CURP y carrera.</li>
+  <li>Si es docente, proporcione número de empleado y especialidad.</li>
+  <li>Acepte los términos y condiciones.</li>
+  <li>Haga clic en <strong>Registrar</strong>.</li>
+</ol>
+
+<h2 id="s4">4. Navegación General</h2>
+<h3>4.1 Estructura de la interfaz</h3>
+<ul>
+  <li><strong>Barra superior:</strong> Muestra el nombre del sistema, el rol del usuario activo y el botón de menú (en móvil) o cierre de sesión.</li>
+  <li><strong>Barra lateral (sidebar):</strong> Menú de navegación con los módulos disponibles según el rol. En dispositivos móviles se oculta detrás de un botón de hamburguesa.</li>
+  <li><strong>Área principal:</strong> Contenido del módulo seleccionado.</li>
+  <li><strong>Modo oscuro:</strong> Dispone de un selector de tema (claro/oscuro) en la barra superior.</li>
+</ul>
+
+<h3>4.2 Navegación en dispositivos móviles</h3>
+<ul>
+  <li>Pulse el ícono de hamburguesa (☰) en la esquina superior izquierda para abrir el menú lateral.</li>
+  <li>Pulse fuera del menú o seleccione una opción para cerrarlo.</li>
+  <li>Las tablas se desplazan horizontalmente con el dedo.</li>
+</ul>
+
+<h2 id="s5">5. Panel del Administrador</h2>
+<p>El Administrador tiene acceso completo a todos los módulos del sistema.</p>
+
+<h3>5.1 Dashboard</h3>
+<p>Visualiza tarjetas de resumen: total de alumnos, docentes, periodos activos, inscripciones del periodo, trámites pendientes, alertas de deserción activas y check-ins de bienestar recientes. Acceso rápido a los módulos más utilizados.</p>
+
+<h3>5.2 Gestión de Usuarios</h3>
+<ol>
+  <li>Navegue a <strong>Usuarios</strong> en el menú lateral.</li>
+  <li>Visualice el listado completo de usuarios del sistema.</li>
+  <li>Use los botones <strong>Editar</strong> para modificar datos o <strong>Eliminar</strong> para desactivar cuentas.</li>
+  <li>Haga clic en <strong>+ Nuevo Usuario</strong> para registrar manualmente.</li>
+</ol>
+
+<h3>5.3 Alumnos</h3>
+<ol>
+  <li>Navegue a <strong>Alumnos</strong>.</li>
+  <li>Consulte, registre, edite o elimine alumnos.</li>
+  <li>Use los filtros de búsqueda por matrícula, nombre o carrera.</li>
+</ol>
+
+<h3>5.4 Docentes</h3>
+<p>Navegue a <strong>Docentes</strong>. Gestione el listado de docentes: alta, modificación y baja.</p>
+
+<h3>5.5 Periodos Académicos</h3>
+<ol>
+  <li>Navegue a <strong>Periodos</strong>.</li>
+  <li>Cree nuevos periodos (clave, nombre, fecha inicio, fecha fin, estado).</li>
+  <li>Active o cierre periodos según el calendario institucional.</li>
+</ol>
+
+<h3>5.6 Grupos</h3>
+<ol>
+  <li>Navegue a <strong>Grupos</strong>.</li>
+  <li>Asigne materia, docente, periodo, carrera y semestre.</li>
+  <li>Edite o elimine grupos existentes.</li>
+</ol>
+
+<h3>5.7 Inscripciones y Reinscripciones</h3>
+<ol>
+  <li>Navegue a <strong>Inscripciones</strong>.</li>
+  <li>Visualice todas las inscripciones con filtros por periodo y estado.</li>
+  <li>Cree inscripciones manuales o valide solicitudes de alumnos.</li>
+  <li>Gestione reinscripciones desde la misma sección.</li>
+</ol>
+
+<h3>5.8 Kardex</h3>
+<ol>
+  <li>Navegue a <strong>Kardex</strong>.</li>
+  <li>Consulte el historial académico de cualquier alumno.</li>
+  <li>Suba fotografías, genere códigos QR individuales o por grupo.</li>
+  <li>Descargue PDF o Excel del kardex.</li>
+</ol>
+
+<h3>5.9 Evaluaciones</h3>
+<ol>
+  <li>Navegue a <strong>Evaluaciones</strong>.</li>
+  <li>Cree plantillas de evaluación con preguntas y pesos.</li>
+  <li>Cree evaluaciones (Formativa, Sumativa, Objetivos, Ipsativa, Alumno-Docente).</li>
+  <li>Cambie el estado: BORRADOR → ACTIVA → CERRADA → CANCELADA.</li>
+  <li>Consulte resultados y promedios.</li>
+</ol>
+
+<h3>5.10 Actas OCR</h3>
+<ol>
+  <li>Navegue a <strong>Actas OCR</strong>.</li>
+  <li>Suba un acta de calificaciones escaneada (PDF, JPG, PNG).</li>
+  <li>El sistema procesa el documento con Gemini API.</li>
+  <li>Revise la vista previa de datos extraídos.</li>
+  <li>Valide la carga para importar calificaciones automáticamente.</li>
+</ol>
+
+<h3>5.11 Trámites Escolares</h3>
+<ol>
+  <li>Navegue a <strong>Trámites</strong>.</li>
+  <li>Revise las solicitudes de baja, cambio de escuela, cambio de carrera.</li>
+  <li>Emita dictamen de aprobación o rechazo.</li>
+</ol>
+
+<h3>5.12 IA Deserción</h3>
+<ol>
+  <li>Navegue a <strong>IA Deserción</strong>.</li>
+  <li>Cree alertas de deserción para alumnos en riesgo.</li>
+  <li>Ejecute predicción heurística o vía Flask ML.</li>
+  <li>Cree y dé seguimiento a planes de acción.</li>
+</ol>
+
+<h3>5.13 IA Bienestar (Supervisión)</h3>
+<ol>
+  <li>Navegue a <strong>Bienestar Admin</strong>.</li>
+  <li>Consulte: resumen ejecutivo, indicadores de riesgo, catálogo de alertas, historial de seguimientos y auditoría.</li>
+  <li>Exporte datos a TXT o CSV.</li>
+</ol>
+
+<h3>5.14 IA Becas</h3>
+<ol>
+  <li>Navegue a <strong>IA Becas</strong>.</li>
+  <li>Consulte el catálogo de 14 becas oficiales.</li>
+  <li>Realice preguntas sobre becas al asistente.</li>
+  <li>Verifique elegibilidad de alumnos.</li>
+</ol>
+
+<h3>5.15 Reportes</h3>
+<ol>
+  <li>Navegue a <strong>Reportes</strong>.</li>
+  <li>Seleccione <strong>Generar PDF</strong> o <strong>Generar Excel</strong>.</li>
+  <li>Espere la generación y descargue el archivo.</li>
+</ol>
+
+<h3>5.16 Auditoría</h3>
+<ol>
+  <li>Navegue a <strong>Auditoría</strong>.</li>
+  <li>Consulte la bitácora de operaciones con hash SHA-256.</li>
+  <li>Filtre por usuario, acción o fecha.</li>
+</ol>
+
+<h2 id="s6">6. Panel del Coordinador</h2>
+<p>El Coordinador tiene acceso a la gestión académica completa, similar al Administrador, pero sin acceso a la gestión de usuarios del sistema ni a la auditoría global.</p>
+<p><strong>Módulos disponibles:</strong></p>
+<ul>
+  <li>Dashboard</li>
+  <li>Alumnos, Docentes, Periodos, Grupos</li>
+  <li>Inscripciones y Reinscripciones</li>
+  <li>Kardex (consulta, fotos, QR, descargas)</li>
+  <li>Evaluaciones (crear, activar, cerrar, ver resultados)</li>
+  <li>Trámites (analizar procedencia, emitir observaciones)</li>
+  <li>Actas OCR (subir y validar)</li>
+  <li>IA Deserción (alertas, predicciones, seguimientos)</li>
+  <li>IA Bienestar Admin (supervisión)</li>
+  <li>IA Becas</li>
+  <li>Asistente Académico y Chatbot</li>
+  <li>Reportes PDF/Excel</li>
+</ul>
+
+<h2 id="s7">7. Panel del Docente</h2>
+
+<h3>7.1 Dashboard</h3>
+<p>Visualiza resumen de sus grupos, evaluaciones activas y alertas de deserción de sus alumnos.</p>
+
+<h3>7.2 Inscripciones</h3>
+<p>Consulta alumnos inscritos en sus grupos. No puede crear ni modificar inscripciones.</p>
+
+<h3>7.3 Kardex</h3>
+<p>Consulta el kardex de alumnos de sus grupos. Descarga PDF/Excel.</p>
+
+<h3>7.4 Evaluaciones</h3>
+<ol>
+  <li>Consulte evaluaciones activas asignadas a sus grupos.</li>
+  <li>Responda evaluaciones (si es alumno-docente).</li>
+  <li>Consulte resultados de evaluaciones aplicadas.</li>
+</ol>
+
+<h3>7.5 Trámites</h3>
+<p>Emite opinión sobre trámites de alumnos (baja, cambio de escuela, cambio de carrera).</p>
+
+<h3>7.6 IA Deserción Docente</h3>
+<p>Visualiza alertas de deserción de alumnos en sus grupos.</p>
+
+<h3>7.7 IA Bienestar</h3>
+<p>Consulta indicadores de bienestar de sus alumnos (solo lectura).</p>
+
+<h3>7.8 IA Becas</h3>
+<p>Consulta el catálogo de becas.</p>
+
+<h3>7.9 Asistente Académico y Chatbot</h3>
+<p>Realiza consultas académicas generales.</p>
+
+<h3>7.10 Reportes</h3>
+<p>Genera reportes PDF y Excel.</p>
+
+<h2 id="s8">8. Panel del Alumno</h2>
+
+<h3>8.1 Dashboard</h3>
+<p>Visualiza su resumen académico: promedio general, créditos acumulados, inscripciones activas y check-in de bienestar del día.</p>
+
+<h3>8.2 Inscripciones</h3>
+<ol>
+  <li>Navegue a <strong>Inscripciones</strong>.</li>
+  <li>Visualice sus inscripciones activas e históricas.</li>
+  <li>Realice solicitud de reinscripción a nuevo periodo.</li>
+</ol>
+
+<h3>8.3 Kardex</h3>
+<ol>
+  <li>Navegue a <strong>Kardex</strong>.</li>
+  <li>Consulte su historial académico completo.</li>
+  <li>Descargue su kardex en PDF o Excel.</li>
+  <li>Visualice su código QR y fotografía.</li>
+</ol>
+
+<h3>8.4 Evaluaciones</h3>
+<ol>
+  <li>Navegue a <strong>Evaluaciones</strong>.</li>
+  <li>Consulte evaluaciones activas pendientes de responder.</li>
+  <li>Responda evaluaciones.</li>
+  <li>Consulte sus resultados.</li>
+</ol>
+
+<h3>8.5 Trámites</h3>
+<ol>
+  <li>Navegue a <strong>Trámites</strong>.</li>
+  <li>Solicite: baja de carrera, cambio de escuela o cambio de carrera.</li>
+  <li>Dé seguimiento al estado de sus solicitudes.</li>
+</ol>
+
+<h3>8.6 IA Bienestar (Estudiante)</h3>
+<ol>
+  <li>Navegue a <strong>Bienestar</strong>.</li>
+  <li>Realice su <strong>check-in emocional diario</strong>: seleccione su estado en 9 dimensiones (ánimo, energía, sueño, estrés, apoyo, ambiente, carga académica, carga laboral, enfoque).</li>
+  <li>Chatee con el asistente de bienestar impulsado por Gemini.</li>
+  <li>Si necesita ayuda inmediata, use la opción <strong>Escalar</strong> para solicitar derivación a recursos de apoyo.</li>
+</ol>
+
+<h3>8.7 IA Deserción</h3>
+<ol>
+  <li>Navegue a <strong>IA Deserción</strong>.</li>
+  <li>Consulte su nivel de riesgo de deserción.</li>
+  <li>Revise recomendaciones personalizadas.</li>
+</ol>
+
+<h3>8.8 IA Becas</h3>
+<ol>
+  <li>Navegue a <strong>Becas</strong>.</li>
+  <li>Consulte el catálogo de becas disponibles.</li>
+  <li>Realice preguntas sobre becas.</li>
+  <li>Verifique su elegibilidad.</li>
+</ol>
+
+<h3>8.9 Asistente Académico y Chatbot</h3>
+<p>Realice consultas sobre su situación académica, becas, estadísticas del sistema o dudas generales.</p>
+
+<h3>8.10 Reportes</h3>
+<p>Genere reportes PDF y Excel.</p>
+
+<h2 id="s9">9. Panel de Soporte</h2>
+
+<h3>9.1 Dashboard</h3>
+<p>Visualiza resumen de incidencias, logs recientes y estado de conectividad.</p>
+
+<h3>9.2 Módulos de consulta</h3>
+<p>Acceso de solo lectura a: Alumnos, Docentes, Periodos, Grupos, Inscripciones, Kardex, Evaluaciones, Actas OCR, Trámites.</p>
+
+<h3>9.3 IA Deserción Soporte</h3>
+<p>Consulte logs de errores, registros de conectividad con Flask ML y reportes de incidencias del módulo de deserción.</p>
+
+<h3>9.4 IA Bienestar</h3>
+<p>Consulta indicadores de bienestar (solo lectura).</p>
+
+<h3>9.5 IA Becas</h3>
+<p>Consulta el catálogo de becas.</p>
+
+<h3>9.6 Asistente Académico y Chatbot</h3>
+<p>Realice consultas de soporte técnico.</p>
+
+<h3>9.7 Reportes</h3>
+<p>Genere reportes PDF y Excel.</p>
+
+<h3>9.8 Auditoría</h3>
+<p>Consulte la bitácora de operaciones (solo lectura) y sesiones activas.</p>
+
+<h2 id="s10">10. Exportación de Reportes</h2>
+
+<h3>10.1 Reporte PDF</h3>
+<ol>
+  <li>En el módulo <strong>Reportes</strong> o en <strong>Kardex</strong>, haga clic en <strong>Generar PDF</strong>.</li>
+  <li>Espere la generación del documento (2-5 segundos).</li>
+  <li>El PDF se descargará automáticamente con el formato institucional (encabezado TESI, métricas, gráficos).</li>
+</ol>
+
+<h3>10.2 Reporte Excel</h3>
+<ol>
+  <li>Haga clic en <strong>Generar Excel</strong>.</li>
+  <li>El archivo XLSX se descargará con múltiples hojas (portada, resumen, detalle).</li>
+</ol>
+
+<h3>10.3 Exportación de datos (Bienestar Admin)</h3>
+<p>En el panel de Bienestar Admin, use los botones <strong>Exportar TXT</strong> o <strong>Exportar CSV</strong> para descargar los datos visibles.</p>
+
+<h2 id="s11">11. Cierre de Sesión</h2>
+<ol>
+  <li>Haga clic en su nombre o avatar en la esquina superior derecha.</li>
+  <li>Seleccione <strong>Cerrar Sesión</strong>.</li>
+  <li>Será redirigido a la pantalla de login.</li>
+  <li>Para seguridad, cierre también el navegador si usa un equipo compartido.</li>
+</ol>
+
+<div class="footer-page">Fin del Manual de Usuario — SIVACAD v1.0 — TESI Ixtapaluca — ISC 2026</div>
+
+<div class="print-footer">SIVACAD &mdash; Manual de Usuario &mdash; TESI Ixtapaluca &mdash; ISC 2026</div>
+</body>
+</html>

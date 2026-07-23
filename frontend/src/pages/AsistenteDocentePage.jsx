@@ -240,7 +240,7 @@ export default function AsistenteDocentePage() {
                 <div style={{ padding: '1rem', background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 12 }}>
                   <div className="eyebrow" style={{ marginBottom: '0.5rem' }}><ClipboardList size={14} /> Tus cargas académicas</div>
                   <div style={{ overflowX: 'auto' }}>
-                    <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+                    <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                       <thead>
                         <tr>
                           <th>Grupo</th>
@@ -267,7 +267,7 @@ export default function AsistenteDocentePage() {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </table></div>
                   </div>
                 </div>
               )}
@@ -284,7 +284,7 @@ export default function AsistenteDocentePage() {
           </div>
           {groups.length > 0 ? (
             <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                 <thead>
                   <tr>
                     <th>Periodo</th>
@@ -317,7 +317,7 @@ export default function AsistenteDocentePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : <p className="muted">No tienes grupos asignados.</p>}
         </div>
@@ -331,7 +331,7 @@ export default function AsistenteDocentePage() {
           </div>
           {evaluations.length > 0 ? (
             <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                 <thead>
                   <tr>
                     <th>Título</th>
@@ -362,7 +362,7 @@ export default function AsistenteDocentePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : <p className="muted">No hay evaluaciones relacionadas con tus grupos.</p>}
         </div>
@@ -412,7 +412,7 @@ export default function AsistenteDocentePage() {
           </div>
           {tracking.length > 0 ? (
             <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                 <thead>
                   <tr>
                     <th>Matrícula</th>
@@ -451,7 +451,7 @@ export default function AsistenteDocentePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
               <p className="muted" style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>{tracking.length} alumno(s).</p>
             </div>
           ) : <p className="muted">No se encontraron alumnos.</p>}
@@ -472,7 +472,7 @@ export default function AsistenteDocentePage() {
               </div>
               {kardexView.historial?.length > 0 && (
                 <div style={{ overflowX: 'auto' }}>
-                  <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+                  <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                     <thead>
                       <tr>
                         <th>Periodo</th>
@@ -497,7 +497,7 @@ export default function AsistenteDocentePage() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 </div>
               )}
             </div>

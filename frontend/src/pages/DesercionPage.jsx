@@ -169,7 +169,7 @@ export default function DesercionPage() {
           {data.parciales && data.parciales.length > 0 && (
             <SectionCard title="An\u00e1lisis por Parciales" icon={Activity}>
               <div className="overflow-x-auto">
-                <table className="table table-zebra w-full text-sm">
+                <div className="table-responsive"><table className="table table-zebra w-full text-sm">
                   <thead>
                     <tr className="bg-indigo-600 text-white">
                       <th className="text-left">Parcial</th><th>Promedio</th><th>Riesgos</th><th>Reprob.</th><th>Activos</th><th>Desert.</th><th>Tasa</th>
@@ -194,7 +194,7 @@ export default function DesercionPage() {
                       );
                     })}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             </SectionCard>
           )}
@@ -219,7 +219,7 @@ export default function DesercionPage() {
           {data.por_carrera && data.por_carrera.length > 0 && (
             <SectionCard title="An\u00e1lisis por Carrera" icon={Users}>
               <div className="overflow-x-auto">
-                <table className="table table-zebra w-full text-sm">
+                <div className="table-responsive"><table className="table table-zebra w-full text-sm">
                   <thead>
                     <tr className="bg-sky-600 text-white">
                       <th className="text-left">Carrera</th><th>Alertas</th><th>Alto/Cr\u00edtico</th><th>Pendientes</th>
@@ -237,7 +237,7 @@ export default function DesercionPage() {
                       );
                     })}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             </SectionCard>
           )}
@@ -245,7 +245,7 @@ export default function DesercionPage() {
           {data.alertas_recientes && data.alertas_recientes.length > 0 && (
             <SectionCard title="Alertas Recientes" icon={ShieldAlert}>
               <div className="overflow-x-auto">
-                <table className="table table-zebra w-full text-sm">
+                <div className="table-responsive"><table className="table table-zebra w-full text-sm">
                   <thead>
                     <tr className="bg-indigo-600 text-white">
                       <th>#</th><th>Matr\u00edcula</th><th>Alumno</th><th>Riesgo</th><th>Puntaje</th><th>Estado</th><th>Periodo</th>
@@ -274,7 +274,7 @@ export default function DesercionPage() {
                       );
                     })}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             </SectionCard>
           )}

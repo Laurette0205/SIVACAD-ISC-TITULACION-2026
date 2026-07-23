@@ -646,7 +646,7 @@ router.get('/conversaciones', authMiddleware, async (req, res) => {
     if (role !== 'ADMINISTRADOR' && role !== 'COORDINADOR') {
       const currentUserId = getUserId(req.user);
       const [rows] = await pool.execute(
-        `SELECT cm.*, u.nombre_completo FROM chatbot_mensajes cm
+        `SELECT cm.*, CONCAT(u.nombres, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS nombre_completo FROM chatbot_mensajes cm
          LEFT JOIN usuarios u ON cm.id_usuario = u.id_usuario
          WHERE cm.id_usuario = ?
          ORDER BY cm.created_at DESC LIMIT 50`,
@@ -659,7 +659,7 @@ router.get('/conversaciones', authMiddleware, async (req, res) => {
     const offset = Math.max(Number(req.query.offset) || 0, 0);
     const usuarioId = req.query.id_usuario ? Number(req.query.id_usuario) : null;
 
-    let sql = `SELECT cm.*, u.nombre_completo FROM chatbot_mensajes cm LEFT JOIN usuarios u ON cm.id_usuario = u.id_usuario`;
+    let sql = `SELECT cm.*, CONCAT(u.nombres, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS nombre_completo FROM chatbot_mensajes cm LEFT JOIN usuarios u ON cm.id_usuario = u.id_usuario`;
     const params = [];
 
     if (usuarioId) {
@@ -691,7 +691,7 @@ router.get('/exportar', authMiddleware, async (req, res) => {
 
     let data;
     if (tipo === 'conversaciones') {
-      let sql = `SELECT cm.*, u.nombre_completo FROM chatbot_mensajes cm LEFT JOIN usuarios u ON cm.id_usuario = u.id_usuario`;
+      let sql = `SELECT cm.*, CONCAT(u.nombres, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS nombre_completo FROM chatbot_mensajes cm LEFT JOIN usuarios u ON cm.id_usuario = u.id_usuario`;
       const params = [];
       const conditions = [];
       if (desde) { conditions.push('cm.created_at >= ?'); params.push(desde); }

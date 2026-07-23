@@ -132,7 +132,7 @@ function KardexPorGrupo({ token }) {
           </div>
 
           <div className="table-wrap" style={{ marginTop: '12px', overflowX: 'auto' }}>
-            <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+            <div className="table-responsive"><table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
               <thead>
                 <tr style={{ background: '#1e40af', color: '#fff' }}>
                   <th style={{ padding: '6px 8px', textAlign: 'left' }}>Alumno</th>
@@ -186,7 +186,7 @@ function KardexPorGrupo({ token }) {
                   </td></tr>
                 )}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </>
       )}
@@ -292,7 +292,7 @@ function KardexPorAlumno({ token }) {
           {h && h.length > 0 && (
             <div className="table-wrap" style={{ marginTop: '12px', overflowX: 'auto' }}>
               <h4 style={{ margin: '0 0 8px', fontSize: '13px' }}>Historial académico</h4>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
                 <thead>
                   <tr style={{ background: '#1e40af', color: '#fff' }}>
                     <th style={{ padding: '4px 6px' }}>Periodo</th>
@@ -321,7 +321,7 @@ function KardexPorAlumno({ token }) {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
 
@@ -404,7 +404,7 @@ function ResumenPorPeriodo({ token }) {
           {porCarrera.length > 0 && (
             <div className="table-wrap" style={{ marginTop: '12px', overflowX: 'auto' }}>
               <h4 style={{ margin: '0 0 8px', fontSize: '13px' }}>Desglose por carrera</h4>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
                 <thead>
                   <tr style={{ background: '#1e40af', color: '#fff' }}>
                     <th style={{ padding: '6px 8px', textAlign: 'left' }}>Carrera</th>
@@ -433,7 +433,7 @@ function ResumenPorPeriodo({ token }) {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
         </>
@@ -500,7 +500,7 @@ function HistorialPorCarrera({ token }) {
           {porPeriodo.length > 0 && (
             <div className="table-wrap" style={{ marginTop: '12px', overflowX: 'auto' }}>
               <h4 style={{ margin: '0 0 8px', fontSize: '13px' }}>Tendencia por periodo</h4>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
                 <thead>
                   <tr style={{ background: '#1e40af', color: '#fff' }}>
                     <th style={{ padding: '5px 6px', textAlign: 'left' }}>Periodo</th>
@@ -533,14 +533,14 @@ function HistorialPorCarrera({ token }) {
                     );
                   })}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
 
           {tendencia.length > 0 && (
             <div className="table-wrap" style={{ marginTop: '12px', overflowX: 'auto' }}>
               <h4 style={{ margin: '0 0 8px', fontSize: '13px' }}>Distribución por semestre</h4>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
                 <thead>
                   <tr style={{ background: '#1e40af', color: '#fff' }}>
                     <th style={{ padding: '5px 6px' }}>Semestre</th>
@@ -564,7 +564,7 @@ function HistorialPorCarrera({ token }) {
                     );
                   })}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
 
@@ -574,7 +574,7 @@ function HistorialPorCarrera({ token }) {
                 <AlertTriangle size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
                 Alumnos en situación de rezago
               </h4>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
                 <thead>
                   <tr style={{ background: '#991b1b', color: '#fff' }}>
                     <th style={{ padding: '5px 6px', textAlign: 'left' }}>Alumno</th>
@@ -595,7 +595,7 @@ function HistorialPorCarrera({ token }) {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
 
@@ -777,7 +777,7 @@ function ValidacionTrayectorias({ token }) {
 
             {diagR.alumnos?.length > 0 && (
               <div className="table-wrap" style={{ overflowX: 'auto' }}>
-                <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
+                <div className="table-responsive"><table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
                   <thead>
                     <tr style={{ background: '#991b1b', color: '#fff' }}>
                       <th style={{ padding: '4px 6px', textAlign: 'left' }}>Alumno</th>
@@ -804,7 +804,7 @@ function ValidacionTrayectorias({ token }) {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             )}
           </div>

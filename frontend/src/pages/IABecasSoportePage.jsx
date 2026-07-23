@@ -238,7 +238,7 @@ function PanelGeneral({ estado, integridad, conectividad, loading, loadEstado, l
           </div>
           <div className="card-body" style={{ maxHeight: 350, overflow: 'auto' }}>
             {estado?.tablas ? (
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead><tr><th>Tabla</th><th>Registros</th><th>Estado</th></tr></thead>
                 <tbody>
                   {Object.entries(estado.tablas).map(([name, info]) => (
@@ -249,7 +249,7 @@ function PanelGeneral({ estado, integridad, conectividad, loading, loadEstado, l
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             ) : <p style={{ color: '#94a3b8', textAlign: 'center' }}>Sin datos</p>}
           </div>
         </div>
@@ -261,7 +261,7 @@ function PanelGeneral({ estado, integridad, conectividad, loading, loadEstado, l
           </div>
           <div className="card-body" style={{ maxHeight: 350, overflow: 'auto' }}>
             {integridad?.tablas ? (
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead><tr><th>Tabla</th><th>Columnas</th><th>Faltantes</th><th>Estado</th></tr></thead>
                 <tbody>
                   {integridad.tablas.map(t => (
@@ -273,7 +273,7 @@ function PanelGeneral({ estado, integridad, conectividad, loading, loadEstado, l
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             ) : <p style={{ color: '#94a3b8', textAlign: 'center' }}>Sin datos</p>}
           </div>
         </div>
@@ -308,7 +308,7 @@ function RegistroErrores({ errores, loading, loadErrores, loadLogs }) {
       <div className="card-body">
         {loading ? <div className="loading-container"><Loader2 className="spinner" size={24} /></div> : (
           <>
-            <table className="table">
+            <div className="table-responsive"><table className="table">
               <thead>
                 <tr>
                   <th>Fecha</th>
@@ -340,7 +340,7 @@ function RegistroErrores({ errores, loading, loadErrores, loadLogs }) {
                 ))}
                 {!items.length && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>Sin registros</td></tr>}
               </tbody>
-            </table>
+            </table></div>
             {meta?.totalPaginas > 1 && (
               <div className="pagination" style={{ padding: '1rem', display: 'flex', gap: 8, justifyContent: 'center' }}>
                 {Array.from({ length: meta.totalPaginas }, (_, i) => i + 1).map(p => (
@@ -423,7 +423,7 @@ function Exportaciones({ exportaciones, loading, loadExportaciones }) {
       </div>
       <div className="card-body">
         {loading ? <div className="loading-container"><Loader2 className="spinner" size={24} /></div> : (
-          <table className="table">
+          <div className="table-responsive"><table className="table">
             <thead>
               <tr>
                 <th>Fecha</th>
@@ -451,7 +451,7 @@ function Exportaciones({ exportaciones, loading, loadExportaciones }) {
               ))}
               {!items.length && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>Sin exportaciones</td></tr>}
             </tbody>
-          </table>
+          </table></div>
         )}
         {meta?.totalPaginas > 1 && (
           <div className="pagination" style={{ padding: '1rem', display: 'flex', gap: 8, justifyContent: 'center' }}>
@@ -518,7 +518,7 @@ function EstadoServicio({ estado, verificacion, conectividad, loading, loadEstad
         <div className="card-header"><h3><Activity size={18} /> Resultados de verificación</h3></div>
         <div className="card-body">
           {v.length ? (
-            <table className="table">
+            <div className="table-responsive"><table className="table">
               <thead><tr><th>Prueba</th><th>Estado</th><th>Detalle</th></tr></thead>
               <tbody>
                 {v.map((item, i) => (
@@ -538,7 +538,7 @@ function EstadoServicio({ estado, verificacion, conectividad, loading, loadEstad
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           ) : <p style={{ color: '#94a3b8', textAlign: 'center', padding: 20 }}>Sin datos de verificación</p>}
         </div>
       </div>
@@ -547,7 +547,7 @@ function EstadoServicio({ estado, verificacion, conectividad, loading, loadEstad
         <div className="card" style={{ marginTop: 16 }}>
           <div className="card-header"><h3><Server size={18} /> Tablas en base de datos</h3></div>
           <div className="card-body" style={{ maxHeight: 300, overflow: 'auto' }}>
-            <table className="table">
+            <div className="table-responsive"><table className="table">
               <thead><tr><th>Tabla</th><th>Registros</th><th>Creación</th><th>Última actualización</th></tr></thead>
               <tbody>
                 {conectividad.tablas_becas?.map(t => (
@@ -559,7 +559,7 @@ function EstadoServicio({ estado, verificacion, conectividad, loading, loadEstad
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </div>
       )}

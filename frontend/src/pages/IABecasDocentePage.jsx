@@ -150,7 +150,7 @@ function AlumnosSugeridos({ token, user, showMessage }) {
           <h3><Users size={18} /> Alumnos con necesidad potencial de beca ({meta.total})</h3>
         </div>
         {loading ? <div className="loading-container"><Loader2 className="spinner" size={32} /></div> : (
-          <table className="table">
+          <div className="table-responsive"><table className="table">
             <thead>
               <tr>
                 <th>Matrícula</th>
@@ -180,7 +180,7 @@ function AlumnosSugeridos({ token, user, showMessage }) {
               ))}
               {!alumnos.length && <tr><td colSpan={9} style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>No se encontraron alumnos sugeridos</td></tr>}
             </tbody>
-          </table>
+          </table></div>
         )}
         {meta.totalPaginas > 1 && (
           <div className="pagination" style={{ padding: '1rem', display: 'flex', gap: 8, justifyContent: 'center' }}>
@@ -205,7 +205,7 @@ function AlumnosSugeridos({ token, user, showMessage }) {
             </div>
             <h4>Solicitudes de beca ({selectedAlumno.solicitudes?.length || 0})</h4>
             {selectedAlumno.solicitudes?.length ? (
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead><tr><th>Código</th><th>Convocatoria</th><th>Estatus</th><th>Prioridad</th><th>Fecha</th></tr></thead>
                 <tbody>
                   {selectedAlumno.solicitudes.map(s => (
@@ -218,7 +218,7 @@ function AlumnosSugeridos({ token, user, showMessage }) {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             ) : <p style={{ color: '#94a3b8' }}>Sin solicitudes de beca registradas</p>}
           </div>
         )}
@@ -250,7 +250,7 @@ function AlertasAcademicas({ token, user, showMessage }) {
           <h3><AlertTriangle size={18} /> Alertas académicas ({meta.total})</h3>
         </div>
         {loading ? <div className="loading-container"><Loader2 className="spinner" size={32} /></div> : (
-          <table className="table">
+          <div className="table-responsive"><table className="table">
             <thead>
               <tr>
                 <th>Matrícula</th>
@@ -278,7 +278,7 @@ function AlertasAcademicas({ token, user, showMessage }) {
               ))}
               {!alertas.length && <tr><td colSpan={8} style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>Sin alertas académicas activas</td></tr>}
             </tbody>
-          </table>
+          </table></div>
         )}
         {meta.totalPaginas > 1 && (
           <div className="pagination" style={{ padding: '1rem', display: 'flex', gap: 8, justifyContent: 'center' }}>
@@ -516,7 +516,7 @@ function Seguimiento({ token, user, showMessage }) {
           <h3><Activity size={18} /> Seguimiento de casos ({meta.total})</h3>
         </div>
         {loading ? <div className="loading-container"><Loader2 className="spinner" size={32} /></div> : (
-          <table className="table">
+          <div className="table-responsive"><table className="table">
             <thead>
               <tr>
                 <th>Código</th>
@@ -546,7 +546,7 @@ function Seguimiento({ token, user, showMessage }) {
               ))}
               {!casos.length && <tr><td colSpan={9} style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>Sin casos en seguimiento</td></tr>}
             </tbody>
-          </table>
+          </table></div>
         )}
         {meta.totalPaginas > 1 && (
           <div className="pagination" style={{ padding: '1rem', display: 'flex', gap: 8, justifyContent: 'center' }}>

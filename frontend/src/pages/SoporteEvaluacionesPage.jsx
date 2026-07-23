@@ -156,7 +156,7 @@ export default function SoporteEvaluacionesPage() {
           <div className="section-card">
             <h3>Tablas del módulo</h3>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>Tabla</th><th>Filas</th><th>Tamaño (KB)</th></tr>
                 </thead>
@@ -169,7 +169,7 @@ export default function SoporteEvaluacionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         )}
@@ -190,7 +190,7 @@ export default function SoporteEvaluacionesPage() {
             <div className="section-card">
               <h3>Accesos recientes</h3>
               <div className="table-wrapper">
-                <table className="table">
+                <div className="table-responsive"><table className="table">
                   <thead>
                     <tr><th>Usuario</th><th>Acción</th><th>Detalle</th><th>Fecha</th></tr>
                   </thead>
@@ -204,7 +204,7 @@ export default function SoporteEvaluacionesPage() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             </div>
           )}
@@ -253,7 +253,7 @@ export default function SoporteEvaluacionesPage() {
           <div className="section-card">
             <h3>Errores recientes</h3>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>Usuario</th><th>Rol</th><th>Acción</th><th>Detalle</th><th>Evaluación</th><th>Fecha</th></tr>
                 </thead>
@@ -269,7 +269,7 @@ export default function SoporteEvaluacionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
             {errores?.length > 20 && (
               <div className="auth-note" style={{ marginTop: 8 }}>Se muestran 20 de {errores.length} registros.</div>
@@ -281,7 +281,7 @@ export default function SoporteEvaluacionesPage() {
           <div className="section-card">
             <h3>Evaluaciones sin resultados</h3>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>Título</th><th>Estado</th><th>Fecha fin</th><th>Creado</th></tr>
                 </thead>
@@ -295,7 +295,7 @@ export default function SoporteEvaluacionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         )}
@@ -343,7 +343,7 @@ export default function SoporteEvaluacionesPage() {
           <div className="section-card">
             <h3>Errores de validación (últimos 7 días)</h3>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>Usuario</th><th>Rol</th><th>Acción</th><th>Detalle</th><th>Evaluación</th><th>IP</th><th>Fecha</th></tr>
                 </thead>
@@ -360,7 +360,7 @@ export default function SoporteEvaluacionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         )}
@@ -369,7 +369,7 @@ export default function SoporteEvaluacionesPage() {
           <div className="section-card">
             <h3>Resultados rechazados</h3>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>Evaluación</th><th>Periodo</th><th>Promedio</th><th>Observación</th><th>Fecha rechazo</th></tr>
                 </thead>
@@ -384,7 +384,7 @@ export default function SoporteEvaluacionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         )}
@@ -417,7 +417,7 @@ export default function SoporteEvaluacionesPage() {
           <div className="section-card">
             <h3>&Uacute;ltimos registros</h3>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>ID</th><th>Usuario</th><th>Acción</th><th>Detalle</th><th>Evaluación</th><th>IP</th><th>Fecha</th></tr>
                 </thead>
@@ -434,7 +434,7 @@ export default function SoporteEvaluacionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         ) : (
@@ -466,7 +466,7 @@ export default function SoporteEvaluacionesPage() {
         <div className="section-card">
           <h3>Estado de rutas API</h3>
           <div className="table-wrapper">
-            <table className="table">
+            <div className="table-responsive"><table className="table">
               <thead>
                 <tr><th>Método</th><th>Ruta</th><th>Descripción</th><th>Estado</th><th>HTTP</th></tr>
               </thead>
@@ -491,7 +491,7 @@ export default function SoporteEvaluacionesPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </div>
       </div>
@@ -522,7 +522,7 @@ export default function SoporteEvaluacionesPage() {
           <div className="section-card">
             <h3>Registros de auditoría</h3>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>ID</th><th>Usuario</th><th>Rol</th><th>Acción</th><th>Detalle</th><th>Observaciones</th><th>IP</th><th>Evaluación</th><th>Fecha</th></tr>
                 </thead>
@@ -541,7 +541,7 @@ export default function SoporteEvaluacionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         ) : (

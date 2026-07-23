@@ -304,14 +304,14 @@ export default function IABienestarSoportePage() {
         <div className="stack">
           <SectionCard title="Estado de tablas" subtitle="Disponibilidad y registro de cada tabla del módulo">
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead><tr><th>Tabla</th><th>Estado</th><th style={{ textAlign: 'right' }}>Registros</th></tr></thead>
                 <tbody>
                   {estado?.tablas ? Object.entries(estado.tablas).map(([k, v]) => renderTablaRow(k, v)) : (
                     <tr><td colSpan={3} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>Sin datos</td></tr>
                   )}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </SectionCard>
 
@@ -365,7 +365,7 @@ export default function IABienestarSoportePage() {
       {activeTab === 'bitacora' && (
         <SectionCard title={`Bitácora (${bitacora.pagination?.total || 0})`} subtitle="Registro de auditoría del módulo de acompañamiento">
           <div className="table-wrapper">
-            <table className="table">
+            <div className="table-responsive"><table className="table">
               <thead><tr><th>ID</th><th>Acción</th><th>Detalle</th><th>Usuario</th><th>Fecha</th></tr></thead>
               <tbody>
                 {bitacora.data.length === 0 ? (
@@ -380,7 +380,7 @@ export default function IABienestarSoportePage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
           {bitacora.pagination?.pages > 1 && (
             <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem' }}>
@@ -420,7 +420,7 @@ export default function IABienestarSoportePage() {
           )}
           <SectionCard title={`Incidencias técnicas (${errores.data.length})`} subtitle="Alertas de nivel Alto o Crítico del módulo de acompañamiento">
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead><tr><th>#</th><th>Usuario</th><th>Tipo</th><th>Riesgo</th><th>Estado</th><th>Derivar</th><th>Fecha</th></tr></thead>
                 <tbody>
                   {errores.data.length === 0 ? (
@@ -437,7 +437,7 @@ export default function IABienestarSoportePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </SectionCard>
         </div>
@@ -615,7 +615,7 @@ export default function IABienestarSoportePage() {
           <div key={tabla} style={{ marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}><Database size={16} /> <code>{tabla}</code></h3>
             <div className="table-wrapper">
-              <table className="table" style={{ fontSize: '0.8rem' }}>
+              <div className="table-responsive"><table className="table" style={{ fontSize: '0.8rem' }}>
                 <thead><tr><th>Columna</th><th>Tipo</th><th>Nulo</th><th>Llave</th><th>Default</th></tr></thead>
                 <tbody>
                   {columnas.map((c, i) => (
@@ -628,7 +628,7 @@ export default function IABienestarSoportePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         ))}

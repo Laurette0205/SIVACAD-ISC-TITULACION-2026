@@ -59,9 +59,11 @@ class DesercionPdfTemplate {
 
     const logo1 = readImageAsBase64('Logo-TecNM.png');
     const logo2 = readImageAsBase64('Logo-TESI.png');
+    const logoSivacad = readImageAsBase64('Logo-SIVACAD.jpeg');
     const watermark = readImageAsBase64('marcadeagua_SIVACAD.jpeg');
+    const selloSivacad = readImageAsBase64('Sello-SIVACAD.jpeg');
 
-    const html = this.buildHtml(data, generatedAt, generatedBy, logo1, logo2, watermark);
+    const html = this.buildHtml(data, generatedAt, generatedBy, logo1, logo2, watermark, logoSivacad, selloSivacad);
 
     const browser = await puppeteer.launch({
       headless: true,
@@ -72,16 +74,16 @@ class DesercionPdfTemplate {
       const page = await browser.newPage();
       await page.setContent(html, { waitUntil: 'networkidle0' });
       const pdfBuffer = await page.pdf({
-        format: 'A4',
-        margin: { top: '25mm', right: '18mm', bottom: '22mm', left: '18mm' },
+        format: 'Letter',
+        margin: { top: '2.54cm', right: '2.54cm', bottom: '3.0cm', left: '3.0cm' },
         printBackground: true,
         displayHeaderFooter: true,
-        headerTemplate: '<span></span>',
+        headerTemplate: '<div style="font-size:8pt;text-align:right;padding-right:2.54cm;font-family:Arial;color:#475569;width:100%;"><span class="pageNumber"></span></div>',
         footerTemplate: `
-          <div style="width:100%;font-size:7px;font-family:Arial,sans-serif;color:#94a3b8;
-               text-align:center;padding:4px 18mm 0 18mm;border-top:1px solid #e2e8f0;">
-            SIVACAD &mdash; Sistema Integral para la Valoraci&oacute;n del Conocimiento
-            y Aprovechamiento Acad&eacute;mico &nbsp;|&nbsp;
+          <div style="width:100%;font-size:6.5px;font-family:Arial,sans-serif;color:#94a3b8;
+               text-align:center;padding:4px 3.0cm 0 3.0cm;border-top:1px solid #e2e8f0;">
+            Documento generado por SIVACAD-ISC &copy; 2026 B&aacute;rcenas Gonz&aacute;lez Laura Casandra &amp; Morales Ibarra Sandivel &mdash;
+            TESI &mdash; Ingenier&iacute;a en Sistemas Computacionales &mdash; Proyecto de Titulaci&oacute;n &mdash;
             P&aacute;gina <span class="pageNumber"></span> de <span class="totalPages"></span>
             &nbsp;|&nbsp; CONFIDENCIAL &mdash; Uso Acad&eacute;mico Exclusivo
           </div>
@@ -93,7 +95,7 @@ class DesercionPdfTemplate {
     }
   }
 
-  buildHtml(data, generatedAt, generatedBy, logo1, logo2, watermark) {
+  buildHtml(data, generatedAt, generatedBy, logo1, logo2, watermark, logoSivacad, selloSivacad) {
     const periodo = data.periodo_activo || 'N/D';
     const r = data.resumen || {};
     const dist = data.distribucion_riesgo || [];
@@ -169,15 +171,17 @@ class DesercionPdfTemplate {
       + '<div class="page"><div class="content">\n'
 
       // HEADER
-      + '<div class="header">'
-      + (logo1 ? '<img class="header-logo" src="' + logo1 + '" alt="TecNM"/>' : '<div style="width:38px"></div>')
-      + '<div class="header-center">'
-      + '<h1>SIVACAD &mdash; Reporte Estrat\u00e9gico de Riesgo de Deserci\u00f3n</h1>'
-      + '<div class="sub">Generado por: <strong>' + generatedBy + '</strong> &nbsp;|&nbsp; '
+      + '<div class="header" style="display:flex;align-items:center;justify-content:space-between;padding-bottom:4mm;margin-bottom:3mm;border-bottom:2.5px solid #4f46e5;">'
+      + (logo1 ? '<img class="header-logo" src="' + logo1 + '" alt="TecNM" style="height:32px;object-fit:contain"/>' : '<div style="width:32px"></div>')
+      + (logoSivacad ? '<img class="header-logo" src="' + logoSivacad + '" alt="SIVACAD" style="height:32px;object-fit:contain"/>' : '')
+      + '<div class="header-center" style="text-align:center;flex:1">'
+      + '<div style="font-size:6px;color:#64748b;margin-bottom:2px;font-weight:600;">SIVACAD-ISC &mdash; &copy; 2026 B&aacute;rcenas Gonz&aacute;lez Laura Casandra &amp; Morales Ibarra Sandivel &mdash; TESI &mdash; ISC</div>'
+      + '<h1 style="font-size:11px;color:#0f172a;margin-bottom:1px;letter-spacing:.3px;">SIVACAD &mdash; Reporte Estrat\u00e9gico de Riesgo de Deserci\u00f3n</h1>'
+      + '<div class="sub" style="font-size:6.5px;color:#64748b;">Generado por: <strong>' + generatedBy + '</strong> &nbsp;|&nbsp; '
       + formatDate(generatedAt) + ' &nbsp;|&nbsp; Periodo: <strong>' + periodo + '</strong></div>'
-      + '<div class="header-badge">CONFIDENCIAL &mdash; Uso Acad\u00e9mico Exclusivo</div>'
+      + '<div class="header-badge" style="display:inline-block;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:1px 7px;border-radius:3px;font-size:6px;font-weight:700;margin-top:2px;">CONFIDENCIAL &mdash; Uso Acad\u00e9mico Exclusivo</div>'
       + '</div>'
-      + (logo2 ? '<img class="header-logo" src="' + logo2 + '" alt="TESI"/>' : '<div style="width:38px"></div>')
+      + (logo2 ? '<img class="header-logo" src="' + logo2 + '" alt="TESI" style="height:32px;object-fit:contain"/>' : '<div style="width:32px"></div>')
       + '</div>\n'
 
       // SECTION 1: EXECUTIVE SUMMARY
@@ -305,14 +309,16 @@ class DesercionPdfTemplate {
       ) : '')
 
       // FOOTER
-      + '<div class="footer-note">'
-      + '<strong>SIVACAD</strong> &mdash; Sistema Integral para la Valoraci\u00f3n del Conocimiento '
-      + 'y Aprovechamiento Acad\u00e9mico<br>'
+      + '<div style="display:flex;align-items:center;gap:4mm;margin-top:4mm;padding-top:2mm;border-top:1px solid #e2e8f0;">'
+      + (selloSivacad ? '<div style="flex:0 0 40px;">' + '<img src="' + selloSivacad + '" style="height:36px;opacity:0.85;" alt="Sello SIVACAD"/>' + '</div>' : '')
+      + '<div class="footer-note" style="flex:1;font-size:6px;color:#94a3b8;text-align:center;line-height:1.5;border:none;margin:0;padding:0;">'
+      + 'Documento generado por <strong>SIVACAD-ISC</strong> &copy; 2026 B&aacute;rcenas Gonz&aacute;lez Laura Casandra &amp; Morales Ibarra Sandivel &mdash; '
+      + 'TESI &mdash; Ingenier&iacute;a en Sistemas Computacionales &mdash; Proyecto de Titulaci&oacute;n<br>'
       + 'Reporte generado el ' + formatDate(generatedAt) + ' por <strong>' + generatedBy
       + '</strong> &nbsp;|&nbsp; Periodo: ' + periodo + '<br>'
       + '<em>CONFIDENCIAL &mdash; Este documento contiene informaci\u00f3n institucional sensible. '
       + 'Su distribuci\u00f3n no autorizada est\u00e1 prohibida.</em>'
-      + '</div>\n'
+      + '</div></div>\n'
 
       + '</div></div>\n'
       + '</body>\n</html>';

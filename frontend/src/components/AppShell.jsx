@@ -20,7 +20,8 @@ import {
   Brain,
   Shield,
   AlertTriangle,
-  Folders
+  Folders,
+  X
 } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
@@ -65,7 +66,7 @@ const ROLE_SECTIONS = {
       items: [
         { to: '/app/ia', label: 'IA de deserción', icon: Sparkles },
         { to: '/app/ia/bienestar', label: 'IA de Acompañamiento Estudiantil', icon: HeartPulse },
-        { to: '/app/bienestar-admin', label: 'Supervisión IA de Acompañamiento', icon: Shield },
+        { to: '/app/bienestar-admin', label: 'Supervisión de Acompañamiento', icon: Shield },
         { to: '/app/ia/becas', label: 'IA de becas', icon: Sparkles },
         { to: '/app/ia/becas/admin', label: 'Admin IA de becas', icon: Shield },
         { to: '/app/actas-ocr', label: 'Actas OCR inteligentes', icon: FileText },
@@ -106,7 +107,7 @@ const ROLE_SECTIONS = {
       items: [
         { to: '/app/ia', label: 'IA de deserción', icon: Sparkles },
         { to: '/app/ia/bienestar', label: 'IA de Acompañamiento Estudiantil', icon: HeartPulse },
-        { to: '/app/bienestar-admin', label: 'Supervisión IA de Acompañamiento', icon: Activity },
+        { to: '/app/bienestar-admin', label: 'Supervisión de Acompañamiento', icon: Activity },
         { to: '/app/ia/becas', label: 'IA de becas', icon: Sparkles },
         { to: '/app/ia/becas/coordinador', label: 'Coord. IA de becas', icon: ClipboardCheck },
         { to: '/app/actas-ocr-coordinador', label: 'Actas OCR inteligentes', icon: FileText },
@@ -141,7 +142,7 @@ const ROLE_SECTIONS = {
       title: 'Inteligencia institucional',
       items: [
         { to: '/app/docente/ia', label: 'IA de deserción', icon: Sparkles },
-        { to: '/app/docente/bienestar', label: 'Supervisión IA de Acompañamiento Estudiantil', icon: HeartPulse },
+        { to: '/app/ia/bienestar', label: 'IA de Acompañamiento Estudiantil', icon: HeartPulse },
         { to: '/app/ia/becas/docente', label: 'IA de becas', icon: Sparkles },
         { to: '/app/actas-ocr-docente', label: 'Actas OCR inteligentes', icon: FileText },
         { to: '/app/chatbot', label: 'ChatBot', icon: Bot }
@@ -170,7 +171,7 @@ const ROLE_SECTIONS = {
       title: 'Inteligencia institucional',
       items: [
         { to: '/app/alumno/ia', label: 'IA de deserción', icon: AlertTriangle },
-        { to: '/app/alumno/bienestar', label: 'Supervisión IA de Acompañamiento Estudiantil', icon: HeartPulse },
+        { to: '/app/ia/bienestar', label: 'IA de Acompañamiento Estudiantil', icon: HeartPulse },
         { to: '/app/ia/becas/alumno', label: 'IA de becas', icon: Sparkles },
         { to: '/app/actas-ocr-alumno', label: 'Actas OCR inteligentes', icon: FileText },
         { to: '/app/chatbot', label: 'ChatBot', icon: Bot }
@@ -199,7 +200,7 @@ const ROLE_SECTIONS = {
       title: 'Inteligencia institucional',
       items: [
         { to: '/app/soporte/ia', label: 'IA de deserción', icon: AlertTriangle },
-        { to: '/app/soporte/bienestar', label: 'Supervisión IA de Acompañamiento Estudiantil', icon: HeartPulse },
+        { to: '/app/ia/bienestar', label: 'IA de Acompañamiento Estudiantil', icon: HeartPulse },
         { to: '/app/ia/becas/soporte', label: 'IA de becas', icon: Sparkles },
         { to: '/app/actas-ocr-soporte', label: 'Actas OCR inteligentes', icon: FileText },
         { to: '/app/chatbot', label: 'ChatBot', icon: Bot }
@@ -233,7 +234,7 @@ function getShellRoleClass(roleName) {
   }
 }
 
-function MenuSection({ title, items, collapsed }) {
+function MenuSection({ title, items, collapsed, onItemClick }) {
   return (
     <div className="nav-section">
       {!collapsed && <div className="nav-section-title">{title}</div>}
@@ -248,6 +249,7 @@ function MenuSection({ title, items, collapsed }) {
               to={item.to}
               className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
               title={collapsed ? item.label : undefined}
+              onClick={onItemClick}
             >
               <Icon size={18} />
               {!collapsed && <span>{item.label}</span>}
@@ -322,6 +324,13 @@ export function AppShell() {
   const { theme, toggleTheme } = useTheme();
 
   const [collapsed, setCollapsed] = React.useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+
+  const closeMobileMenu = React.useCallback(() => {
+    if (window.innerWidth <= 720) {
+      setMobileMenuOpen(false);
+    }
+  }, []);
 
   const roleName = getUserRoleName(user);
   const roleLabel = ROLE_LABELS[roleName] || 'Usuario';
@@ -354,7 +363,11 @@ export function AppShell() {
 
   return (
     <div className={`shell ${shellRoleClass}`}>
-      <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+      {mobileMenuOpen && (
+        <div className="sidebar-overlay" onClick={closeMobileMenu} />
+      )}
+
+      <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="brand-row">
           <div className="brand-mark">ISC</div>
 
@@ -415,21 +428,10 @@ export function AppShell() {
               title={section.title}
               items={section.items}
               collapsed={collapsed}
+              onItemClick={closeMobileMenu}
             />
           ))}
         </nav>
-
-        {showIAFeature && !collapsed && (
-          <button
-            type="button"
-            className="btn secondary w-full"
-            onClick={() => navigate('/app/ia/bienestar')}
-            style={{ marginTop: '0.25rem' }}
-          >
-            <HeartPulse size={16} />
-            IA de Acompañamiento Estudiantil
-          </button>
-        )}
 
         <button
           type="button"
@@ -439,6 +441,25 @@ export function AppShell() {
           <LogOut size={16} />
           {!collapsed && 'Cerrar sesión'}
         </button>
+
+        <div style={{ marginTop: '0.5rem', fontSize: '0.7rem', textAlign: 'center', padding: '0.5rem', borderTop: '1px solid var(--border)', lineHeight: 1.6, color: '#cbd5e1' }}>
+          {collapsed ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <a href="/terminos" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', fontSize: '0.65rem' }}>Términos</a>
+              <a href="/aviso-privacidad" target="_blank" rel="noopener noreferrer" style={{ color: '#94a3b8', fontSize: '0.65rem' }}>Privacidad</a>
+            </div>
+          ) : (
+            <>
+              <div>© 2026 Bárcenas G. Laura C. &amp; Morales I. Sandivel</div>
+              <div style={{ fontSize: '0.65rem', marginTop: '0.15rem' }}>Ing. Sistemas Computacionales — TESI</div>
+              <div style={{ fontSize: '0.6rem', marginTop: '0.1rem', opacity: 0.7 }}>Actualizado: Julio 2026</div>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '0.3rem' }}>
+                <a href="/terminos" target="_blank" rel="noopener noreferrer" style={{ color: '#93c5fd' }}>Términos</a>
+                <a href="/aviso-privacidad" target="_blank" rel="noopener noreferrer" style={{ color: '#93c5fd' }}>Aviso de Privacidad</a>
+              </div>
+            </>
+          )}
+        </div>
       </aside>
 
       <div className="main">
@@ -451,12 +472,11 @@ export function AppShell() {
           <div className="topbar-actions">
             <button
               type="button"
-              className="btn secondary"
-              onClick={() => navigate('/app/ia/bienestar')}
-              title="Abrir IA de Acompañamiento Estudiantil"
+              className="btn secondary mobile-hamburger"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
             >
-              <HeartPulse size={16} />
-              IA de Acompañamiento Estudiantil
+              {mobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
             </button>
 
             <SoundToggleButton />

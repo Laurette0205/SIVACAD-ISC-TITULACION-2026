@@ -215,7 +215,7 @@ export default function CoordinadorReinscripcionesPage() {
 
           {solicitudes.length > 0 ? (
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>ID</th><th>Matrícula</th><th>Alumno</th><th>Periodo</th><th>Grupo</th><th>Estado</th><th>Motivo</th><th>Cupo</th><th>Fecha</th><th>Acciones</th></tr>
                 </thead>
@@ -268,7 +268,7 @@ export default function CoordinadorReinscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : (
             <div className="auth-note" style={{ textAlign: 'center', padding: '2rem' }}>
@@ -303,7 +303,7 @@ export default function CoordinadorReinscripcionesPage() {
 
           {validacionGrupo.length > 0 ? (
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>Grupo</th><th>Periodo</th><th>Semestre</th><th>Turno</th><th>Total</th><th>Pendientes</th><th>Validadas</th><th>Rechazadas</th><th>Activas</th><th>Cupo</th><th>Ocupación</th></tr>
                 </thead>
@@ -331,7 +331,7 @@ export default function CoordinadorReinscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : (
             <div className="auth-note" style={{ textAlign: 'center', padding: '2rem' }}>
@@ -416,7 +416,7 @@ export default function CoordinadorReinscripcionesPage() {
               {detalleData.historial?.length > 0 && (
                 <SectionCard title="Historial de cambios">
                   <div className="table-wrapper">
-                    <table className="table">
+                    <div className="table-responsive"><table className="table">
                       <thead>
                         <tr><th>Acción</th><th>Detalle</th><th>Estado ant.</th><th>Estado nuevo</th><th>Usuario</th><th>IP</th><th>Fecha</th></tr>
                       </thead>
@@ -433,7 +433,7 @@ export default function CoordinadorReinscripcionesPage() {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </table></div>
                   </div>
                 </SectionCard>
               )}
@@ -459,7 +459,7 @@ export default function CoordinadorReinscripcionesPage() {
         >
           {conObservaciones.length > 0 ? (
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>ID</th><th>Matrícula</th><th>Alumno</th><th>Periodo</th><th>Estado</th><th>Observaciones</th></tr>
                 </thead>
@@ -479,7 +479,7 @@ export default function CoordinadorReinscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : (
             <div className="auth-note" style={{ textAlign: 'center', padding: '2rem' }}>
@@ -514,7 +514,7 @@ export default function CoordinadorReinscripcionesPage() {
 
           {recientes.length > 0 ? (
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>ID</th><th>Matrícula</th><th>Alumno</th><th>Periodo</th><th>Grupo</th><th>Estado</th><th>Motivo</th><th>Fecha</th><th>Validó</th></tr>
                 </thead>
@@ -533,7 +533,7 @@ export default function CoordinadorReinscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : (
             <div className="auth-note" style={{ textAlign: 'center', padding: '2rem' }}>

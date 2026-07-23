@@ -1,4 +1,8 @@
 <?php
+/**
+ * SIVACAD-ISC — Copyright (c) 2026 Bárcenas González Laura Casandra &
+ *                    Morales Ibarra Sandivel — TESI — ISC
+ */
 function getKardexTemplate(array $data): string
 {
     $folio = htmlspecialchars($data['folio'] ?? '—', ENT_QUOTES, 'UTF-8');
@@ -74,6 +78,7 @@ SELLO;
     $logo_sivacad = base64_encode_file($logoPath . '/Logo-SIVACAD.jpeg');
     $logo_tesi   = base64_encode_file($logoPath . '/Logo-TESI.png');
     $watermark   = base64_encode_file($logoPath . '/marcadeagua_SIVACAD.jpeg');
+    $sello_sivacad = base64_encode_file($logoPath . '/Sello-SIVACAD.jpeg');
 
     $fotoHtml = $fotoBase64
         ? '<img src="data:image/jpeg;base64,' . $fotoBase64 . '" style="width:100%;height:100%;object-fit:cover;" alt="Foto">'
@@ -82,6 +87,12 @@ SELLO;
     $qrHtml = $qrBase64
         ? '<img src="data:image/png;base64,' . $qrBase64 . '" style="width:55px;height:55px;" alt="QR">'
         : '<span style="color:#94a3b8;font-size:4.5pt;">QR del sistema SIVACAD</span>';
+
+    $selloSivacadImg = $sello_sivacad
+        ? '<img src="data:image/jpeg;base64,' . $sello_sivacad . '" style="height:32px;opacity:0.85;" alt="Sello SIVACAD"/>'
+        : '';
+
+    $copyHeader = '<div style="font-size:7pt;color:#64748b;text-align:center;font-weight:600;margin-bottom:4px;">SIVACAD-ISC &mdash; Propiedad intelectual de B&aacute;rcenas Gonz&aacute;lez Laura Casandra &amp; Morales Ibarra Sandivel &mdash; TESI &mdash; Ingenier&iacute;a en Sistemas Computacionales</div>';
 
     $wmStyle = $watermark
         ? "background-image: url('data:image/jpeg;base64,{$watermark}');"
@@ -123,13 +134,14 @@ ROW;
 <head>
 <meta charset="UTF-8">
 <style>
-    @page { margin: 0.3cm 0.7cm 1.2cm 0.7cm; size: letter; }
+    @page { margin: 2.54cm 2.54cm 3.0cm 3.0cm; size: letter; }
     * { margin: 0; padding: 0; }
     body {
         font-family: 'Helvetica', 'Arial', sans-serif;
-        font-size: 9pt;
+        font-size: 12pt;
         color: #0f172a;
-        line-height: 1.35;
+        line-height: 1.5;
+        text-align: justify;
     }
     .watermark {
         position: fixed;
@@ -160,16 +172,18 @@ ROW;
 <table style="width:100%;border-collapse:collapse;border:none;">
     <tr>
         <td style="width:33%;text-align:left;vertical-align:middle;border:none;padding:0;">
-            <img src="data:image/png;base64,{$logo_tecnm}" style="height:52px;" alt="TecNM">
+            <img src="data:image/png;base64,{$logo_tecnm}" style="height:48px;" alt="TecNM">
         </td>
         <td style="width:34%;text-align:center;vertical-align:middle;border:none;padding:0;">
-            <img src="data:image/jpeg;base64,{$logo_sivacad}" style="height:52px;" alt="SIVACAD">
+            <img src="data:image/jpeg;base64,{$logo_sivacad}" style="height:48px;" alt="SIVACAD">
         </td>
         <td style="width:33%;text-align:right;vertical-align:middle;border:none;padding:0;">
-            <img src="data:image/png;base64,{$logo_tesi}" style="height:52px;" alt="TESI">
+            <img src="data:image/png;base64,{$logo_tesi}" style="height:48px;" alt="TESI">
         </td>
     </tr>
 </table>
+
+{$copyHeader}
 
 <!-- TITULO -->
 <table style="width:100%;border-collapse:collapse;border:none;margin-top:1px;">
@@ -277,13 +291,16 @@ ROW;
 <!-- SELLOS -->
 <table style="width:100%;border-collapse:collapse;border:none;">
     <tr>
-        <td style="width:33.3%;vertical-align:top;text-align:center;border:none;padding:4px 8px 0 8px;">
+        <td style="width:25%;vertical-align:middle;text-align:left;border:none;padding:4px;">
+            {$selloSivacadImg}
+        </td>
+        <td style="width:25%;vertical-align:top;text-align:center;border:none;padding:4px 8px 0 8px;">
             {$sello1}
         </td>
-        <td style="width:33.3%;vertical-align:top;text-align:center;border:none;padding:4px 8px 0 8px;">
+        <td style="width:25%;vertical-align:top;text-align:center;border:none;padding:4px 8px 0 8px;">
             {$sello2}
         </td>
-        <td style="width:33.3%;vertical-align:top;text-align:center;border:none;padding:4px 8px 0 8px;">
+        <td style="width:25%;vertical-align:top;text-align:center;border:none;padding:4px 8px 0 8px;">
             {$sello3}
         </td>
     </tr>
@@ -292,9 +309,8 @@ ROW;
 <!-- PIE -->
 <table style="width:100%;border-collapse:collapse;border:none;">
     <tr>
-        <td style="text-align:center;font-size:5pt;color:#94a3b8;border-top:1px solid #cbd5e1;padding:2px 0;">
-            Documento generado electr&oacute;nicamente el {$fechaEmision} &nbsp;|&nbsp; Folio: {$folio} &nbsp;|&nbsp;
-            Zona horaria: {$zonaHoraria} &nbsp;|&nbsp; SIVACAD
+        <td style="text-align:center;font-size:6pt;color:#94a3b8;border-top:1px solid #cbd5e1;padding:3px 0;">
+            Documento generado por SIVACAD-ISC &copy; 2026 B&aacute;rcenas Gonz&aacute;lez Laura Casandra &amp; Morales Ibarra Sandivel &mdash; TESI &mdash; ISC &mdash; Proyecto de Titulaci&oacute;n &mdash; Folio: {$folio} &mdash; Emitido: {$fechaEmision}
         </td>
     </tr>
 </table>

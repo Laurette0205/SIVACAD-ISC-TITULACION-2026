@@ -102,7 +102,7 @@ function HistorialAcademico({ token }) {
       ) : (
         <SectionCard title="Detalle del historial" subtitle={`${rows.length} registros`}>
           <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead><tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                 <th style={{ padding: '0.4rem' }}>Periodo</th><th style={{ padding: '0.4rem' }}>Grupo</th>
                 <th style={{ padding: '0.4rem' }}>Materia</th><th style={{ padding: '0.4rem' }}>Clave</th>
@@ -123,7 +123,7 @@ function HistorialAcademico({ token }) {
                 </tr>
               );
               })}</tbody>
-            </table>
+            </table></div>
           </div>
         </SectionCard>
       )}
@@ -187,7 +187,7 @@ function Resultados({ token }) {
           {porPeriodo.length > 0 && (
             <SectionCard title="Resultados por periodo" subtitle="Desglose por periodo academico">
               <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                   <thead><tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                     <th style={{ padding: '0.4rem' }}>Periodo</th><th style={{ padding: '0.4rem' }}>Materias</th>
                     <th style={{ padding: '0.4rem' }}>Promedio</th><th style={{ padding: '0.4rem' }}>Aprobadas</th>
@@ -202,7 +202,7 @@ function Resultados({ token }) {
                       <td style={{ padding: '0.4rem', color: r.reprobadas > 0 ? '#ef4444' : undefined }}>{r.reprobadas}</td>
                     </tr>
                   ))}</tbody>
-                </table>
+                </table></div>
               </div>
             </SectionCard>
           )}

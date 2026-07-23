@@ -223,7 +223,7 @@ export default function AsistenteSoportePage() {
           </div>
           {incidencias.length > 0 ? (
             <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                 <thead>
                   <tr>
                     <th>ID</th>
@@ -250,7 +250,7 @@ export default function AsistenteSoportePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : <p className="muted">No hay incidencias registradas.</p>}
         </div>
@@ -264,7 +264,7 @@ export default function AsistenteSoportePage() {
           </div>
           {bitacora.length > 0 ? (
             <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                 <thead>
                   <tr>
                     <th>ID</th>
@@ -289,7 +289,7 @@ export default function AsistenteSoportePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : <p className="muted">No hay registros en la bitácora.</p>}
         </div>
@@ -303,7 +303,7 @@ export default function AsistenteSoportePage() {
           </div>
           {sesiones.length > 0 ? (
             <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                 <thead>
                   <tr>
                     <th>ID sesión</th>
@@ -330,7 +330,7 @@ export default function AsistenteSoportePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : <p className="muted">No hay sesiones registradas.</p>}
         </div>
@@ -344,7 +344,7 @@ export default function AsistenteSoportePage() {
           </div>
           {resets.length > 0 ? (
             <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                 <thead>
                   <tr>
                     <th>ID</th>
@@ -367,7 +367,7 @@ export default function AsistenteSoportePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : <p className="muted">No hay solicitudes de restablecimiento.</p>}
         </div>

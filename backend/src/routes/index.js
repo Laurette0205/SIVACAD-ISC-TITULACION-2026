@@ -106,6 +106,8 @@ mountIfAvailable('/ia/desercion', './iaDesercionSoporte');
 mountIfAvailable('/ia/bienestar', './iaBienestarDocente');
 mountIfAvailable('/ia/bienestar', './iaBienestarSoporte');
 
+mountIfAvailable('/derechos-autor', './derechos_autor');
+
 // =====================================================
 // EXPORTAR
 // =====================================================

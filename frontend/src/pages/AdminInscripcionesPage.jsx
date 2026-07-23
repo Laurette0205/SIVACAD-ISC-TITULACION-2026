@@ -396,7 +396,7 @@ export default function AdminInscripcionesPage() {
           <div className="empty">No se encontraron inscripciones con los filtros actuales.</div>
         ) : (
           <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-            <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+            <div className="table-responsive"><table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left' }}>
                   <th style={{ padding: '0.5rem' }}>ID</th>
@@ -437,7 +437,7 @@ export default function AdminInscripcionesPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         )}
       </SectionCard>
@@ -491,7 +491,7 @@ export default function AdminInscripcionesPage() {
           <div className="empty">Sin registros de auditoria.</div>
         ) : (
           <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-            <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="table-responsive"><table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left' }}>
                   <th style={{ padding: '0.4rem' }}>ID</th>
@@ -530,7 +530,7 @@ export default function AdminInscripcionesPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         )}
       </SectionCard>

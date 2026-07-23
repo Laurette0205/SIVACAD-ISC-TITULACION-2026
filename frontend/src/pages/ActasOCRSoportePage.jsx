@@ -142,7 +142,7 @@ function IncidenciasOCR({ token }) {
 
       <SectionCard title="Cargas con problemas" subtitle="Rechazadas, pendientes o con baja confianza">
         <div className="table-container">
-          <table className="table">
+          <div className="table-responsive"><table className="table">
             <thead>
               <tr>
                 <th>Archivo</th><th>Formato</th><th>Estado</th><th>Confianza</th><th>Docente</th><th>Grupo</th><th>Materia</th><th>Periodo</th><th>Creado</th>
@@ -165,13 +165,13 @@ function IncidenciasOCR({ token }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </SectionCard>
 
       <SectionCard title="Auditoría de errores" subtitle="Últimas 30 acciones registradas">
         <div className="table-container">
-          <table className="table">
+          <div className="table-responsive"><table className="table">
             <thead>
               <tr><th>Acción</th><th>Archivo</th><th>Usuario</th><th>Detalle</th><th>Fecha</th></tr>
             </thead>
@@ -190,7 +190,7 @@ function IncidenciasOCR({ token }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </SectionCard>
     </div>
@@ -221,7 +221,7 @@ function RevisarArchivos({ token }) {
 
       <SectionCard title="Archivos cargados" subtitle="Últimos 100 registros">
         <div className="table-container">
-          <table className="table">
+          <div className="table-responsive"><table className="table">
             <thead>
               <tr><th>Archivo</th><th>Formato</th><th>Estado</th><th>Confianza</th><th>Grupo</th><th>Materia</th><th>Periodo</th><th>Docente</th><th>Fecha</th><th>Acción</th></tr>
             </thead>
@@ -247,7 +247,7 @@ function RevisarArchivos({ token }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </SectionCard>
 
@@ -293,7 +293,7 @@ function DetalleArchivo({ token, carga, onClose }) {
             <div>
               <small>Detalles extraídos ({detalle.detalles.length})</small>
               <div className="table-container" style={{ marginTop: 4 }}>
-                <table className="table">
+                <div className="table-responsive"><table className="table">
                   <thead><tr><th>Alumno</th><th>Materia</th><th>Calificación</th><th>Estatus</th></tr></thead>
                   <tbody>
                     {detalle.detalles.map((d, i) => (
@@ -305,7 +305,7 @@ function DetalleArchivo({ token, carga, onClose }) {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             </div>
           )}
@@ -313,7 +313,7 @@ function DetalleArchivo({ token, carga, onClose }) {
             <div>
               <small>Auditoría ({detalle.auditoria.length} eventos)</small>
               <div className="table-container" style={{ marginTop: 4 }}>
-                <table className="table">
+                <div className="table-responsive"><table className="table">
                   <thead><tr><th>Acción</th><th>Usuario</th><th>Detalle</th><th>Fecha</th></tr></thead>
                   <tbody>
                     {detalle.auditoria.map((a, i) => (
@@ -325,7 +325,7 @@ function DetalleArchivo({ token, carga, onClose }) {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             </div>
           )}
@@ -379,7 +379,7 @@ function Recuperacion({ token }) {
 
       <SectionCard title="Cargas atascadas" subtitle="En estado RECIBIDA/EXTRACCION_PENDIENTE por más de 1 hora">
         <div className="table-container">
-          <table className="table">
+          <div className="table-responsive"><table className="table">
             <thead>
               <tr><th>Archivo</th><th>Estado</th><th>Usuario</th><th>Creado</th><th>Espera</th><th>Acción</th></tr>
             </thead>
@@ -404,13 +404,13 @@ function Recuperacion({ token }) {
                 );
               })}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </SectionCard>
 
       <SectionCard title="Reintentos por acción (7 días)" subtitle="Actividad en auditoría">
         <div className="table-container">
-          <table className="table">
+          <div className="table-responsive"><table className="table">
             <thead><tr><th>Acción</th><th>Total</th><th>Último</th></tr></thead>
             <tbody>
               {safeArray(data?.reintentos_por_accion).length === 0 ? (
@@ -423,13 +423,13 @@ function Recuperacion({ token }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </SectionCard>
 
       <SectionCard title="Estado de cargas por tiempo" subtitle="Cargas pendientes agrupadas por estado">
         <div className="table-container">
-          <table className="table">
+          <div className="table-responsive"><table className="table">
             <thead><tr><th>Estado</th><th>Total</th><th>Más antiguo</th><th>Más reciente</th><th>Espera máxima</th></tr></thead>
             <tbody>
               {safeArray(data?.estado_tiempo).length === 0 ? (
@@ -444,7 +444,7 @@ function Recuperacion({ token }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </SectionCard>
     </div>
@@ -488,7 +488,7 @@ function Monitoreo({ token }) {
 
       <SectionCard title="Actividad diaria (30 días)" subtitle="Cargas, validadas y rechazadas por día">
         <div className="table-container">
-          <table className="table">
+          <div className="table-responsive"><table className="table">
             <thead><tr><th>Fecha</th><th>Cargas</th><th>Validadas</th><th>Rechazadas</th><th>% Éxito</th></tr></thead>
             <tbody>
               {safeArray(data?.por_dia).length === 0 ? (
@@ -506,13 +506,13 @@ function Monitoreo({ token }) {
                 );
               })}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </SectionCard>
 
       <SectionCard title="Rendimiento por docente" subtitle="Top 20 docentes por cargas">
         <div className="table-container">
-          <table className="table">
+          <div className="table-responsive"><table className="table">
             <thead><tr><th>Docente</th><th>Cargas</th><th>Validadas</th><th>Confianza prom.</th></tr></thead>
             <tbody>
               {safeArray(data?.por_docente).length === 0 ? (
@@ -526,7 +526,7 @@ function Monitoreo({ token }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </SectionCard>
 

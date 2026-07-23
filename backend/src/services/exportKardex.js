@@ -1,9 +1,17 @@
+/**
+ * SIVACAD-ISC — Copyright (c) 2026 Bárcenas González Laura Casandra &
+ *                    Morales Ibarra Sandivel — TESI — ISC
+ */
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const Handlebars = require('handlebars');
+
+Handlebars.registerHelper('eq', function (a, b) {
+  return a === b;
+});
 const puppeteer = require('puppeteer');
 const ExcelJS = require('exceljs');
 const pool = require('../config/db');
@@ -51,6 +59,10 @@ function imageToBase64(filePath) {
   } catch { return null; }
 }
 
+const COPYRIGHT_FOOTER = '<div style="font-size:6pt;color:#94a3b8;text-align:center;padding:4px 0;border-top:1px solid #cbd5e1;">Documento generado por SIVACAD-ISC &copy; 2026 B&aacute;rcenas Gonz&aacute;lez Laura Casandra &amp; Morales Ibarra Sandivel &mdash; Tecnol&oacute;gico de Estudios Superiores de Ixtapaluca (TESI) &mdash; Ingenier&iacute;a en Sistemas Computacionales &mdash; Proyecto de Titulaci&oacute;n &mdash; Queda prohibida la distribuci&oacute;n, copia o modificaci&oacute;n no autorizada</div>';
+
+const COPYRIGHT_HEADER = '<div style="font-size:5.5pt;color:#64748b;text-align:center;font-weight:600;margin-bottom:2px;">SIVACAD-ISC &mdash; Propiedad intelectual de B&aacute;rcenas Gonz&aacute;lez Laura Casandra &amp; Morales Ibarra Sandivel &mdash; TESI &mdash; Ingenier&iacute;a en Sistemas Computacionales</div>';
+
 function escXml(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -89,7 +101,7 @@ function selloRectangularSVG(texto, subtitulo, seed) {
 
 function generarSellosSVG(sellosDB) {
   const defaultSellos = [
-    { tipo: 'sivacad', titulo: 'Sello SIVACAD', descripcion: 'Sello oficial del Sistema Integral de Validación y Control Académico' },
+    { tipo: 'sivacad', titulo: 'Sello SIVACAD', descripcion: 'Sello oficial del Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos' },
     { tipo: 'division_isc', titulo: 'Sello División ISC', descripcion: 'Sello de la División de Ingeniería en Sistemas Computacionales' },
     { tipo: 'control_escolar', titulo: 'Sello Control Escolar', descripcion: 'Sello oficial de Control Escolar' },
   ];
@@ -170,6 +182,8 @@ async function generateKardexPDF(id) {
 
   const logo_tecnm = imageToBase64(path.join(ASSETS_DIR, 'Logo-TecNM.png'));
   const logo_tesi = imageToBase64(path.join(ASSETS_DIR, 'Logo-TESI.png'));
+  const logoSivacad = imageToBase64(path.join(ASSETS_DIR, 'Logo-SIVACAD.jpeg'));
+  const selloSivacad = imageToBase64(path.join(ASSETS_DIR, 'Sello-SIVACAD.jpeg'));
 
   const photoCandidates = [k.foto_institucional, k.foto_alumno, k.fotografia].filter(Boolean);
   let url_foto = null;
@@ -205,18 +219,48 @@ async function generateKardexPDF(id) {
     estado: h.estado || '—'
   }));
 
+  const copyrightHeaderHtml = COPYRIGHT_HEADER;
+  const copyrightFooterHtml = COPYRIGHT_FOOTER.replace('{folio}', folio).replace('{fecha}', formatFechaMX(new Date()));
+
+  const selloHtml = selloSivacad
+    ? '<img src="' + selloSivacad + '" style="height:40px;opacity:0.85;" alt="Sello SIVACAD"/>'
+    : '';
+
+  const logoRowHtml = `
+    <table style="width:100%;border-collapse:collapse;border:none;margin-bottom:4px;">
+      <tr>
+        <td style="width:20%;text-align:left;vertical-align:middle;border:none;padding:0;">
+          ${logo_tecnm ? '<img src="' + logo_tecnm + '" style="height:45px;" alt="TecNM"/>' : ''}
+        </td>
+        <td style="width:60%;text-align:center;vertical-align:middle;border:none;padding:0;">
+          ${logoSivacad ? '<img src="' + logoSivacad + '" style="height:45px;" alt="SIVACAD"/>' : ''}
+        </td>
+        <td style="width:20%;text-align:right;vertical-align:middle;border:none;padding:0;">
+          ${logo_tesi ? '<img src="' + logo_tesi + '" style="height:45px;" alt="TESI"/>' : ''}
+        </td>
+      </tr>
+    </table>
+    ${copyrightHeaderHtml}
+  `;
+
   const html = template({
     folio,
     fecha_emision: formatFechaMX(new Date()),
     zona_horaria: tz.zona_horaria,
     logo_tecnm,
     logo_tesi,
+    logoSivacad,
     alumno,
     url_foto,
     url_qr,
-    firma_hash: firmaHash.substring(0, 48) + '…',
+    firma_hash: firmaHash,
     sellos,
-    historial: hRows
+    historial: hRows,
+    copyright_header: copyrightHeaderHtml,
+    copyright_footer: copyrightFooterHtml,
+    logo_row: logoRowHtml,
+    sello_sivacad: selloHtml,
+    es_kardex: true
   });
 
   const browser = await puppeteer.launch({
@@ -227,11 +271,23 @@ async function generateKardexPDF(id) {
   try {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0', timeout: 30000 });
+    await page.addStyleTag({
+      content: `
+        @page { margin: 2.54cm; }
+        body { font-family: Arial, Helvetica, sans-serif; font-size: 12pt; line-height: 1.5; text-align: justify; color: #0f172a; }
+        .header-apa { position: running(header); }
+        .footer-apa { position: running(footer); }
+        @page { @top-right { content: counter(page); font-family: Arial; font-size: 10pt; } }
+      `
+    });
     const pdfBuffer = await page.pdf({
       format: 'Letter',
-      margin: { top: '30px', right: '40px', bottom: '30px', left: '40px' },
+      margin: { top: '2.54cm', right: '2.54cm', bottom: '2.54cm', left: '2.54cm' },
       printBackground: true,
-      preferCSSPageSize: true
+      preferCSSPageSize: true,
+      displayHeaderFooter: true,
+      headerTemplate: '<div style="font-size:8pt;text-align:right;padding-right:2.54cm;font-family:Arial;color:#475569;width:100%;"><span class="pageNumber"></span></div>',
+      footerTemplate: '<div style="font-size:6pt;text-align:center;width:100%;padding:0 2.54cm;font-family:Arial;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:4px;">Documento generado por SIVACAD-ISC &copy; 2026 B&aacute;rcenas Gonz&aacute;lez Laura Casandra &amp; Morales Ibarra Sandivel &mdash; TESI &mdash; Folio: ' + folio + ' &mdash; P&aacute;gina <span class="pageNumber"></span> de <span class="totalPages"></span></div>'
     });
     return { pdfBuffer, folio };
   } finally {
@@ -264,6 +320,8 @@ async function generateKardexExcel(id) {
 
   const logo_tecnm_path = path.join(ASSETS_DIR, 'Logo-TecNM.png');
   const logo_tesi_path = path.join(ASSETS_DIR, 'Logo-TESI.png');
+  const logo_sivacad_path = path.join(ASSETS_DIR, 'Logo-SIVACAD.jpeg');
+  const sello_sivacad_path = path.join(ASSETS_DIR, 'Sello-SIVACAD.jpeg');
 
   function addLogo(sheet, filePath, col, row, w, h) {
     if (fs.existsSync(filePath)) {
@@ -281,36 +339,48 @@ async function generateKardexExcel(id) {
   ws1.headerFooter.oddHeader = '&C&"Arial"&8 SIVACAD - Kardex del Alumno';
   ws1.headerFooter.oddFooter = `&L${formatFechaMX(new Date())}&CFolio: ${folio}&R${tz.zona_horaria}`;
 
+  ws1.pageSetup.margins = {
+    top: 1.91, bottom: 1.91, left: 1.78, right: 1.78,
+    header: 0, footer: 0
+  };
+
   const colWidths = [3, 22, 55, 15, 15, 15, 15, 15, 15];
   colWidths.forEach((w, i) => { ws1.getColumn(i + 1).width = w; });
   ws1.views = [{ showGridLines: false }];
 
-  addLogo(ws1, logo_tecnm_path, 0.2, 0, 70, 35);
-  addLogo(ws1, logo_tesi_path, 6.8, 0, 70, 35);
-
-  ws1.mergeCells('A3:I3');
-  const titleCell = ws1.getCell('A3');
-  titleCell.value = 'KARDEX DEL ALUMNO';
-  titleCell.font = { bold: true, size: 16, color: { argb: 'FF0F172A' }, name: 'Arial' };
-  titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
-  ws1.getRow(3).height = 28;
+  addLogo(ws1, logo_tecnm_path, 0.2, 0, 65, 32);
+  addLogo(ws1, logo_sivacad_path, 3.5, 0, 65, 32);
+  addLogo(ws1, logo_tesi_path, 6.8, 0, 65, 32);
 
   ws1.mergeCells('A4:I4');
-  const subCell = ws1.getCell('A4');
-  subCell.value = `SISTEMA INTEGRAL DE VALIDACIÓN Y CONTROL ACADÉMICO`;
-  subCell.font = { size: 10, color: { argb: 'FF1E40AF' }, name: 'Arial', bold: true };
+  const copyrightCell = ws1.getCell('A4');
+  copyrightCell.value = '© 2026 Bárcenas González Laura Casandra & Morales Ibarra Sandivel — TESI — Ingeniería en Sistemas Computacionales — Proyecto de Titulación';
+  copyrightCell.font = { size: 7, color: { argb: 'FF64748B' }, name: 'Arial', italic: true };
+  copyrightCell.alignment = { horizontal: 'center' };
+
+  ws1.mergeCells('A6:I6');
+  const titleCell = ws1.getCell('A6');
+  titleCell.value = 'KARDEX DEL ALUMNO';
+  titleCell.font = { bold: true, size: 14, color: { argb: 'FF0F172A' }, name: 'Arial' };
+  titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+  ws1.getRow(6).height = 24;
+
+  ws1.mergeCells('A7:I7');
+  const subCell = ws1.getCell('A7');
+  subCell.value = `SISTEMA INTEGRAL DE VALIDACIÓN Y CONTROL ACADÉMICO — SIVACAD-ISC`;
+  subCell.font = { size: 9, color: { argb: 'FF1E40AF' }, name: 'Arial', bold: true };
   subCell.alignment = { horizontal: 'center' };
 
-  ws1.mergeCells('A5:I5');
-  const metaCell = ws1.getCell('A5');
+  ws1.mergeCells('A8:I8');
+  const metaCell = ws1.getCell('A8');
   metaCell.value = `Folio: ${folio}  |  Emitido: ${formatFechaMX(new Date()).split(',')[0]}  |  Zona horaria: ${tz.zona_horaria}`;
   metaCell.font = { size: 8, color: { argb: 'FF475569' }, name: 'Arial' };
   metaCell.alignment = { horizontal: 'center' };
 
-  ws1.mergeCells('A7:I7');
-  const datTitle = ws1.getCell('A7');
+  ws1.mergeCells('A10:I10');
+  const datTitle = ws1.getCell('A10');
   datTitle.value = 'DATOS DEL ALUMNO';
-  datTitle.font = { bold: true, size: 12, color: { argb: 'FF1E40AF' }, name: 'Arial' };
+  datTitle.font = { bold: true, size: 11, color: { argb: 'FF1E40AF' }, name: 'Arial' };
   datTitle.alignment = { horizontal: 'left' };
 
   const datFields = [
@@ -324,7 +394,7 @@ async function generateKardexExcel(id) {
     ['Estatus:', k.estatus || 'Vigente']
   ];
 
-  let r = 9;
+  let r = 12;
   datFields.forEach(([label, value]) => {
     const lc = ws1.getCell(`B${r}`);
     lc.value = label;
@@ -351,16 +421,17 @@ async function generateKardexExcel(id) {
   r += 2;
   if (sellos.length > 0) {
     ws1.mergeCells(`A${r}:I${r}`);
-    ws1.getCell(`A${r}`).value = 'SELLOS INSTITUCIONALES';
+    ws1.getCell(`A${r}`).value = 'SELLOS INSTITUCIONALES Y DE PROPIEDAD INTELECTUAL';
     ws1.getCell(`A${r}`).font = { bold: true, size: 10, color: { argb: 'FF0F172A' }, name: 'Arial' };
     r++;
+    addLogo(ws1, sello_sivacad_path, 0.2, r - 1, 50, 50);
     sellos.slice(0, 3).forEach(s => {
       ws1.getCell(`B${r}`).value = s.titulo;
       ws1.getCell(`B${r}`).font = { bold: true, size: 9, color: { argb: 'FF0F172A' }, name: 'Arial' };
       ws1.mergeCells(`C${r}:E${r}`);
       ws1.getCell(`C${r}`).value = s.descripcion || '';
       ws1.getCell(`C${r}`).font = { size: 8, color: { argb: 'FF64748B' }, name: 'Arial' };
-      ws1.getRow(r).height = 20;
+      ws1.getRow(r).height = 22;
       r++;
     });
   }
@@ -368,7 +439,7 @@ async function generateKardexExcel(id) {
   r += 2;
   ws1.mergeCells(`A${r}:I${r}`);
   const footer = ws1.getCell(`A${r}`);
-  footer.value = `Documento generado electrónicamente el ${formatFechaMX(new Date())}  |  Folio: ${folio}  |  Zona horaria: ${tz.zona_horaria}  |  SIVACAD`;
+  footer.value = `Documento generado electrónicamente el ${formatFechaMX(new Date())}  |  Folio: ${folio}  |  Zona horaria: ${tz.zona_horaria}  |  SIVACAD-ISC © 2026 Bárcenas González Laura Casandra & Morales Ibarra Sandivel — TESI — ISC`;
   footer.font = { size: 7, color: { argb: 'FF94A3B8' }, name: 'Arial' };
   footer.alignment = { horizontal: 'center' };
 

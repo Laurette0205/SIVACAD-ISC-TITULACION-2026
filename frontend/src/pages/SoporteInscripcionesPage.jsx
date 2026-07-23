@@ -193,7 +193,7 @@ export default function SoporteInscripcionesPage() {
           <div className="section-card">
             <h3>Tablas del módulo inscripciones</h3>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>Tabla</th><th>Filas</th><th>Tamaño (KB)</th></tr>
                 </thead>
@@ -206,7 +206,7 @@ export default function SoporteInscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         )}
@@ -310,7 +310,7 @@ export default function SoporteInscripcionesPage() {
           <div className="section-card">
             <h3>Incidencias registradas</h3>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>ID</th><th>Fecha</th><th>Tipo</th><th>Gravedad</th><th>Título</th><th>Módulo</th><th>Estado</th><th>Usuario</th><th>Acción</th></tr>
                 </thead>
@@ -339,7 +339,7 @@ export default function SoporteInscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         ) : (
@@ -372,7 +372,7 @@ export default function SoporteInscripcionesPage() {
           <div className="section-card">
             <h3>Errores en inscripciones_auditoria</h3>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>ID</th><th>Usuario</th><th>Rol</th><th>Acción</th><th>Detalle</th><th>Estado ant.</th><th>Estado nuevo</th><th>IP</th><th>Fecha</th></tr>
                 </thead>
@@ -391,7 +391,7 @@ export default function SoporteInscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         )}
@@ -400,7 +400,7 @@ export default function SoporteInscripcionesPage() {
           <div className="section-card">
             <h3>Logs del sistema (error/warning)</h3>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>ID</th><th>Nivel</th><th>Módulo</th><th>Acción</th><th>Mensaje</th><th>Usuario</th><th>IP</th><th>Fecha</th></tr>
                 </thead>
@@ -418,7 +418,7 @@ export default function SoporteInscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         )}
@@ -449,7 +449,7 @@ export default function SoporteInscripcionesPage() {
         <div className="section-card">
           <h3>Estado de tablas</h3>
           <div className="table-wrapper">
-            <table className="table">
+            <div className="table-responsive"><table className="table">
               <thead>
                 <tr><th>Tabla</th><th>Accesible</th><th>Registros</th><th>Error</th></tr>
               </thead>
@@ -473,7 +473,7 @@ export default function SoporteInscripcionesPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </div>
 
@@ -481,7 +481,7 @@ export default function SoporteInscripcionesPage() {
           <div className="section-card">
             <h3>Integridad referencial (FKs)</h3>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>Tabla</th><th>FK</th><th>Referencia</th></tr>
                 </thead>
@@ -494,7 +494,7 @@ export default function SoporteInscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         )}
@@ -525,7 +525,7 @@ export default function SoporteInscripcionesPage() {
           <div className="section-card">
             <h3>Logs del sistema de inscripciones</h3>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>Origen</th><th>ID</th><th>Nivel</th><th>Módulo</th><th>Acción</th><th>Mensaje</th><th>Usuario</th><th>IP</th><th>Fecha</th></tr>
                 </thead>
@@ -544,7 +544,7 @@ export default function SoporteInscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         ) : (
@@ -603,14 +603,14 @@ export default function SoporteInscripcionesPage() {
           <div className="section-card">
             <h3>Inscripciones duplicadas ({detalle_duplicados.length})</h3>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead><tr><th>ID Alumno</th><th>ID Periodo</th><th>Total</th></tr></thead>
                 <tbody>
                   {detalle_duplicados.map((d, i) => (
                     <tr key={i}><td>{d.id_alumno}</td><td>{d.id_periodo}</td><td>{d.total}</td></tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         )}
@@ -619,14 +619,14 @@ export default function SoporteInscripcionesPage() {
           <div className="section-card">
             <h3>Cargas académicas sin alumnos ({detalle_cargas_sin_alumnos.length})</h3>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead><tr><th>Grupo</th><th>Materia</th><th>ID Periodo</th></tr></thead>
                 <tbody>
                   {detalle_cargas_sin_alumnos.map((c, i) => (
                     <tr key={i}><td>{c.nombre_grupo}</td><td>{c.nombre_materia}</td><td>{c.id_periodo}</td></tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         )}

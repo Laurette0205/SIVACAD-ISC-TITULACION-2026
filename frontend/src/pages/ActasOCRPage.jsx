@@ -391,7 +391,7 @@ function BitacoraPanel({ token }) {
       {loading ? <div className="alert info"><Loader2 className="animate-spin" size={18} /> Cargando bitácora...</div> : rows.length === 0 ? <div className="empty">No hay registros en la bitácora.</div> : (
         <SectionCard title="Registros recientes" subtitle={`Últimos ${rows.length} eventos`}>
           <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                   <th style={{ padding: '0.4rem' }}>Fecha</th>
@@ -412,7 +412,7 @@ function BitacoraPanel({ token }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </SectionCard>
       )}
@@ -439,7 +439,7 @@ function AuditoriaPanel({ token }) {
       {loading ? <div className="alert info"><Loader2 className="animate-spin" size={18} /> Cargando auditoría...</div> : rows.length === 0 ? <div className="empty">No hay registros de auditoría.</div> : (
         <SectionCard title="Historial de auditoría" subtitle={`Últimos ${rows.length} registros`}>
           <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+            <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                   <th style={{ padding: '0.4rem' }}>Fecha</th>
@@ -466,7 +466,7 @@ function AuditoriaPanel({ token }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </SectionCard>
       )}

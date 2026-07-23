@@ -321,7 +321,7 @@ export default function IABienestarDocentePage() {
           </div>
           <SectionCard title="Lista de alumnos detectados" subtitle="Estudiantes con alertas de bienestar en el grupo seleccionado">
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr>
                     <th>Matrícula</th><th>Alumno</th><th>Periodo</th><th>Riesgo</th><th>Estado alerta</th><th>Acciones</th>
@@ -332,7 +332,7 @@ export default function IABienestarDocentePage() {
                     <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>Sin alumnos en este grupo</td></tr>
                   ) : alumnos.map(renderStudentRow)}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </SectionCard>
         </div>
@@ -373,7 +373,7 @@ export default function IABienestarDocentePage() {
 
           <SectionCard title={`Alertas tempranas (${alertasMeta.total})`} subtitle="Alertas de bienestar estudiantil en tus grupos">
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr>
                     <th>#</th><th>Matrícula</th><th>Alumno</th><th>Grupo</th><th>Materia</th>
@@ -407,7 +407,7 @@ export default function IABienestarDocentePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
 
             {alertasMeta.totalPaginas > 1 && (
@@ -560,7 +560,7 @@ export default function IABienestarDocentePage() {
 
             <div className="eyebrow">Alertas de bienestar ({detalle.alertas.length})</div>
             <div className="table-wrapper" style={{ marginBottom: '1rem' }}>
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead><tr><th>#</th><th>Tipo</th><th>Riesgo</th><th>Estado</th><th>Acción sugerida</th><th>Fecha</th></tr></thead>
                 <tbody>
                   {detalle.alertas.length === 0 ? (
@@ -576,12 +576,12 @@ export default function IABienestarDocentePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
 
             <div className="eyebrow">Check-ins recientes ({detalle.checkins.length})</div>
             <div className="table-wrapper" style={{ marginBottom: '1rem' }}>
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead><tr><th>#</th><th>Plantilla</th><th>Score</th><th>Riesgo</th><th>Animo</th><th>Estrés</th><th>Fecha</th></tr></thead>
                 <tbody>
                   {detalle.checkins.length === 0 ? (
@@ -598,7 +598,7 @@ export default function IABienestarDocentePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
 
             <div className="eyebrow">Intervenciones registradas ({detalle.derivaciones.length})</div>
@@ -645,7 +645,7 @@ export default function IABienestarDocentePage() {
 
             <div className="eyebrow">Alertas registradas ({historial.alertas.length})</div>
             <div className="table-wrapper" style={{ marginBottom: '1rem' }}>
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead><tr><th>#</th><th>Tipo</th><th>Riesgo</th><th>Estado</th><th>Acción sugerida</th><th>Fecha</th></tr></thead>
                 <tbody>
                   {historial.alertas.length === 0 ? (
@@ -661,7 +661,7 @@ export default function IABienestarDocentePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
 
             <div className="eyebrow">Intervenciones ({historial.intervenciones.length})</div>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<style>
+    @page { margin: 2.54cm 2.54cm 3.0cm 3.0cm; size: letter; }
+    @page :first { margin-top: 2.54cm; }
+    body { font-family: Arial, Helvetica, sans-serif; font-size: 12pt; line-height: 1.5; color: #0f172a; text-align: justify; }
+    .header-apa { position: running(header); }
+    .footer-apa { position: running(footer); }
+    @page { @top-right { content: counter(page); font-family: Arial; font-size: 10pt; } }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    table { width: 100%; border-collapse: collapse; }
+    td, th { vertical-align: middle; }
+    .logo-row { margin-bottom: 6px; }
+    .logo-row td { border: none; padding: 2px; }
+    .copyright-header { font-size: 7pt; color: #64748b; text-align: center; font-weight: 600; margin-bottom: 4px; }
+    .title-main { font-size: 14pt; font-weight: 700; color: #0f172a; text-align: center; margin: 4px 0; }
+    .subtitle { font-size: 8pt; font-weight: 600; color: #1e40af; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; }
+    .meta { font-size: 7pt; color: #475569; text-align: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 6px; }
+    .section-title { font-size: 10pt; font-weight: 700; color: #1e40af; border-bottom: 1.5px solid #1e40af; padding-bottom: 2px; text-transform: uppercase; margin-top: 8px; }
+    .data-label { font-weight: 700; color: #0f172a; padding: 1px 0; vertical-align: top; width: 120px; font-size: 9pt; }
+    .data-value { color: #334155; padding: 1px 0; font-size: 9pt; }
+    .foto-cell { width: 3cm; height: 2.5cm; border: 1.5px solid #cbd5e1; text-align: center; vertical-align: middle; background: #f8fafc; }
+    .hist-table { margin-top: 4px; }
+    .hist-table th { background: #1e40af; color: #ffffff; padding: 3px 4px; font-weight: 600; text-align: center; font-size: 7pt; border: 1px solid #1e40af; }
+    .hist-table td { padding: 3px 4px; font-size: 7pt; border-bottom: 1px solid #e2e8f0; }
+    .hist-table tr:nth-child(even) { background: #f8fafc; }
+    .sello-row { margin-top: 10px; }
+    .sello-row td { text-align: center; border: none; padding: 4px 8px; }
+    .sello-item { border-top: 1px solid #000; padding-top: 4px; }
+    .sello-title { font-size: 7pt; font-weight: 700; color: #0f172a; }
+    .sello-desc { font-size: 5.5pt; color: #64748b; margin-top: 2px; }
+    .sigaa-note { font-size: 7pt; color: #475569; text-align: justify; border-top: 1px solid #cbd5e1; padding-top: 4px; margin-top: 6px; line-height: 1.4; }
+    .footer-copy { font-size: 6pt; color: #94a3b8; text-align: center; padding: 4px 0; border-top: 1px solid #cbd5e1; margin-top: 8px; }
+    .watermark { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-repeat: no-repeat; background-position: center; background-size: cover; opacity: 0.06; z-index: -1; pointer-events: none; }
+</style>
+</head>
+<body>
+
+{{{logo_row}}}
+
+<div class="title-main">KARDEX DEL ALUMNO</div>
+<div class="subtitle">SISTEMA INTEGRAL DE VALIDACI&Oacute;N Y CONTROL ACAD&Eacute;MICO</div>
+
+<div class="meta">
+    Folio: <strong>{{folio}}</strong> &nbsp;|&nbsp; Emitido: <strong>{{fecha_emision}}</strong> &nbsp;|&nbsp; Zona horaria: <strong>{{zona_horaria}}</strong>
+</div>
+
+<div class="section-title">DATOS DEL ALUMNO</div>
+
+<table style="margin-top:4px;">
+    <tr>
+        <td style="width:65%;vertical-align:top;border:none;padding-right:10px;">
+            <table>
+                <tr><td class="data-label">Nombre Completo:</td><td class="data-value">{{alumno.nombre_completo}}</td></tr>
+                <tr><td class="data-label">Matr&iacute;cula:</td><td class="data-value">{{alumno.matricula}}</td></tr>
+                <tr><td class="data-label">CURP:</td><td class="data-value">{{alumno.curp}}</td></tr>
+                <tr><td class="data-label">Carrera:</td><td class="data-value">{{alumno.carrera}}</td></tr>
+                <tr><td class="data-label">Semestre:</td><td class="data-value">{{alumno.semestre}}</td></tr>
+                <tr><td class="data-label">Promedio General:</td><td class="data-value">{{alumno.promedio}}</td></tr>
+                <tr><td class="data-label">Cr&eacute;ditos:</td><td class="data-value">{{alumno.creditos_cubiertos}}</td></tr>
+                <tr><td class="data-label">Estatus:</td><td class="data-value" style="font-weight:700;color:#16a34a;">{{alumno.estatus}}</td></tr>
+            </table>
+        </td>
+        <td style="width:35%;vertical-align:top;text-align:right;border:none;">
+            <table style="margin-left:auto;">
+                <tr><td class="foto-cell">{{#if url_foto}}<img src="{{url_foto}}" style="width:100%;height:100%;object-fit:cover;" alt="Foto"/>{{else}}<span style="color:#94a3b8;font-size:7pt;">Foto institucional</span>{{/if}}</td></tr>
+            </table>
+            <table style="margin-left:auto;margin-top:4px;">
+                <tr><td style="text-align:center;">{{#if url_qr}}<img src="{{url_qr}}" style="width:50px;height:50px;" alt="QR"/>{{else}}<span style="color:#94a3b8;font-size:6pt;">QR del sistema</span>{{/if}}</td></tr>
+            </table>
+            <table style="width:3cm;margin-left:auto;margin-top:3px;">
+                <tr><td style="text-align:center;border-top:1px solid #94a3b8;padding-top:3px;">
+                    <div style="font-weight:700;font-size:7pt;color:#334155;">FIRMA ELECTR&Oacute;NICA</div>
+                    <div style="font-size:5pt;color:#64748b;word-break:break-all;font-family:'Courier New',monospace;margin-top:1px;">{{firma_hash}}</div>
+                </td></tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<div class="section-title" style="margin-top:10px;">HISTORIAL ACAD&Eacute;MICO</div>
+
+<table class="hist-table">
+    <thead>
+        <tr>
+            <th>Per&iacute;odo</th>
+            <th>Clave</th>
+            <th>Materia</th>
+            <th>Calif.</th>
+            <th>Cr&eacute;d.</th>
+            <th>Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each historial}}
+        <tr>
+            <td style="text-align:center;">{{this.periodo}}</td>
+            <td style="text-align:center;font-family:'Courier New',monospace;">{{this.clave}}</td>
+            <td>{{this.materia}}</td>
+            <td style="text-align:center;">{{this.calificacion}}</td>
+            <td style="text-align:center;">{{this.creditos}}</td>
+            <td style="text-align:center;font-weight:700;color:{{#if (eq this.estado 'Acreditada')}}#16a34a{{else if (eq this.estado 'No Acreditada')}}#dc2626{{else}}#334155{{/if}};">{{this.estado}}</td>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
+
+<div class="sigaa-note">
+    Si quieres visualizar o verificar qu&eacute; materias acreditaste, est&aacute;s en 2da oportunidad, si est&aacute;s en recurse o te fuiste a materia especial, visita la plataforma oficial SIGAA (Sistema Integral de Gesti&oacute;n Acad&eacute;mica y Administrativa) para m&aacute;s informaci&oacute;n. El link de la plataforma oficial es el siguiente: <strong>https://sigaa.tesi.org.mx/index.php</strong>
+</div>
+
+<div style="margin-top:10px;">
+    <table class="sello-row">
+        <tr>
+            <td style="width:25%;text-align:left;border:none;padding:4px;">
+                {{#if sello_sivacad}}{{{sello_sivacad}}}{{/if}}
+            </td>
+            {{#each sellos}}
+            <td style="width:25%;border:none;padding:4px 8px;">
+                <div class="sello-item">
+                    <div class="sello-title">{{this.titulo}}</div>
+                    <div class="sello-desc">{{this.descripcion}}</div>
+                </div>
+            </td>
+            {{/each}}
+        </tr>
+    </table>
+</div>
+
+<div class="footer-copy">
+    Documento generado por SIVACAD-ISC &copy; 2026 B&aacute;rcenas Gonz&aacute;lez Laura Casandra &amp; Morales Ibarra Sandivel &mdash; Tecnol&oacute;gico de Estudios Superiores de Ixtapaluca (TESI) &mdash; Ingenier&iacute;a en Sistemas Computacionales &mdash; Proyecto de Titulaci&oacute;n &mdash; Queda prohibida la distribuci&oacute;n, copia o modificaci&oacute;n no autorizada &mdash; Folio: {{folio}} &mdash; Emitido: {{fecha_emision}}
+</div>
+
+</body>
+</html>

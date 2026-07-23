@@ -223,7 +223,7 @@ export default function AsistenteAdminPage() {
             <div style={{ marginBottom: '1rem' }}>
               <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>Períodos</h4>
               <div style={{ overflowX: 'auto' }}>
-                <table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
+                <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
                   <thead>
                     <tr>
                       <th>Nombre</th>
@@ -244,7 +244,7 @@ export default function AsistenteAdminPage() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             </div>
           )}
@@ -307,7 +307,7 @@ export default function AsistenteAdminPage() {
           </div>
           {auditLog.length > 0 ? (
             <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                 <thead>
                   <tr>
                     <th>ID</th>
@@ -334,7 +334,7 @@ export default function AsistenteAdminPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : (
             <p className="muted">No hay registros de auditoría.</p>

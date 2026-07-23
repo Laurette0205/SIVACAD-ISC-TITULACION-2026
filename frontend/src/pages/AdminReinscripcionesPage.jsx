@@ -235,7 +235,7 @@ export default function AdminReinscripcionesPage() {
         {tendenciaMensual?.length > 0 && (
           <SectionCard title="Tendencia mensual (12 meses)" subtitle="Reinscripciones por mes">
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>Mes</th><th>Total</th><th>Validadas</th><th>Rechazadas</th></tr>
                 </thead>
@@ -249,7 +249,7 @@ export default function AdminReinscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </SectionCard>
         )}
@@ -293,7 +293,7 @@ export default function AdminReinscripcionesPage() {
 
             {historial?.porPeriodo?.length > 0 && (
               <div className="table-wrapper" style={{ marginTop: '1rem' }}>
-                <table className="table">
+                <div className="table-responsive"><table className="table">
                   <thead>
                     <tr><th>Periodo</th><th>Total</th><th>Alumnos</th><th>Validadas</th><th>Rechazadas</th><th>Canceladas</th><th>Pendientes</th><th>Activas</th></tr>
                   </thead>
@@ -311,7 +311,7 @@ export default function AdminReinscripcionesPage() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             )}
           </SectionCard>
@@ -375,7 +375,7 @@ export default function AdminReinscripcionesPage() {
 
           {reinscripciones.length > 0 ? (
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>ID</th><th>Matrícula</th><th>Alumno</th><th>Periodo</th><th>Grupo</th><th>Carrera</th><th>Estado</th><th>Motivo</th><th>Fecha</th><th>Validó</th></tr>
                 </thead>
@@ -395,7 +395,7 @@ export default function AdminReinscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : (
             <div className="auth-note" style={{ textAlign: 'center', padding: '2rem' }}>
@@ -434,7 +434,7 @@ export default function AdminReinscripcionesPage() {
         {items?.length > 0 ? (
           <SectionCard title="Detalle de incidencias" subtitle={items.length + ' incidencia(s) encontrada(s)'}>
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>Tipo</th><th>Gravedad</th><th>Matrícula</th><th>Alumno</th><th>Periodo</th><th>Estado</th><th>Problema</th></tr>
                 </thead>
@@ -451,7 +451,7 @@ export default function AdminReinscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </SectionCard>
         ) : (
@@ -490,7 +490,7 @@ export default function AdminReinscripcionesPage() {
 
           {bitacora?.registros?.length > 0 ? (
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr><th>ID</th><th>Usuario</th><th>Rol</th><th>Acción</th><th>Detalle</th><th>Estado ant.</th><th>Estado nuevo</th><th>Alumno</th><th>Matrícula</th><th>IP</th><th>Fecha</th></tr>
                 </thead>
@@ -511,7 +511,7 @@ export default function AdminReinscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : (
             <div className="auth-note" style={{ textAlign: 'center', padding: '2rem' }}>

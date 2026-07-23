@@ -326,7 +326,7 @@ export default function IADesercionDocentePage() {
           </div>
           <SectionCard title="Alumnos del grupo" subtitle="Riesgo de deserción por estudiante">
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr>
                     <th>Matrícula</th><th>Alumno</th><th>Periodo</th><th>Riesgo</th><th>Puntaje</th><th>Estado</th><th>Acciones</th>
@@ -337,7 +337,7 @@ export default function IADesercionDocentePage() {
                     <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>Sin alumnos en este grupo</td></tr>
                   ) : alumnos.map(renderStudentRow)}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </SectionCard>
         </div>
@@ -374,7 +374,7 @@ export default function IADesercionDocentePage() {
 
           <SectionCard title={`Alertas de riesgo (${alertasMeta.total})`} subtitle="Estudiantes con alertas activas en tus grupos">
             <div className="table-wrapper">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr>
                     <th>#</th><th>Matrícula</th><th>Alumno</th><th>Grupo</th><th>Materia</th>
@@ -404,7 +404,7 @@ export default function IADesercionDocentePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
 
             {alertasMeta.totalPaginas > 1 && (
@@ -599,7 +599,7 @@ export default function IADesercionDocentePage() {
 
             <div className="eyebrow">Alertas registradas ({historial.alertas.length})</div>
             <div className="table-wrapper" style={{ marginBottom: '1rem' }}>
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead><tr><th>#</th><th>Periodo</th><th>Riesgo</th><th>Puntaje</th><th>Estado</th><th>Fecha</th></tr></thead>
                 <tbody>
                   {historial.alertas.length === 0 ? (
@@ -614,7 +614,7 @@ export default function IADesercionDocentePage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
 
             <div className="eyebrow">Seguimientos ({historial.seguimientos.length})</div>

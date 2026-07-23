@@ -112,7 +112,10 @@ export default function RegisterPage() {
     especialidad: '',
 
     id_carrera: 1,
-    id_plan: 1
+    id_plan: 1,
+
+    acepta_terminos: false,
+    acepta_propiedad: false
   });
 
   const [message, setMessage] = React.useState('');
@@ -206,6 +209,13 @@ export default function RegisterPage() {
       if (!form.especialidad.trim()) {
         return 'La especialidad es obligatoria para este perfil.';
       }
+    }
+
+    if (!form.acepta_terminos) {
+      return 'Debes aceptar los Términos y Condiciones y el Aviso de Privacidad.';
+    }
+    if (!form.acepta_propiedad) {
+      return 'Debes reconocer la propiedad intelectual del sistema.';
     }
 
     return '';
@@ -544,6 +554,36 @@ export default function RegisterPage() {
             </>
           )}
 
+          <div className="full" style={{ marginTop: '0.5rem', padding: '1rem', border: '1px solid var(--border)', borderRadius: '8px', background: 'var(--surface)' }}>
+            <div className="eyebrow" style={{ marginBottom: '0.5rem' }}>Aceptación legal</div>
+            <label className="field" style={{ flexDirection: 'row', gap: '0.5rem', alignItems: 'flex-start' }}>
+              <input
+                type="checkbox"
+                checked={form.acepta_terminos}
+                onChange={(e) => setForm(prev => ({ ...prev, acepta_terminos: e.target.checked }))}
+                style={{ marginTop: '0.25rem', width: 'auto' }}
+                required
+              />
+              <span style={{ fontSize: '0.85rem', lineHeight: 1.6 }}>
+                Acepto los <a href="/terminos" target="_blank" rel="noopener noreferrer">Términos y Condiciones</a> y el
+                <a href="/aviso-privacidad" target="_blank" rel="noopener noreferrer"> Aviso de Privacidad</a>
+              </span>
+            </label>
+            <label className="field" style={{ flexDirection: 'row', gap: '0.5rem', alignItems: 'flex-start', marginTop: '0.25rem' }}>
+              <input
+                type="checkbox"
+                checked={form.acepta_propiedad}
+                onChange={(e) => setForm(prev => ({ ...prev, acepta_propiedad: e.target.checked }))}
+                style={{ marginTop: '0.25rem', width: 'auto' }}
+                required
+              />
+              <span style={{ fontSize: '0.85rem', lineHeight: 1.6 }}>
+                Reconozco que este sistema es propiedad intelectual de Bárcenas González Laura Casandra
+                y Morales Ibarra Sandivel, y acepto no realizar copia, distribución o modificación no autorizada
+              </span>
+            </label>
+          </div>
+
           {error && <div className="alert error full">{error}</div>}
           {message && <div className="alert success full">{message}</div>}
 
@@ -562,6 +602,15 @@ export default function RegisterPage() {
           </button>
         </form>
       </section>
+
+      <div style={{ textAlign: 'center', padding: '0.75rem', fontSize: '0.75rem', color: 'var(--muted)', borderTop: '1px solid var(--border)', marginTop: '1rem' }}>
+        © 2026 Bárcenas G. Laura C. &amp; Morales I. Sandivel &mdash;
+        Ingeniería en Sistemas Computacionales — TESI &mdash;
+        Actualizado: Julio 2026 &mdash;
+        <a href="/terminos" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--link)' }}>Términos</a>
+        &middot;
+        <a href="/aviso-privacidad" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--link)' }}>Aviso de Privacidad</a>
+      </div>
     </div>
   );
 }

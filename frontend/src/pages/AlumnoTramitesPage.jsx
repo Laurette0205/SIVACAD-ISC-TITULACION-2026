@@ -448,7 +448,7 @@ export default function AlumnoTramitesPage() {
               <div className="card" style={{ padding: '1.25rem', gridColumn: '1 / -1' }}>
                 <h3 style={{ marginBottom: '0.75rem' }}>Historial de cambios</h3>
                 {detalle.historial_estados?.length > 0 ? (
-                  <table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
+                  <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
                     <thead>
                       <tr>
                         <th>Anterior</th>
@@ -469,7 +469,7 @@ export default function AlumnoTramitesPage() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 ) : (
                   <p className="text-muted" style={{ fontSize: '0.85rem' }}>Sin cambios registrados.</p>
                 )}
@@ -549,7 +549,7 @@ export default function AlumnoTramitesPage() {
             {historialData.length === 0 ? (
               <p className="text-muted" style={{ textAlign: 'center', padding: '2rem' }}>Sin actividad registrada.</p>
             ) : (
-              <table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
                 <thead>
                   <tr>
                     <th>Fecha</th>
@@ -572,7 +572,7 @@ export default function AlumnoTramitesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             )}
           </div>
         </div>

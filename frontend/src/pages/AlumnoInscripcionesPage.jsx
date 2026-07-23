@@ -459,7 +459,7 @@ export default function AlumnoInscripcionesPage() {
         {documentosData?.documentos?.length > 0 && (
           <SectionCard title="Archivos subidos" subtitle="Historial de documentos cargados">
             <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-              <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <div className="table-responsive"><table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left' }}>
                     <th style={{ padding: '0.4rem' }}>Documento</th>
@@ -485,7 +485,7 @@ export default function AlumnoInscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </SectionCard>
         )}
@@ -520,7 +520,7 @@ export default function AlumnoInscripcionesPage() {
             <div className="empty">Sin actividad registrada.</div>
           ) : (
             <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-              <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <div className="table-responsive"><table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left' }}>
                     <th style={{ padding: '0.4rem' }}>Fecha</th>
@@ -550,7 +550,7 @@ export default function AlumnoInscripcionesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
         </SectionCard>

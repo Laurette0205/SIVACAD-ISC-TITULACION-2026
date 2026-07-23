@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+
 import SectionCard from '../components/SectionCard';
 import { FormField } from '../components/FormField';
 import { api } from '../services/api';
@@ -12,10 +12,8 @@ import {
   CheckCircle2,
   HeartPulse,
   Loader2,
-  MessageSquareText,
   RefreshCw,
   Send,
-  ShieldCheck,
   Sparkles,
   BookOpen
 } from 'lucide-react';
@@ -73,7 +71,6 @@ function getDefaultResponses(questions = []) {
 
 export default function IABienestarPage() {
   const { user, token, loading: authLoading } = useAuth();
-  const { toggleTheme } = useTheme();
 
   const [catalogos, setCatalogos] = React.useState({
     plantillas: [],
@@ -225,29 +222,6 @@ export default function IABienestarPage() {
     return <Navigate to="/login" replace />;
   }
 
-  const heroCards = [
-    {
-      label: 'Sesiones activas',
-      value: resumen.sesiones_activas || 0,
-      icon: ShieldCheck
-    },
-    {
-      label: 'Check-ins',
-      value: resumen.total_checkins || 0,
-      icon: CheckCircle2
-    },
-    {
-      label: 'Alertas críticas',
-      value: resumen.alertas_criticas || 0,
-      icon: AlertTriangle
-    },
-    {
-      label: 'Acompañamiento promedio',
-      value: `${resumen.promedio_bienestar || 0}%`,
-      icon: HeartPulse
-    }
-  ];
-
   const handleQuestionChange = (questionId, value) => {
     setResponses((prev) => ({
       ...prev,
@@ -369,28 +343,6 @@ export default function IABienestarPage() {
             ordenar ideas y detectar señales de riesgo a tiempo.
           </p>
         </div>
-
-        <div className="hero-meta">
-          {loadingResumen ? (
-            <div className="meta-card">
-              <small>Cargando métricas</small>
-              <strong>...</strong>
-            </div>
-          ) : (
-            heroCards.map((card) => {
-              const Icon = card.icon;
-              return (
-                <div className="meta-card" key={card.label}>
-                  <small>{card.label}</small>
-                  <strong style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Icon size={18} />
-                    {card.value}
-                  </strong>
-                </div>
-              );
-            })
-          )}
-        </div>
       </section>
 
       {statusMessage && (
@@ -464,14 +416,6 @@ export default function IABienestarPage() {
           subtitle="Revisa tu acompañamiento con una plantilla adaptada"
           right={
             <div className="row gap wrap">
-              <button
-                type="button"
-                className="btn secondary"
-                onClick={toggleTheme}
-              >
-                Cambiar tema
-              </button>
-
               <button
                 type="button"
                 className="btn secondary"
@@ -605,26 +549,28 @@ export default function IABienestarPage() {
           </form>
 
           {latestInsight && (
-            <div className="note" style={{ marginTop: '1rem' }}>
-              <strong>Resultado:</strong> {latestInsight.nivel_riesgo} · Acompañamiento: {latestInsight.bienestar_score}% · Riesgo: {latestInsight.indice_riesgo}
-              <br />
-              <strong>Mensaje:</strong> {latestInsight.mensaje}
-              <br />
+            <div style={{ marginTop: '1rem', padding: '1rem 1.2rem', background: 'var(--accent-light)', borderRadius: '10px', border: '1px solid var(--line)' }}>
+              <div className="eyebrow" style={{ marginBottom: '0.5rem' }}>Resultado del chequeo</div>
+              <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                <div><strong>Nivel:</strong> {latestInsight.nivel_riesgo}</div>
+                <div><strong>Acompañamiento:</strong> {latestInsight.bienestar_score}%</div>
+                <div><strong>Riesgo:</strong> {latestInsight.indice_riesgo}</div>
+              </div>
+              {latestInsight.mensaje && (
+                <p style={{ margin: '0.25rem 0', lineHeight: 1.6 }}>{latestInsight.mensaje}</p>
+              )}
               {latestInsight.cierre && (
-                <>
-                  <strong>Cierre:</strong> {latestInsight.cierre}
-                  <br />
-                </>
+                <p style={{ margin: '0.25rem 0', lineHeight: 1.6, fontStyle: 'italic' }}>{latestInsight.cierre}</p>
               )}
               {Array.isArray(latestInsight.recomendaciones) && latestInsight.recomendaciones.length > 0 && (
-                <>
+                <div style={{ marginTop: '0.75rem' }}>
                   <strong>Recomendaciones:</strong>
-                  <ul style={{ marginTop: '0.5rem', marginBottom: 0, paddingLeft: '1.2rem' }}>
+                  <ul style={{ marginTop: '0.3rem', marginBottom: 0, paddingLeft: '1.2rem', lineHeight: 1.7 }}>
                     {latestInsight.recomendaciones.map((item, index) => (
                       <li key={index}>{item}</li>
                     ))}
                   </ul>
-                </>
+                </div>
               )}
             </div>
           )}

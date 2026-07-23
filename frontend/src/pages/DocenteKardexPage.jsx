@@ -100,7 +100,7 @@ function VistaDelGrupo({ token, grupos }) {
           </div>
 
           <div className="table-wrap" style={{ marginTop: '10px', overflowX: 'auto' }}>
-            <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+            <div className="table-responsive"><table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
               <thead>
                 <tr style={{ background: '#1e40af', color: '#fff' }}>
                   <th style={{ padding: '5px 7px', textAlign: 'left' }}>Alumno</th>
@@ -145,7 +145,7 @@ function VistaDelGrupo({ token, grupos }) {
                   </td></tr>
                 )}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </>
       )}
@@ -253,7 +253,7 @@ function KardexConsulta({ token, grupos }) {
           {h.length > 0 && (
             <div className="table-wrap" style={{ marginTop: '10px', overflowX: 'auto' }}>
               <h5 style={{ margin: '0 0 6px', fontSize: '12px' }}>Materias cursadas</h5>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
                 <thead>
                   <tr style={{ background: '#1e40af', color: '#fff' }}>
                     <th style={{ padding: '4px 6px' }}>Periodo</th>
@@ -280,7 +280,7 @@ function KardexConsulta({ token, grupos }) {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
 
@@ -387,7 +387,7 @@ function ResumenDesempeno({ token, grupos }) {
           {porPeriodo.length > 0 && (
             <div className="table-wrap" style={{ marginTop: '10px', overflowX: 'auto' }}>
               <h5 style={{ margin: '0 0 6px', fontSize: '12px' }}>Desempeño por periodo</h5>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
                 <thead>
                   <tr style={{ background: '#1e40af', color: '#fff' }}>
                     <th style={{ padding: '4px 6px', textAlign: 'left' }}>Periodo</th>
@@ -406,7 +406,7 @@ function ResumenDesempeno({ token, grupos }) {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
         </>
@@ -492,7 +492,7 @@ function HistorialEvaluacion({ token, grupos }) {
 
           {h.length > 0 && (
             <div className="table-wrap" style={{ marginTop: '10px', overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
                 <thead>
                   <tr style={{ background: '#1e40af', color: '#fff' }}>
                     <th style={{ padding: '4px 6px' }}>Periodo</th>
@@ -527,7 +527,7 @@ function HistorialEvaluacion({ token, grupos }) {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
 

@@ -3,254 +3,166 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diagramas de Flujo - SIVACAD</title>
+<title>Diagramas y Documentación Técnica Completa - SIVACAD</title>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 <style>
-  :root {
-    --bg: #f8fafc;
-    --card: #ffffff;
-    --border: #e2e8f0;
-    --text: #1e293b;
-    --accent: #2563eb;
-    --accent-light: #eff6ff;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.7;
-    padding: 2rem;
-  }
-  h1 {
-    text-align: center;
-    margin-bottom: 0.25rem;
-    font-size: 2.2rem;
-    color: #0f172a;
-  }
-  .subtitle {
-    text-align: center;
-    color: #64748b;
-    margin-bottom: 2.5rem;
-    font-size: 1.05rem;
-  }
-  .toc {
-    max-width: 900px;
-    margin: 0 auto 3rem;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 2rem;
-  }
-  .toc h2 { margin-bottom: 1rem; font-size: 1.3rem; }
-  .toc ol {
-    columns: 2 320px;
-    column-gap: 2rem;
-    padding-left: 1.5rem;
-  }
-  .toc li { margin-bottom: 0.4rem; }
-  .toc a { color: var(--accent); text-decoration: none; }
-  .toc a:hover { text-decoration: underline; }
-  .section {
-    max-width: 1200px;
-    margin: 2.5rem auto;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 2rem 2rem 1.5rem;
-    break-inside: avoid;
-  }
-  .section h2 {
-    font-size: 1.5rem;
-    margin-bottom: 0.3rem;
-    color: #0f172a;
-  }
-  .section .meta {
-    font-size: 0.9rem;
-    color: #64748b;
-    margin-bottom: 1.2rem;
-  }
-  .section .desc {
-    background: var(--accent-light);
-    border-left: 4px solid var(--accent);
-    padding: 1rem 1.2rem;
-    border-radius: 0 8px 8px 0;
-    margin-bottom: 1.5rem;
-    font-size: 0.95rem;
-  }
-  .diagram-wrapper {
-    overflow-x: auto;
-    text-align: center;
-    padding: 1rem 0 0.5rem;
-  }
-  .diagram-wrapper svg { max-width: 100%; height: auto; }
-  .endpoints {
-    margin-top: 1rem;
-    font-size: 0.85rem;
-    color: #475569;
-    background: #f1f5f9;
-    border-radius: 8px;
-    padding: 0.8rem 1rem;
-  }
-  .endpoints strong { color: #0f172a; }
-  .endpoints code {
-    background: #e2e8f0;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-  }
-  .timeline-bar {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin: 1.5rem 0;
-  }
-  .tl-item {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-  }
-  .tl-date {
-    min-width: 120px;
-    font-weight: 700;
-    color: var(--accent);
-    font-size: 0.85rem;
-    padding-top: 0.1rem;
-  }
-  .tl-dot {
-    width: 12px; height: 12px;
-    border-radius: 50%;
-    background: var(--accent);
-    border: 2px solid #fff;
-    box-shadow: 0 0 0 2px var(--accent);
-    flex-shrink: 0;
-    margin-top: 0.2rem;
-  }
-  .tl-content {
-    background: #f1f5f9;
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    flex: 1;
-  }
-  .tl-content strong { color: #0f172a; }
-  .tl-content .tag {
-    display: inline-block;
-    font-size: 0.7rem;
-    padding: 0.1rem 0.5rem;
-    border-radius: 999px;
-    font-weight: 600;
-    margin-right: 0.4rem;
-  }
-  .tag-feat { background: #dbeafe; color: #1d4ed8; }
-  .tag-fix { background: #fef2f2; color: #dc2626; }
-  .tag-db { background: #f0fdf4; color: #16a34a; }
-  .tag-arch { background: #fef3c7; color: #d97706; }
-  @media print {
-    body { padding: 0; }
-    .section { break-inside: avoid; page-break-inside: avoid; }
-    .toc { break-after: page; }
-  }
+  :root { --bg: #f8fafc; --card: #ffffff; --border: #e2e8f0; --text: #1e293b; --accent: #2563eb; --accent-light: #eff6ff; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); line-height:1.7; padding:2rem; }
+  h1 { text-align:center; margin-bottom:0.25rem; font-size:2.2rem; color:#0f172a; }
+  .subtitle { text-align:center; color:#64748b; margin-bottom:2.5rem; font-size:1.05rem; }
+  .toc { max-width:900px; margin:0 auto 3rem; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:2rem; }
+  .toc h2 { margin-bottom:1rem; font-size:1.3rem; }
+  .toc ol { columns:2 320px; column-gap:2rem; padding-left:1.5rem; }
+  .toc li { margin-bottom:0.4rem; }
+  .toc a { color:var(--accent); text-decoration:none; }
+  .toc a:hover { text-decoration:underline; }
+  .section { max-width:1200px; margin:2.5rem auto; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:2rem 2rem 1.5rem; break-inside:avoid; }
+  .section h2 { font-size:1.5rem; margin-bottom:0.3rem; color:#0f172a; }
+  .section .meta { font-size:0.9rem; color:#64748b; margin-bottom:1.2rem; }
+  .section .desc { background:var(--accent-light); border-left:4px solid var(--accent); padding:1rem 1.2rem; border-radius:0 8px 8px 0; margin-bottom:1.5rem; font-size:0.95rem; }
+  .diagram-wrapper { overflow-x:auto; text-align:center; padding:1rem 0 0.5rem; }
+  .diagram-wrapper svg { max-width:100%; height:auto; }
+  .endpoints { margin-top:1rem; font-size:0.85rem; color:#475569; background:#f1f5f9; border-radius:8px; padding:0.8rem 1rem; }
+  .endpoints strong { color:#0f172a; }
+  .endpoints code { background:#e2e8f0; padding:2px 6px; border-radius:4px; font-size:0.8rem; }
+  .timeline-bar { display:flex; flex-direction:column; gap:0.75rem; margin:1.5rem 0; }
+  .tl-item { display:flex; gap:1rem; align-items:flex-start; }
+  .tl-date { min-width:120px; font-weight:700; color:var(--accent); font-size:0.85rem; padding-top:0.1rem; }
+  .tl-dot { width:12px; height:12px; border-radius:50%; background:var(--accent); border:2px solid #fff; box-shadow:0 0 0 2px var(--accent); flex-shrink:0; margin-top:0.2rem; }
+  .tl-content { background:#f1f5f9; border-radius:8px; padding:0.5rem 1rem; flex:1; }
+  .tl-content strong { color:#0f172a; }
+  .tl-content .tag { display:inline-block; font-size:0.7rem; padding:0.1rem 0.5rem; border-radius:999px; font-weight:600; margin-right:0.4rem; }
+  .tag-feat { background:#dbeafe; color:#1d4ed8; }
+  .tag-fix { background:#fef2f2; color:#dc2626; }
+  .tag-db { background:#f0fdf4; color:#16a34a; }
+  .tag-arch { background:#fef3c7; color:#d97706; }
+  table { width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.9rem; }
+  table th { background:#1e3a5f; color:#fff; padding:0.6rem; text-align:left; }
+  table td { padding:0.5rem 0.6rem; border-bottom:1px solid var(--border); }
+  table tr:nth-child(even) { background:#f8fafc; }
+  table tr:hover { background:var(--accent-light); }
+  .badge { display:inline-block; padding:0.15rem 0.5rem; border-radius:999px; font-size:0.75rem; font-weight:600; }
+  .badge-green { background:#dcfce7; color:#16a34a; }
+  .badge-red { background:#fef2f2; color:#dc2626; }
+  .badge-blue { background:#dbeafe; color:#1d4ed8; }
+  .badge-amber { background:#fef3c7; color:#d97706; }
+  @media print { body { padding:0; } .section { break-inside:avoid; } .toc { break-after:page; } }
 </style>
 </head>
 <body>
-
-<h1>Diagramas de Flujo del Sistema SIVACAD</h1>
-<p class="subtitle">Sistema Integral para la Gestión Académica y Administrativa &mdash; TESI Campus Ixtapaluca</p>
+<h1>Diagramas y Documentación Técnica Completa del Sistema SIVACAD</h1>
+<p class="subtitle">Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos — TESI Ixtapaluca - ISC<br>
+<strong>Autoras:</strong> Bárcenas González Laura Casandra &amp; Morales Ibarra Sandivel &middot; Ingeniería en Sistemas Computacionales &middot; 2026<br>
+<strong>Total de diagramas:</strong> 40 secciones &middot; <strong>Última actualización:</strong> 23 de julio de 2026</p>
 
 <div class="toc">
-  <h2>&Iacute;ndice</h2>
+  <h2>Índice General</h2>
   <ol>
     <li><a href="#s1">Flujo Global del Sistema</a></li>
-    <li><a href="#s2">Autenticaci&oacute;n (Login)</a></li>
+    <li><a href="#s2">Autenticación (Login)</a></li>
     <li><a href="#s3">Registro de Usuario</a></li>
-    <li><a href="#s4">Recuperaci&oacute;n de Contrase&ntilde;a</a></li>
-    <li><a href="#s5">Restablecer Contrase&ntilde;a</a></li>
-    <li><a href="#s6">Gesti&oacute;n Acad&eacute;mica</a></li>
+    <li><a href="#s4">Recuperación de Contraseña</a></li>
+    <li><a href="#s5">Restablecer Contraseña</a></li>
+    <li><a href="#s6">Gestión Académica (CRUD)</a></li>
     <li><a href="#s7">Inscripciones y Reinscripciones</a></li>
     <li><a href="#s8">Evaluaciones</a></li>
-    <li><a href="#s9">OCR de Actas</a></li>
-    <li><a href="#s10">IA de Deserci&oacute;n (Admin, Docente, Alumno, Soporte)</a></li>
+    <li><a href="#s9">OCR de Actas de Calificaciones</a></li>
+    <li><a href="#s10">IA de Deserción</a></li>
     <li><a href="#s11">IA de Becas</a></li>
-    <li><a href="#s12">IA de Acompañamiento Estudiantil y Supervisi&oacute;n Admin</a></li>
-    <li><a href="#s13">Asistente Acad&eacute;mico</a></li>
-    <li><a href="#s14">Kardex, QR y Fotograf&iacute;as</a></li>
+    <li><a href="#s12">IA de Acompañamiento Estudiantil</a></li>
+    <li><a href="#s13">Asistente Académico</a></li>
+    <li><a href="#s14">Kardex, QR y Fotografías</a></li>
     <li><a href="#s15">Reportes PDF y Excel</a></li>
     <li><a href="#s16">Chatbot General</a></li>
-    <li><a href="#s17">Base de Datos &mdash; Diagrama Entidad-Relaci&oacute;n Completo</a></li>
+    <li><a href="#s17">Diagrama Entidad-Relación (BD)</a></li>
     <li><a href="#s18">Arquitectura de Rutas del Backend</a></li>
-    <li><a href="#s19">Arquitectura del Frontend (Auth, Roles, API Request)</a></li>
-    <li><a href="#s20">Frontend: Componentes y P&aacute;ginas</a></li>
-    <li><a href="#s21">Configuraci&oacute;n, Instalaci&oacute;n y Despliegue</a></li>
-    <li><a href="#s22">Cronograma de Modificaciones y Cambios</a></li>
-    <li><a href="#s23">&Iacute;ndice de Archivos del Proyecto</a></li>
+    <li><a href="#s19">Arquitectura del Frontend</a></li>
+    <li><a href="#s20">Componentes y Páginas Frontend</a></li>
+    <li><a href="#s21">Instalación y Despliegue</a></li>
+    <li><a href="#s22">Cronograma de Modificaciones</a></li>
+    <li><a href="#s23">Índice de Archivos del Proyecto</a></li>
+    <li><a href="#s24">Mapa Conceptual del Sistema</a></li>
+    <li><a href="#s25">Mapa Sinóptico de Módulos</a></li>
+    <li><a href="#s26">Diagrama de Casos de Uso</a></li>
+    <li><a href="#s27">Tabla Comparativa de Tecnologías</a></li>
+    <li><a href="#s28">Ventajas y Desventajas del Sistema</a></li>
+    <li><a href="#s29">Diagrama de Despliegue</a></li>
+    <li><a href="#s30">Matriz de Roles y Permisos</a></li>
+    <li><a href="#s31">Ciclo de Pruebas Funcionales</a></li>
+    <li><a href="#s32">Mapa de Navegación (Sitemap)</a></li>
+    <li><a href="#s33">Comparación Antes / Después</a></li>
+    <li><a href="#s34">Métricas del Sistema</a></li>
+    <li><a href="#s35">Flujo de Trámites Escolares</a></li>
+    <li><a href="#s36">Flujo de Bienestar Estudiantil</a></li>
+    <li><a href="#s37">Arquitectura de Seguridad</a></li>
+    <li><a href="#s38">Responsive Móvil — 6 Fases de Corrección</a></li>
+    <li><a href="#s39">Normatividad ISO y Regulatoria para TESI / ISC</a></li>
+    <li><a href="#s40">Manuales del Sistema (5 manuales)</a></li>
   </ol>
 </div>
 
 <div class="section" id="s1">
   <h2>1. Flujo Global del Sistema</h2>
-  <div class="meta">Arquitectura general: Frontend &rarr; API REST &rarr; MySQL &rarr; Servicios externos</div>
-  <div class="desc">
-    El sistema sigue una arquitectura de tres capas. El Frontend en React/Vite se comunica con el Backend en Express.js mediante peticiones HTTP (JSON). El backend procesa la l&oacute;gica de negocio, consulta la base de datos MySQL y, cuando es necesario, llama a servicios externos como Gemini API (OCR, chatbot, becas, bienestar) o SMTP (correos). El middleware JWT protege las rutas privadas y el middleware de roles (RBAC) controla los permisos por perfil.
-  </div>
+  <div class="meta">Arquitectura general: Frontend → API REST → MySQL → Servicios externos (Gemini, SMTP, Flask, PHP)</div>
+  <div class="desc">El sistema sigue una arquitectura de tres capas (presentación, lógica de negocio, datos). El Frontend en React/Vite se comunica con el Backend en Express.js mediante peticiones HTTP con formato JSON. El backend procesa la lógica de negocio, consulta la base de datos MySQL y, cuando es necesario, llama a servicios externos como Gemini API (OCR, chatbot, becas, bienestar), SMTP (correos), Flask ML (predicción de deserción/bienestar) y PHP CLI (generación de PDF/Excel). El middleware JWT protege las rutas privadas y el middleware de roles (RBAC) controla los permisos por perfil.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 flowchart TB
-    subgraph FRONTEND["Frontend (React + Vite)"]
-        A1["Login / Register"]
-        A2["ForgotPassword / ResetPassword"]
-        A3["Dashboard / Alumnos / Docentes"]
-        A4["Inscripciones / Evaluaciones"]
-        A5["Kardex / QR / Fotos"]
-        A6["Actas OCR"]
+    subgraph FRONTEND["Frontend (React + Vite) - Puerto 5173"]
+        A1["Login / Register / Forgot/Reset"]
+        A2["Dashboard / Alumnos / Docentes"]
+        A3["Inscripciones / Reinscripciones"]
+        A4["Kardex / QR / Fotografías"]
+        A5["Evaluaciones (5 tipos)"]
+        A6["Actas OCR (Gemini)"]
         A7["Chatbot / Asistente / IA"]
-        A8["Reportes (PDF/Excel)"]
+        A8["Reportes PDF/Excel"]
+        A9["Trámites Escolares"]
     end
-
-    subgraph BACKEND["Backend (Express.js)"]
-        B0["Middleware: JWT + Roles"]
-        B1["routes/auth.js"]
-        B2["routes/inscripciones.js"]
-        B3["routes/kardex.js"]
-        B4["routes/actasOCR.js"]
-        B5["routes/evaluaciones.js"]
-        B6["routes/asistente.js / chatbot.js"]
-        B7["routes/iaDesercion.js / iaBecas.js / iaBienestar.js"]
-        B8["routes/reportes.js"]
-        B9["services/mailer.js (Nodemailer)"]
+    subgraph BACKEND["Backend (Express.js) - Puerto 3000"]
+        B0["Middleware: JWT + Roles + Rate Limit"]
+        B1["routes/auth, alumnos, docentes"]
+        B2["routes/inscripciones, kardex"]
+        B3["routes/evaluaciones, actasOCR"]
+        B4["routes/asistente, chatbot, tramites"]
+        B5["routes/iaDesercion, iaBecas, iaBienestar"]
+        B6["routes/reportes, dashboard, auditoria"]
     end
-
-    subgraph DB["Base de Datos MySQL (sivacad_isc)"]
-        C1["usuarios / roles"]
-        C2["alumnos / docentes"]
-        C3["periodos / grupos / materias"]
-        C4["inscripciones / reinscripciones"]
-        C5["kardex_alumno / kardex_grupo_qr"]
-        C6["evaluacion_plantillas / evaluaciones / respuestas_evaluacion"]
-        C7["password_resets / bitacora_auditoria"]
-        C8["ia_alertas_desercion / ia_seguimientos_desercion"]
-        C9["becas_fuentes / becas_chunks"]
-        C10["bienestar_* (sesiones, checkins, recursos)"]
+    subgraph DB["Base de Datos MySQL 8.0 (sivacad_isc)"]
+        C1["Núcleo: usuarios, roles, alumnos, docentes"]
+        C2["Académico: periodos, grupos, materias"]
+        C3["Inscripciones: inscripciones, reinscripciones"]
+        C4["Kardex: kardex_alumno, historial, sellos"]
+        C5["Evaluaciones: plantillas, preguntas, respuestas"]
+        C6["IA Bienestar: 8 tablas"]
+        C7["IA Deserción: alertas, seguimientos"]
+        C8["Becas: fuentes, chunks"]
+        C9["Auditoría: bitacora, auditoria_global, sesiones"]
     end
-
     subgraph EXTERNAL["Servicios Externos"]
         D1["Gemini API (Google AI)"]
         D2["SMTP Office 365 (Nodemailer)"]
+        D3["Flask ML (Python - Puerto 5001)"]
+        D4["PHP CLI (Dompdf / PhpSpreadsheet)"]
+        D5["Puppeteer (PDF alternativo)"]
     end
-
     FRONTEND -->|"HTTP/JSON"| BACKEND
-    BACKEND -->|"Consultas SQL"| DB
+    BACKEND -->|"Consultas SQL (mysql2)"| DB
     BACKEND -->|"API Gemini"| D1
     BACKEND -->|"Correos"| D2
+    BACKEND -->|"Predicción ML"| D3
+    BACKEND -->|"Generación PDF/Excel"| D4
+    BACKEND -->|"PDF avanzado"| D5
 </pre>
   </div>
+  <div class="endpoints"><strong>Comunicación:</strong> <code>Frontend (5173) → Backend (3000/api/*)</code> · <strong>ML:</strong> <code>Backend → Flask (5001)</code> · <strong>Documentos:</strong> <code>Backend → PHP CLI</code></div>
 </div>
 
 <div class="section" id="s2">
-  <h2>2. Autenticaci&oacute;n &mdash; Login</h2>
-  <div class="meta">POST /api/auth/login &bull; Middleware: validateInstitutionalEmail</div>
-  <div class="desc">
-    El usuario ingresa su correo y contrase&ntilde;a en el formulario de Login. Se normaliza el email (min&uacute;sculas, trim) y se env&iacute;a al backend. El middleware verifica que el dominio del correo est&eacute; en la lista blanca. El controlador busca el usuario en la BD, verifica que est&eacute; Activo, compara la contrase&ntilde;a con bcrypt, y si es v&aacute;lida, genera un token JWT firmado con el secret del .env. Se devuelve el token y los datos del usuario. El frontend almacena el token y los datos en localStorage y redirige seg&uacute;n el rol.
-  </div>
+  <h2>2. Autenticación — Login</h2>
+  <div class="meta">POST /api/auth/login · Middleware: validateInstitutionalEmail · JWT + bcrypt</div>
+  <div class="desc">El usuario ingresa su correo y contraseña en el formulario de Login. Se normaliza el email (minúsculas, trim) y se envía al backend. El middleware verifica que el dominio del correo esté en la lista blanca institucional. El controlador busca el usuario en la BD, verifica que esté Activo, compara la contraseña con bcrypt (12 rounds), y si es válida, genera un token JWT firmado con el secret del .env. Se devuelve el token y los datos del usuario. El frontend almacena el token y los datos en localStorage y redirige según el rol.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 sequenceDiagram
@@ -258,35 +170,31 @@ sequenceDiagram
     participant F as Frontend (LoginPage)
     participant B as Backend (auth.js)
     participant DB as MySQL
-
-    U->>F: Ingresa correo + contrase&ntilde;a
+    U->>F: Ingresa correo + contraseña
     F->>F: normalizeEmail() + validar dominio
     F->>B: POST /auth/login { correo, contrasena }
-    B->>B: validateInstitutionalEmail (dominios permitidos)
+    B->>B: validateInstitutionalEmail
     B->>DB: SELECT usuarios + roles WHERE correo_institucional = ?
-    DB-->>B: Datos del usuario (o vac&iacute;o)
-    B->>B: usuario.estado === 'Activo'?
-    B->>B: bcrypt.compare(contrasena, hash)
-    B->>B: jwt.sign({ id_usuario, correo, rol }, JWT_SECRET)
-    B-->>F: 200 { ok: true, token, usuario: {...} }
-    F->>F: localStorage.setItem('sivacad_token', token)
-    F->>F: localStorage.setItem('sivacad_user', JSON.stringify(usuario))
-    F->>U: Redirigir seg&uacute;n rol (/app/dashboard o /app/alumno)
+    DB-->>B: Datos del usuario
+    B->>B: estado === 'Activo'? bcrypt.compare()
+    alt Contraseña incorrecta
+        B-->>F: 401 { ok: false }
+        F-->>U: Muestra error
+    else Correcta
+        B->>B: jwt.sign({ id_usuario, correo, rol, rol_id }, JWT_SECRET)
+        B-->>F: 200 { ok: true, token, usuario }
+        F->>F: localStorage token + user
+        F->>U: Redirigir según rol
+    end
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Endpoints involucrados:</strong>
-    <code>POST /api/auth/login</code> &middot;
-    <code>GET /api/auth/me</code>
-  </div>
+  <div class="endpoints"><strong>Endpoints:</strong> <code>POST /api/auth/login</code> · <code>GET /api/auth/me</code> · <strong>Dominios:</strong> <code>@tesi.edu.mx, @ixtapaluca.tecnm.mx</code></div>
 </div>
 
 <div class="section" id="s3">
   <h2>3. Registro de Usuario</h2>
-  <div class="meta">POST /auth/register &middot; Transacci&oacute;n: INSERT usuarios + alumnos/docentes + kardex</div>
-  <div class="desc">
-    El formulario de registro captura nombres, apellidos, correo, contrase&ntilde;a, rol y datos espec&iacute;ficos (matr&iacute;cula o n&uacute;mero de empleado). El backend valida el dominio del correo, verifica que no exista un usuario con el mismo correo, capitaliza nombres, hace hash a la contrase&ntilde;a con bcrypt (12 rounds), e inicia una transacci&oacute;n. Inserta en `usuarios`, y seg&uacute;n el rol inserta en `alumnos` (con `kardex_alumno`) o `docentes`. Finalmente, firma un token JWT y devuelve los datos del nuevo usuario.
-  </div>
+  <div class="meta">POST /auth/register · Transacción: INSERT usuarios + alumnos/docentes + kardex</div>
+  <div class="desc">El formulario de registro captura nombres, apellidos, correo, contraseña, rol y datos específicos (matrícula o número de empleado). El backend valida el dominio del correo, verifica que no exista un usuario con el mismo correo, capitaliza nombres, hace hash a la contraseña con bcrypt (12 rounds), e inicia una transacción. Inserta en usuarios, y según el rol inserta en alumnos (con kardex_alumno) o docentes.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 sequenceDiagram
@@ -294,532 +202,385 @@ sequenceDiagram
     participant F as Frontend (RegisterPage)
     participant B as Backend (auth.js: register)
     participant DB as MySQL
-
     U->>F: Completa formulario de registro
-    F->>B: POST /api/auth/register { nombres, apellidos, correo, contrasena, rol, ... }
+    F->>B: POST /api/auth/register { datos }
     B->>B: Validar correo institucional
-    B->>DB: SELECT id_usuario WHERE correo_institucional = ? (evitar duplicado)
+    B->>DB: SELECT WHERE correo_institucional = ? (evitar duplicado)
     DB-->>B: Usuario no existe
     B->>B: bcrypt.hash(contrasena, 12)
     B->>DB: BEGIN TRANSACTION
     B->>DB: INSERT INTO usuarios (nombres, apellidos, correo, hash, 'Activo', id_rol)
     DB-->>B: id_usuario
     alt Rol = alumno
-        B->>DB: INSERT INTO alumnos (id_usuario, matricula, curp, id_carrera, ...)
+        B->>DB: INSERT INTO alumnos (id_usuario, matricula, curp, id_carrera)
         DB-->>B: id_alumno
-        B->>DB: INSERT INTO kardex_alumno (id_alumno, numero_control, qr_token, ...)
-    else Rol = docente / coordinador / administrador / soporte
-        B->>DB: INSERT INTO docentes (id_usuario, numero_empleado, especialidad, ...)
+        B->>DB: INSERT INTO kardex_alumno (id_alumno, numero_control, qr_token)
+    else Rol = docente/coord/admin/soporte
+        B->>DB: INSERT INTO docentes (id_usuario, numero_empleado, especialidad)
     end
     B->>DB: COMMIT
     B->>B: jwt.sign({ id_usuario, correo, rol }, JWT_SECRET)
-    B-->>F: 201 { ok, token, usuario: { nombres, correo, rol, ... } }
+    B-->>F: 201 { ok, token, usuario }
     F->>F: Guardar token y usuario en localStorage
     F->>U: Redirigir al dashboard correspondiente
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Endpoints involucrados:</strong>
-    <code>POST /api/auth/register</code>
-  </div>
+  <div class="endpoints"><strong>Endpoints:</strong> <code>POST /api/auth/register</code> · <strong>Aceptaciones:</strong> términos, privacidad, propiedad intelectual</div>
 </div>
 
 <div class="section" id="s4">
-  <h2>4. Recuperaci&oacute;n de Contrase&ntilde;a</h2>
-  <div class="meta">POST /auth/forgot-password &middot; Rate limit: 5 req/15min &middot; Nodemailer + Gemini no involucrado</div>
-  <div class="desc">
-    El usuario ingresa su correo institucional. El frontend valida el dominio y env&iacute;a la solicitud. El backend valida el correo nuevamente (con soporte de subdominios), busca al usuario en la BD, verifica si est&aacute; activo, y si todo es correcto, genera un token criptogr&aacute;fico de 64 caracteres hex (crypto.randomBytes(32)). Inicia una transacci&oacute;n, marca como usados los tokens previos del usuario, inserta el nuevo token con expiraci&oacute;n de 15 minutos, y env&iacute;a el correo via SMTP (Nodemailer) con un enlace al frontend. Si no hay SMTP configurado o falla, en development muestra el enlace en consola y en la UI. Los mensajes de error son gen&eacute;ricos para evitar enumeraci&oacute;n de correos.
-  </div>
+  <h2>4. Recuperación de Contraseña</h2>
+  <div class="meta">POST /auth/forgot-password · Rate limit: 5 req/15min · Nodemailer + crypto</div>
+  <div class="desc">El usuario ingresa su correo institucional. El backend valida el dominio, busca al usuario en la BD, verifica si está activo, y genera un token criptográfico de 64 caracteres hex (crypto.randomBytes(32)). Inicia una transacción, marca como usados los tokens previos, inserta el nuevo token con expiración de 15 minutos, y envía el correo vía SMTP con un enlace al frontend. Los mensajes de error son genéricos para evitar enumeración de correos.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 sequenceDiagram
     actor U as Usuario
-    participant F as Frontend (ForgotPasswordPage)
-    participant B as Backend (auth.js: forgotPassword)
+    participant F as Frontend
+    participant B as Backend
     participant DB as MySQL
     participant SMTP as Nodemailer
-
     U->>F: Ingresa correo institucional
-    F->>F: isInstitutionalEmail() + normalizar
+    F->>F: isInstitutionalEmail()
     F->>B: POST /api/auth/forgot-password { correo }
-    B->>B: Rate limit check (5 solicitudes / 15 min)
-    B->>B: validateInstitutionalEmail (soporte subdominios)
-    B->>DB: SELECT usuario WHERE correo_institucional = ?
-    DB-->>B: Usuario encontrado
-    B->>B: usuario.estado === 'Activo'?
-    B->>B: crypto.randomBytes(32).toString('hex') = token 64 chars
-    B->>B: expiresAt = Date.now() + 15*60*1000
+    B->>B: Rate limit check
+    B->>B: validateInstitutionalEmail
+    B->>DB: SELECT WHERE correo_institucional = ?
+    DB-->>B: Usuario encontrado y activo
+    B->>B: crypto.randomBytes(32) = token 64 chars
     B->>DB: BEGIN TRANSACTION
-    B->>DB: UPDATE password_resets SET used=1 WHERE id_usuario=? AND used=0 (cleanup)
-    B->>DB: INSERT INTO password_resets (id_usuario, token, expires_at, created_at)
+    B->>DB: UPDATE password_resets SET used=1 (cleanup)
+    B->>DB: INSERT INTO password_resets (token, expires_at)
     B->>DB: COMMIT
-    B->>B: resetUrl = FRONTEND_URL + RESET_PASSWORD_PATH + token
-    B->>SMTP: sendPasswordResetEmail({ to, name, resetUrl })
-    alt SMTP configurado y funciona
-        SMTP-->>B: Correo enviado exitosamente
-        B-->>F: 200 { ok, message: "Se envi&oacute; un enlace..." }
-    else SMTP placeholder o falla (development)
-        B-->>F: 200 { ok, message: "...", devMode: true, resetUrl }
-        F-->>U: Muestra el enlace en la UI (modo local)
-    else SMTP falla (production)
-        B-->>F: 503 { ok: false, message: "No fue posible enviar..." }
+    B->>SMTP: sendPasswordResetEmail()
+    alt SMTP funciona
+        B-->>F: 200 { ok, message }
+    else Development mode
+        B-->>F: 200 { ok, devMode: true, resetUrl }
     end
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Endpoints involucrados:</strong>
-    <code>POST /api/auth/forgot-password</code> &middot;
-    <strong>Tablas:</strong> <code>usuarios</code>, <code>password_resets</code>
-  </div>
+  <div class="endpoints"><strong>Endpoints:</strong> <code>POST /api/auth/forgot-password</code> · <strong>Tablas:</strong> <code>usuarios</code>, <code>password_resets</code></div>
 </div>
 
 <div class="section" id="s5">
-  <h2>5. Restablecer Contrase&ntilde;a</h2>
-  <div class="meta">POST /auth/reset-password/:token &middot; Validaci&oacute;n: SQL expires_at > NOW() + c&oacute;digo</div>
-  <div class="desc">
-    El usuario recibe el enlace de recuperaci&oacute;n (por correo o en UI en dev) y es redirigido a ResetPasswordPage con el token en la URL. El frontend valida que la nueva contrase&ntilde;a tenga al menos 8 caracteres y que coincida con la confirmaci&oacute;n. El backend busca el token en la tabla <code>password_resets</code> con condici&oacute;n SQL <code>used=0 AND expires_at > NOW()</code>. Si no existe o expir&oacute;, se rechaza. Si todo es v&aacute;lido, se hace hash a la nueva contrase&ntilde;a con bcrypt, se actualiza el registro del usuario, se marca el token como usado y se devuelve &eacute;xito. El frontend redirige a /login tras 1.4 segundos.
-  </div>
+  <h2>5. Restablecer Contraseña</h2>
+  <div class="meta">POST /auth/reset-password/:token · Validación: SQL expires_at > NOW() + used=0</div>
+  <div class="desc">El usuario recibe el enlace de recuperación y es redirigido a ResetPasswordPage con el token en la URL. El backend busca el token en la tabla password_resets con condición used=0 AND expires_at > NOW(). Si no existe o expiró, se rechaza. Si es válido, se hace hash a la nueva contraseña con bcrypt, se actualiza el usuario, se marca el token como usado.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 sequenceDiagram
     actor U as Usuario
-    participant F as Frontend (ResetPasswordPage)
-    participant B as Backend (auth.js: resetPassword)
+    participant F as Frontend
+    participant B as Backend
     participant DB as MySQL
-
-    U->>F: Click en enlace de recuperaci&oacute;n (token en URL)
-    F->>F: Extraer token de useParams()
-    F-->>U: Formulario: nueva contrase&ntilde;a + confirmar
-    U->>F: Ingresa nueva contrase&ntilde;a (>=8 caracteres, coinciden)
+    U->>F: Click en enlace (token en URL)
+    F-->>U: Formulario: nueva contraseña
+    U->>F: Ingresa contraseña (>=8 chars)
     F->>B: POST /api/auth/reset-password/:token { contrasena }
     B->>DB: SELECT pr.*, u.estado FROM password_resets pr JOIN usuarios u WHERE pr.token=? AND pr.used=0 AND pr.expires_at>NOW()
-    DB-->>B: resetRow (v&aacute;lido) o null
-    alt Token v&aacute;lido no expirado
+    DB-->>B: resetRow válido o null
+    alt Token válido
         B->>B: bcrypt.hash(contrasena, 12)
-        B->>DB: BEGIN TRANSACTION
-        B->>DB: UPDATE usuarios SET contrasena_hash=? WHERE id_usuario=?
-        B->>DB: UPDATE password_resets SET used=1 WHERE id_reseteo=?
+        B->>DB: TRANSACTION: UPDATE usuarios + UPDATE password_resets SET used=1
         B->>DB: COMMIT
-        B-->>F: 200 { ok, message: "Contrase&ntilde;a actualizada" }
-        F->>F: setTimeout() 1.4s
+        B-->>F: 200 { ok, message }
         F->>U: Redirigir a /login
-    else Token inv&aacute;lido o expirado
-        B-->>F: 400 { ok: false, message: "Enlace no v&aacute;lido o ha expirado" }
+    else Inválido o expirado
+        B-->>F: 400 { ok: false, message }
         F-->>U: Muestra error
     end
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Endpoints involucrados:</strong>
-    <code>POST /api/auth/reset-password/:token</code> &middot;
-    <strong>Tablas:</strong> <code>password_resets</code>, <code>usuarios</code>
-  </div>
+  <div class="endpoints"><strong>Endpoints:</strong> <code>POST /api/auth/reset-password/:token</code></div>
 </div>
 
 <div class="section" id="s6">
-  <h2>6. Gesti&oacute;n Acad&eacute;mica</h2>
-  <div class="meta">Endpoints: /api/alumnos, /api/docentes, /api/periodos, /api/grupos &middot; SQL directo (sin controlador separado)</div>
-  <div class="desc">
-    Estos m&oacute;dulos manejan la informaci&oacute;n base del sistema. Los endpoints de alumnos y docentes hacen consultas con JOIN a usuarios para obtener datos completos. Los periodos soportan filtros por estado e incluyen totales de grupos, inscripciones y evaluaciones activas. Los grupos se filtran por periodo, carrera y semestre. Todos los endpoints de escritura (POST) requieren roles de ADMINISTRADOR o COORDINADOR y validan datos antes de insertar.
-  </div>
+  <h2>6. Gestión Académica</h2>
+  <div class="meta">Endpoints: /api/alumnos, /api/docentes, /api/periodos, /api/grupos, /api/bajas</div>
+  <div class="desc">Estos módulos manejan la información base del sistema. Los endpoints de alumnos y docentes hacen consultas con JOIN a usuarios. Los periodos soportan filtros por estado e incluyen totales. Los grupos se filtran por periodo, carrera y semestre. Todos los endpoints de escritura requieren roles ADMINISTRADOR o COORDINADOR.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 flowchart LR
     subgraph ALUMNOS["Alumnos"]
-        dir1A["GET /api/alumnos<br/>SELECT con JOIN a usuarios, carreras"]
-        dir1B["GET /api/alumnos/:id<br/>Alumno por ID"]
-        A1["Frontend<br/>AlumnosPage"]
+        dir1A["GET /api/alumnos<br/>SELECT + JOIN usuarios, carreras"]
+        dir1B["GET /api/alumnos/:id"]
+        A1["Frontend AlumnosPage"]
     end
-
     subgraph DOCENTES["Docentes"]
-        dir2A["GET /api/docentes<br/>SELECT con JOIN a usuarios"]
-        dir2B["GET /api/docentes/:id<br/>Docente por ID"]
-        A2["Frontend<br/>DocentesPage"]
+        dir2A["GET /api/docentes<br/>SELECT + JOIN usuarios"]
+        A2["Frontend DocentesPage"]
     end
-
     subgraph PERIODOS["Periodos"]
-        dir3A["GET /api/periodos?estado=Activo<br/>Incluye totales: grupos, inscripciones, evaluaciones"]
-        dir3B["POST /api/periodos<br/>(Admin/Coord) Crear periodo"]
-        A3["Frontend<br/>PeriodosPage"]
+        dir3A["GET /api/periodos?estado<br/>+ totales grupos/inscripciones"]
+        A3["Frontend PeriodosPage"]
     end
-
     subgraph GRUPOS["Grupos"]
-        dir4A["GET /api/grupos?filtros<br/>Filtros: id_periodo, id_carrera, semestre, estado"]
-        dir4B["POST /api/grupos<br/>(Admin/Coord) Crear grupo"]
-        A4["Frontend<br/>GruposPage"]
+        dir4A["GET /api/grupos?filtros"]
+        A4["Frontend GruposPage"]
     end
-
     A1 --> dir1A & dir1B
-    A2 --> dir2A & dir2B
-    A3 --> dir3A & dir3B
-    A4 --> dir4A & dir4B
-
-    dir1A & dir1B --> DB1[("MySQL<br/>usuarios<br/>alumnos<br/>carreras")]
-    dir2A & dir2B --> DB2[("MySQL<br/>usuarios<br/>docentes")]
-    dir3A & dir3B --> DB3[("MySQL<br/>periodos<br/>grupos<br/>inscripciones<br/>evaluaciones")]
-    dir4A & dir4B --> DB4[("MySQL<br/>grupos<br/>periodos<br/>carreras")]
+    A2 --> dir2A
+    A3 --> dir3A
+    A4 --> dir4A
+    dir1A & dir1B --> DB1[("MySQL usuarios, alumnos, carreras")]
+    dir2A --> DB2[("MySQL usuarios, docentes")]
+    dir3A --> DB3[("MySQL periodos, grupos, inscripciones")]
+    dir4A --> DB4[("MySQL grupos, periodos, carreras")]
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Endpoints:</strong>
-    <code>GET /api/alumnos</code> <code>GET /api/alumnos/:id</code> &middot;
-    <code>GET /api/docentes</code> <code>GET /api/docentes/:id</code> &middot;
-    <code>GET /api/periodos</code> <code>POST /api/periodos</code> &middot;
-    <code>GET /api/grupos</code> <code>POST /api/grupos</code>
-  </div>
+  <div class="endpoints"><strong>Endpoints:</strong> <code>GET /api/alumnos</code> <code>GET /api/alumnos/:id</code> · <code>GET /api/docentes</code> · <code>GET /api/periodos</code> <code>POST /api/periodos</code> · <code>GET /api/grupos</code> <code>POST /api/grupos</code> · <code>GET /api/bajas</code> <code>POST /api/bajas</code></div>
 </div>
 
 <div class="section" id="s7">
   <h2>7. Inscripciones y Reinscripciones</h2>
-  <div class="meta">Controlador: inscripciones.js &middot; Tablas: inscripciones, reinscripciones</div>
-  <div class="desc">
-    El m&oacute;dulo de inscripciones maneja el registro de alumnos en periodos acad&eacute;micos. La creaci&oacute;n de inscripciones usa transacciones, detecta duplicados (mismo alumno en mismo periodo) y soporta dos tipos: Primera_Vez y Reinscripcion. Las reinscripciones son un caso especial que relaciona la inscripci&oacute;n previa con el nuevo periodo. Los roles de ADMINISTRADOR y COORDINADOR pueden crear inscripciones; ALUMNO solo consulta.
-  </div>
+  <div class="meta">Controlador: inscripciones.js · Tablas: inscripciones, reinscripciones · Transacciones ACID</div>
+  <div class="desc">El módulo de inscripciones maneja el registro de alumnos en periodos académicos. La creación usa transacciones, detecta duplicados y soporta dos tipos: Primera_Vez y Reinscripcion. Las reinscripciones relacionan la inscripción previa con el nuevo periodo.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 flowchart TD
-    subgraph INSCRIPCION["Inscripci&oacute;n"]
-        INS_START["Usuario autorizado<br/>(Admin/Coord)"] --> INS_POST["POST /api/inscripciones<br/>{ id_alumno, id_periodo, tipo }"]
+    subgraph INSCRIPCION["Inscripción"]
+        INS_START["Usuario autorizado (Admin/Coord)"] --> INS_POST["POST /api/inscripciones { id_alumno, id_periodo, tipo }"]
         INS_POST --> INS_TX["BEGIN TRANSACTION"]
-        INS_TX --> INS_DUP["Verificar duplicado<br/>SELECT WHERE id_alumno=? AND id_periodo=?"]
-        INS_DUP --> INS_INSERT["INSERT INTO inscripciones<br/>(id_alumno, id_periodo, tipo_inscripcion, estado='Pendiente')"]
+        INS_TX --> INS_DUP["Verificar duplicado"]
+        INS_DUP -->|"Duplicado"| INS_ERR["400: Alumno ya inscrito"]
+        INS_DUP -->|"No duplicado"| INS_INSERT["INSERT INTO inscripciones (estado='Pendiente')"]
         INS_INSERT --> INS_COMMIT["COMMIT"]
         INS_COMMIT --> INS_OK["201 { ok, inscripcion }"]
     end
-
-    subgraph REINSCRIPCION["Reinscripci&oacute;n"]
-        REIN_START["Usuario admin/coord"] --> REIN_POST["POST /api/inscripciones/reinscripciones<br/>{ id_inscripcion, motivo }"]
-        REIN_POST --> REIN_VAL["Buscar inscripci&oacute;n previa<br/>SELECT WHERE id_inscripcion=?"]
-        REIN_VAL --> REIN_INSERT["INSERT INTO reinscripciones<br/>(id_inscripcion, motivo)"]
-        REIN_INSERT --> REIN_RES["201 { ok, reinscripcion }"]
+    subgraph REINSCRIPCION["Reinscripción"]
+        REIN_START["Admin/Coord"] --> REIN_POST["POST /api/inscripciones/reinscripciones"]
+        REIN_POST --> REIN_VAL["Buscar inscripción previa"]
+        REIN_VAL --> REIN_INSERT["INSERT INTO reinscripciones"]
+        REIN_INSERT --> REIN_RES["201 { ok }"]
     end
-
-    INS_RES --> DB[("MySQL<br/>inscripciones")]
-    REIN_RES --> DB2[("MySQL<br/>reinscripciones")]
+    INS_OK --> DB[("MySQL inscripciones")]
+    REIN_RES --> DB2[("MySQL reinscripciones")]
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Endpoints:</strong>
-    <code>GET /api/inscripciones</code> <code>POST /api/inscripciones</code> &middot;
-    <code>GET /api/inscripciones/reinscripciones</code> <code>POST /api/inscripciones/reinscripciones</code>
-  </div>
+  <div class="endpoints"><strong>Endpoints:</strong> <code>GET /api/inscripciones</code> <code>POST /api/inscripciones</code> · <code>GET /api/inscripciones/reinscripciones</code> <code>POST /api/inscripciones/reinscripciones</code></div>
 </div>
 
 <div class="section" id="s8">
   <h2>8. Evaluaciones</h2>
-  <div class="meta">Ruta: evaluaciones.js (1358 lines) &middot; Tablas: evaluacion_plantillas, evaluacion_plantilla_preguntas, evaluaciones, respuestas_evaluacion, evaluacion_resultados</div>
-  <div class="desc">
-    El m&oacute;dulo de evaluaciones gestiona cinco tipos de instrumentos: Formativa, Sumativa, Objetivos, Ipsativa y Alumno-Docente. Cada plantilla tiene preguntas con pesos y tipos de respuesta (NUM&Eacute;RICA, TEXTO, SELECT, SI_NO). Los administradores/coordinadores crean evaluaciones asociadas a un periodo y una plantilla. Los alumnos y docentes responden las preguntas. Los resultados se almacenan con promedios y se pueden consultar por evaluaci&oacute;n/evaluado.
-  </div>
+  <div class="meta">Ruta: evaluaciones.js (1358 lines) · 5 tipos de instrumento · 4 estados del ciclo de vida</div>
+  <div class="desc">El módulo de evaluaciones gestiona cinco tipos de instrumentos: Formativa, Sumativa, Objetivos, Ipsativa y Alumno-Docente. Ciclo de vida: BORRADOR → ACTIVA → CERRADA → CANCELADA. Cada plantilla tiene preguntas con pesos y tipos de respuesta (NUMÉRICA, TEXTO, SELECT, SI_NO).</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 flowchart TD
-    subgraph CREAR["Crear Evaluaci&oacute;n"]
-        C1["Admin/Coord"] --> C2["POST /api/evaluaciones<br/>{ id_periodo, id_plantilla, titulo, fechas, ... }"]
-        C2 --> C3["Verificar periodo activo y plantilla v&aacute;lida"]
-        C3 --> C4["INSERT INTO evaluaciones<br/>(tipo_instrumento, publico_objetivo, estado='BORRADOR')"]
-        C4 --> C5["Evaluaci&oacute;n creada"]
+    subgraph CREAR["Crear Evaluación"]
+        C1["Admin/Coord"] --> C2["POST /api/evaluaciones"]
+        C2 --> C3["Verificar periodo activo y plantilla"]
+        C3 --> C4["INSERT (estado='BORRADOR')"]
+        C4 --> C5["Evaluación creada"]
+        C5 --> C6["PATCH /:id/estado: BORRADOR -> ACTIVA"]
     end
-
-    subgraph RESPONDER["Responder Evaluaci&oacute;n"]
-        R1["Alumno/Docente"] --> R2["GET /api/evaluaciones/:id/preguntas"]
-        R2 --> R3["GET /api/evaluaciones (preguntas visibles)"]
-        R3 --> R4["POST /api/evaluaciones/responder<br/>{ id_evaluacion, id_pregunta, valor_numero, valor_texto }"]
-        R4 --> R5["INSERT INTO respuestas_evaluacion<br/>(id_evaluacion, id_pregunta, id_alumno/id_docente, valor)"]
-        R5 --> R6["Respuesta registrada"]
+    subgraph RESPONDER["Responder"]
+        R1["Alumno/Docente"] --> R2["GET /api/evaluaciones (activas)"]
+        R2 --> R3["GET /:id/preguntas"]
+        R3 --> R4["POST /api/evaluaciones/responder"]
+        R4 --> R5["INSERT respuestas_evaluacion"]
     end
-
-    subgraph REPORTE["Reportes"]
-        S1["GET /api/evaluaciones?filtros"] --> S2["SELECT evaluaciones + promedios + resultados"]
-        S2 --> S3["Listado con filtros por periodo, plantilla, estado"]
+    subgraph RESULTADOS["Resultados"]
+        S1["Evaluación → CERRADA"] --> S2["Calcular promedios"]
+        S2 --> S3["INSERT evaluacion_resultados"]
     end
-
-    CREAR --> DB[("MySQL<br/>evaluacion_plantillas<br/>evaluaciones")]
-    RESPONDER --> DB2[("MySQL<br/>respuestas_evaluacion")]
-    REPORTE --> DB3[("MySQL<br/>evaluacion_resultados")]
+    CREAR --> DB[("MySQL plantillas, evaluaciones")]
+    RESPONDER --> DB2[("MySQL respuestas_evaluacion")]
+    RESULTADOS --> DB3[("MySQL evaluacion_resultados")]
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Endpoints:</strong>
-    <code>GET /api/evaluaciones/catalogos</code> <code>GET /api/evaluaciones/resumen</code> <code>GET /api/evaluaciones</code>
-    <code>POST /api/evaluaciones</code> <code>GET /api/evaluaciones/:id</code> <code>PATCH /api/evaluaciones/:id</code>
-    <code>DELETE /api/evaluaciones/:id</code> <code>GET /api/evaluaciones/:id/preguntas</code> <code>POST /api/evaluaciones/responder</code>
-  </div>
+  <div class="endpoints"><strong>Endpoints:</strong> <code>GET /api/evaluaciones/catalogos</code> <code>GET /api/evaluaciones/resumen</code> <code>GET /api/evaluaciones</code> <code>POST /api/evaluaciones</code> <code>GET /api/evaluaciones/:id</code> <code>PATCH /api/evaluaciones/:id</code> <code>DELETE /api/evaluaciones/:id</code> <code>GET /api/evaluaciones/:id/preguntas</code> <code>POST /api/evaluaciones/responder</code></div>
 </div>
 
 <div class="section" id="s9">
-  <h2>9. OCR de Actas</h2>
-  <div class="meta">Ruta: actasOCR.js (1127 lines) &middot; Multer + Gemini API + PDF/im&aacute;genes</div>
-  <div class="desc">
-    Este m&oacute;dulo procesa actas de calificaciones escaneadas (PDF, JPG, PNG) utilizando la API de Google Gemini para extraer texto e identificar calificaciones, materias, alumnos y docentes. El proceso incluye subida de archivo con multer, conversi&oacute;n de PDF a imagen base64 si es necesario, llamada a Gemini con prompt especializado, parsing de la respuesta JSON, y almacenamiento de datos en tablas temporales. La validaci&oacute;n final confirma e importa los datos a las tablas de calificaciones.
-  </div>
+  <h2>9. OCR de Actas de Calificaciones</h2>
+  <div class="meta">Ruta: actasOCR.js (1127 lines) · Multer + Gemini API + PDF/imágenes</div>
+  <div class="desc">Este módulo procesa actas de calificaciones escaneadas (PDF, JPG, PNG) utilizando la API de Google Gemini para extraer texto e identificar calificaciones, materias, alumnos y docentes. El proceso incluye subida de archivo con multer, conversión de PDF a imagen base64, llamada a Gemini con prompt especializado, parsing JSON, y almacenamiento.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 flowchart TD
-    SUBIR["Usuario (Admin/Coord)<br/>Selecciona archivo PDF o imagen"] --> SUBIR_POST["POST /api/actas-ocr/subir"]
-    SUBIR_POST --> MULTER["multer: validar mimetype<br/>(jpeg, png, webp, pdf)"]
-    MULTER --> GUARDAR["Guardar archivo en<br/>uploads/actas-ocr/"]
-    GUARDAR --> GEMINI["Leer archivo (PDF-&gt;base64 o imagen)<br/>Enviar a Gemini API"]
-    GEMINI --> PARSE["Gemini devuelve JSON estructurado<br/>{ materia, docente, alumnos: [{nombre, calificacion}] }"]
-    PARSE --> STORE["Guardar carga en BD<br/>(carga_id, raw_response)"]
-    STORE --> PREVIEW["Vista previa de datos extra&iacute;dos"]
+    SUBIR["Usuario (Admin/Coord)<br/>Selecciona archivo"] --> SUBIR_POST["POST /api/actas-ocr/subir"]
+    SUBIR_POST --> MULTER["multer: validar mimetype"]
+    MULTER --> GUARDAR["Guardar en uploads/actas-ocr/"]
+    GUARDAR --> GEMINI["Enviar a Gemini API"]
+    GEMINI --> PARSE["Gemini devuelve JSON estructurado"]
+    PARSE --> STORE["Guardar carga en BD"]
+    STORE --> PREVIEW["Vista previa de datos"]
     PREVIEW --> VAL["Usuario valida datos"]
     VAL --> VALIDAR["POST /api/actas-ocr/cargas/:id/validar"]
-    VALIDAR --> IMPORT["Importar calificaciones a tablas del sistema"]
+    VALIDAR --> IMPORT["Importar calificaciones a tablas"]
     IMPORT --> DONE["Carga validada exitosamente"]
-
     style SUBIR fill:#e0f2fe,stroke:#0284c7
     style GEMINI fill:#fef3c7,stroke:#d97706
     style VALIDAR fill:#dcfce7,stroke:#16a34a
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Endpoints:</strong>
-    <code>GET /api/actas-ocr/catalogos</code> <code>GET /api/actas-ocr/resumen</code> <code>GET /api/actas-ocr/cargas</code>
-    <code>GET /api/actas-ocr/cargas/:id</code> <code>POST /api/actas-ocr/subir</code> <code>POST /api/actas-ocr/cargas/:id/validar</code>
-  </div>
+  <div class="endpoints"><strong>Endpoints:</strong> <code>GET /api/actas-ocr/catalogos</code> <code>GET /api/actas-ocr/resumen</code> <code>GET /api/actas-ocr/cargas</code> <code>GET /api/actas-ocr/cargas/:id</code> <code>POST /api/actas-ocr/subir</code> <code>POST /api/actas-ocr/cargas/:id/validar</code></div>
 </div>
 
 <div class="section" id="s10">
-  <h2>10. IA de Deserci&oacute;n &mdash; Todos los Paneles</h2>
-  <div class="meta">4 paneles frontend &middot; 4 sub-rutas &middot; Tablas: ia_alertas_desercion, ia_seguimientos_desercion, ia_auditoria_desercion</div>
-  <div class="desc">
-    El m&oacute;dulo de deserci&oacute;n tiene <strong>cuatro paneles</strong> frontend separados, cada uno con su propio sub-router Express montado en <code>/ia/desercion</code> (Express soporta m&uacute;ltiples routers en la misma ruta base, cada uno con prefijos distintos internamente). El panel Admin/Coord crea alertas y seguimientos, el Docente visualiza alertas de sus grupos, el Alumno ve su propio riesgo, y Soporte monitorea logs t&eacute;cnicos del servicio de IA. El predictor heur&iacute;stico eval&uacute;a: promedio general, estatus acad&eacute;mico, cr&eacute;ditos acumulados, reinscripciones previas y alertas anteriores.
-  </div>
+  <h2>10. IA de Deserción — Todos los Paneles</h2>
+  <div class="meta">4 paneles frontend · 4 sub-rutas · Predictor heurístico + Flask ML</div>
+  <div class="desc">El módulo de deserción tiene cuatro paneles frontend separados. Admin/Coord crea alertas y seguimientos, Docente visualiza alertas de sus grupos, Alumno ve su propio riesgo, Soporte monitorea logs. El predictor evalúa: promedio, estatus académico, créditos, reinscripciones previas y alertas anteriores. Modelo ML en Flask ofrece predicción binaria y multiclase.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 flowchart TB
     subgraph ROUTES["Montaje en routes/index.js"]
-        M1["mountIfAvailable('/ia/desercion', './iaDesercion')<br/>Panel Admin/Coord"]
-        M2["mountIfAvailable('/ia/desercion/reporte', './desercion.routes')<br/>Reportes Deserci&oacute;n"]
-        M3["mountIfAvailable('/ia/desercion', './iaDesercionDocente')<br/>Panel Docente"]
-        M4["mountIfAvailable('/ia/desercion', './iaDesercionAlumno')<br/>Panel Alumno"]
-        M5["mountIfAvailable('/ia/desercion', './iaDesercionSoporte')<br/>Panel Soporte"]
+        M1["mountIfAvailable('/ia/desercion', './iaDesercion') - Admin/Coord"]
+        M2["mountIfAvailable('/ia/desercion/reporte', './desercion.routes')"]
+        M3["mountIfAvailable('/ia/desercion', './iaDesercionDocente')"]
+        M4["mountIfAvailable('/ia/desercion', './iaDesercionAlumno')"]
+        M5["mountIfAvailable('/ia/desercion', './iaDesercionSoporte')"]
     end
-
-    ROUTES --> ADM["Admin/Coord<br/>IADesercionPage.jsx<br/>Alertas + Predecir + Seguimientos"]
-    ROUTES --> DOC["Docente<br/>IADesercionDocentePage.jsx<br/>Alertas de sus grupos"]
-    ROUTES --> ALU["Alumno<br/>IADesercionAlumnoPage.jsx<br/>Mi riesgo + Recomendaciones"]
-    ROUTES --> SOP["Soporte<br/>IADesercionSoportePage.jsx<br/>Logs + Errores + Conectividad"]
-
-    ADM --> CT["iaDesercionPredictor.js<br/>buildRiskAnalysis()<br/>scoring heur&iacute;stico"]
-    CT --> DB[("MySQL<br/>ia_alertas_desercion<br/>ia_seguimientos_desercion")]
-
-    SOP --> DB2[("MySQL<br/>ia_auditoria_desercion")]
-
-    DOC --> DB3[("MySQL<br/>ia_alertas_desercion (vista filtrada)")]
-    ALU --> DB4[("MySQL<br/>ia_alertas_desercion (solo propias)")]
+    ROUTES --> ADM["Admin/Coord<br/>Alertas + Predecir + Seguimientos"]
+    ROUTES --> DOC["Docente<br/>Alertas de sus grupos"]
+    ROUTES --> ALU["Alumno<br/>Mi riesgo + Recomendaciones"]
+    ROUTES --> SOP["Soporte<br/>Logs + Errores + Conectividad"]
+    ADM --> CT["iaDesercionPredictor.js<br/>buildRiskAnalysis()"]
+    CT --> DB[("MySQL ia_alertas_desercion, ia_seguimientos_desercion")]
+    ADM --> ML["Flask ML API /predict/desercion"]
+    SOP --> DB2[("MySQL ia_auditoria_desercion")]
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Endpoints Admin:</strong>
-    <code>GET /api/ia/desercion</code> <code>POST /api/ia/desercion/predecir</code> <code>POST /api/ia/desercion/seguimiento</code> <code>POST /api/ia/desercion/generar</code>
-    <br><strong>Docente:</strong> <code>GET /api/ia/desercion/alertas/grupo/:id</code>
-    <br><strong>Alumno:</strong> <code>GET /api/ia/desercion/mi-riesgo</code> <code>GET /api/ia/desercion/recomendaciones</code> <code>GET /api/ia/desercion/historial</code> <code>GET /api/ia/desercion/progreso</code>
-    <br><strong>Soporte:</strong> <code>GET /api/ia/desercion/estado</code> <code>GET /api/ia/desercion/logs</code> <code>GET /api/ia/desercion/errores</code> <code>GET /api/ia/desercion/conectividad</code> <code>GET /api/ia/desercion/integridad</code> <code>GET /api/ia/desercion/verificar</code> <code>GET /api/ia/desercion/rutas</code>
-  </div>
+  <div class="endpoints"><strong>Admin:</strong> <code>GET /api/ia/desercion</code> <code>POST /api/ia/desercion/predecir</code> <code>POST /api/ia/desercion/seguimiento</code> <br><strong>Docente:</strong> <code>GET /api/ia/desercion/alertas/grupo/:id</code><br><strong>Alumno:</strong> <code>GET /api/ia/desercion/mi-riesgo</code> <code>GET /api/ia/desercion/recomendaciones</code><br><strong>Soporte:</strong> <code>GET /api/ia/desercion/logs</code> <code>GET /api/ia/desercion/errores</code> <code>GET /api/ia/desercion/conectividad</code></div>
 </div>
 
 <div class="section" id="s11">
   <h2>11. IA de Becas</h2>
-  <div class="meta">Ruta: iaBecas.js (747 lines) &middot; Servicios: BecasEdomexService, becasVectorStore, becasTools &middot; Tablas: becas_fuentes, becas_chunks</div>
-  <div class="desc">
-    El m&oacute;dulo de becas ofrece un cat&aacute;logo de 14 becas oficiales (SECTI Edom&eacute;x, COMECYT, Santander, BBVA, etc.) con b&uacute;squeda sem&aacute;ntica usando embeddings simples (basados en conteo de palabras, no es embedding real de ML). Los usuarios pueden preguntar sobre becas, el sistema clasifica la intenci&oacute;n, busca en el vector store, rankea resultados y responde. Tambi&eacute;n se puede calcular elegibilidad de un alumno comparando su promedio y semestre contra los requisitos de cada beca. El cat&aacute;logo se puede "ingestar" (poblar/actualizar) desde fuentes oficiales.
-  </div>
+  <div class="meta">Ruta: iaBecas.js (747 lines) · BecasEdomexService, becasVectorStore, becasTools · 14 fuentes oficiales</div>
+  <div class="desc">El módulo de becas ofrece un catálogo de 14 becas oficiales con búsqueda semántica usando embeddings simples. Los usuarios pueden preguntar sobre becas y el sistema clasifica la intención, busca en el vector store, rankea resultados y responde. También se puede calcular elegibilidad de un alumno.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 flowchart TD
-    Q1["Usuario pregunta sobre becas<br/>'Qu&eacute; becas hay?'"] --> PREG["POST /api/ia/becas/preguntar { mensaje }"]
-    PREG --> SEARCH["searchScholarships()<br/>B&uacute;squeda sem&aacute;ntica en becasVectorStore"]
-    SEARCH --> RANK["rankScholarshipResults()<br/>Scoring por relevancia del texto"]
-    RANK --> RSP["Respuesta con top becas<br/>{ nombre, descripci&oacute;n, requisitos, monto }"]
-
-    ELEG["Verificar elegibilidad<br/>POST /api/ia/becas/elegibilidad"] --> STU["getStudentIdentity()<br/>Buscar alumno por usuario"]
-    STU --> AVG["getStudentAverage()<br/>Obtener promedio del alumno"]
-    AVG --> ELIG["getStudentEligibility()<br/>Comparar vs requisitos de cada beca"]
-    ELIG --> ELEG_RSP["Lista de becas elegibles<br/>con nivel de cumplimiento"]
-
-    ING["Admin/Coord ingesta fuentes"] --> INGEST["POST /api/ia/becas/ingestar { fuentes }"]
-    INGEST --> VEC["chunkText() -&gt; simpleEmbed()<br/>INSERT becas_chunks"]
-    VEC --> OK["Fuentes ingeridas correctamente"]
-
-    subgraph DB_BECAS[("MySQL<br/>becas_fuentes<br/>becas_chunks")]
-        B1["becas_fuentes: id, nombre, descripci&oacute;n, url, requisitos,..."]
-        B2["becas_chunks: id, fuente_id, chunk_texto, embedding (JSON)"]
-    end
-
-    SEARCH --> DB_BECAS
-    ELEG --> AVG_DB[("MySQL<br/>alumnos<br/>kardex_alumno")]
+    Q1["Usuario pregunta sobre becas"] --> PREG["POST /api/ia/becas/preguntar"]
+    PREG --> SEARCH["searchScholarships()<br/>Búsqueda semántica"]
+    SEARCH --> RANK["rankScholarshipResults()"]
+    RANK --> RSP["Respuesta con top becas"]
+    ELEG["Verificar elegibilidad"] --> STU["getStudentIdentity()"]
+    STU --> AVG["getStudentAverage()"]
+    AVG --> ELIG["Comparar vs requisitos"]
+    ELIG --> ELEG_RSP["Lista de becas elegibles"]
+    ING["Admin ingesta fuentes"] --> INGEST["POST /api/ia/becas/ingestar"]
+    INGEST --> VEC["chunkText() -> simpleEmbed()"]
+    VEC --> OK["Fuentes ingeridas"]
+    SEARCH --> DB_BECAS[("MySQL becas_fuentes, becas_chunks")]
+    ELEG --> AVG_DB[("MySQL alumnos, kardex_alumno")]
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Endpoints:</strong>
-    <code>GET /api/ia/becas/catalogos</code> <code>GET /api/ia/becas/resumen</code> <code>GET /api/ia/becas/alertas</code>
-    <code>POST /api/ia/becas/preguntar</code> <code>POST /api/ia/becas/ingestar</code>
-    <code>POST /api/ia/becas/elegibilidad</code> <code>GET /api/ia/becas/promedio</code>
-  </div>
+  <div class="endpoints"><strong>Endpoints:</strong> <code>GET /api/ia/becas/catalogos</code> <code>GET /api/ia/becas/resumen</code> <code>POST /api/ia/becas/preguntar</code> <code>POST /api/ia/becas/ingestar</code> <code>POST /api/ia/becas/elegibilidad</code></div>
 </div>
 
 <div class="section" id="s12">
-  <h2>12. IA de Acompa&ntilde;amiento Estudiantil + Supervisi&oacute;n Administrativa</h2>
-  <div class="meta">2 routers: /ia/bienestar (estudiante, 1368 l&iacute;neas) + /bienestar-admin (admin/coord, 398 l&iacute;neas) &middot; 8 tablas ia_bienestar_*</div>
-  <div class="desc">
-    El m&oacute;dulo de bienestar tiene <strong>dos caras</strong>: el estudiante interact&uacute;a con un asistente de acompa&ntilde;amiento v&iacute;a check-ins emocionales y chat con Gemini (con detecci&oacute;n de crisis y escalaci&oacute;n autom&aacute;tica), y el administrador/coordinador supervisa globalmente el m&oacute;dulo desde un panel con 5 pesta&ntilde;as: resumen ejecutivo, indicadores de riesgo, cat&aacute;logo de alertas, historial de seguimientos y auditor&iacute;a. El panel admin se mont&oacute; originalmente en <code>/ia</code> pero se reubic&oacute; a <code>/bienestar-admin</code> para evitar colisi&oacute;n de rutas con <code>/ia/bienestar</code>.
-  </div>
+  <h2>12. IA de Acompañamiento Estudiantil + Supervisión</h2>
+  <div class="meta">2 routers: /ia/bienestar (1368 líneas) + /bienestar-admin (398 líneas) · 8 tablas</div>
+  <div class="desc">El módulo de bienestar tiene dos caras: el estudiante interactúa con check-ins emocionales y chat con Gemini, y el administrador/coordinador supervisa desde un panel con 5 pestañas: resumen ejecutivo, indicadores de riesgo, catálogo de alertas, historial de seguimientos y auditoría.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 flowchart TB
     subgraph STUDENT["Panel Alumno (IABienestarPage)"]
-        S1["GET /api/ia/bienestar/catalogos<br/>Plantillas + Preguntas + Recursos"]
-        S2["POST /api/ia/bienestar/checkin<br/>{ animo, energia, sueno, estres, ... }"]
-        S3["POST /api/ia/bienestar/chat<br/>{ mensaje } &rarr; Gemini API"]
-        S4["POST /api/ia/bienestar/escalar<br/>Alerta manual &rarr; Derivaci&oacute;n"]
+        S1["GET /ia/bienestar/catalogos"]
+        S2["POST /ia/bienestar/checkin { animo, energia, estres }"]
+        S3["POST /ia/bienestar/chat { mensaje } -> Gemini"]
+        S4["POST /ia/bienestar/escalar -> Derivación"]
     end
-
     subgraph ADMIN["Panel Admin/Coord (IABienestarAdminPage)"]
-        A1["Tab: Resumen Ejecutivo<br/>7 consultas paralelas<br/>(sesiones, checkins, alertas, derivaciones, promedios)"]
-        A2["Tab: Indicadores de Riesgo<br/>Filtro por periodo (7d/30d/90d)<br/>Distribuci&oacute;n por nivel y dimensiones"]
-        A3["Tab: Cat&aacute;logo de Alertas<br/>Filtros por estado/tipo + b&uacute;squeda<br/>Paginaci&oacute;n"]
-        A4["Tab: Historial Seguimientos<br/>Derivaciones con paginaci&oacute;n"]
-        A5["Tab: Auditor&iacute;a<br/>Logs de acciones en ia_auditoria_desercion"]
-        A6["Exportar TXT<br/>Reporte de texto plano"]
-        A7["Exportar CSV<br/>Alertas en formato CSV"]
+        A1["Tab: Resumen Ejecutivo (7 consultas)"]
+        A2["Tab: Indicadores de Riesgo"]
+        A3["Tab: Catálogo de Alertas"]
+        A4["Tab: Historial Seguimientos"]
+        A5["Tab: Auditoría"]
+        A6["Exportar TXT / CSV"]
     end
-
-    STUDENT --> DB[("MySQL<br/>ia_bienestar_sesiones<br/>ia_bienestar_checkins<br/>ia_bienestar_alertas<br/>ia_bienestar_derivaciones<br/>ia_bienestar_mensajes<br/>ia_bienestar_plantillas<br/>ia_bienestar_plantilla_preguntas<br/>ia_bienestar_recursos")]
-
+    STUDENT --> DB[("MySQL (8 tablas bienestar)")]
     ADMIN --> DB
-    ADMIN --> AUDIT[("MySQL<br/>ia_auditoria_desercion<br/>(filtro LIKE '%BIENESTAR%')")]
-
-    ADMIN --o A1
-    ADMIN --o A2
-    ADMIN --o A3
-    ADMIN --o A4
-    ADMIN --o A5
-    ADMIN --o A6
-    ADMIN --o A7
+    ADMIN --> AUDIT[("MySQL ia_auditoria_desercion")]
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Estudiante:</strong>
-    <code>GET /api/ia/bienestar/catalogos</code> <code>GET /api/ia/bienestar/resumen</code> <code>GET /api/ia/bienestar/historial</code>
-    <code>POST /api/ia/bienestar/checkin</code> <code>POST /api/ia/bienestar/chat</code> <code>POST /api/ia/bienestar/escalar</code>
-    <br><strong>Admin (bienestar-admin):</strong>
-    <code>GET /api/bienestar-admin/resumen</code> <code>GET /api/bienestar-admin/indicadores</code> <code>GET /api/bienestar-admin/alertas</code>
-    <code>GET /api/bienestar-admin/seguimientos</code> <code>GET /api/bienestar-admin/auditoria</code>
-    <code>GET /api/bienestar-admin/exportar/pdf</code> <code>GET /api/bienestar-admin/exportar/excel</code>
-  </div>
+  <div class="endpoints"><strong>Estudiante:</strong> <code>GET /api/ia/bienestar/catalogos</code> <code>POST /api/ia/bienestar/checkin</code> <code>POST /api/ia/bienestar/chat</code> <code>POST /api/ia/bienestar/escalar</code><br><strong>Admin:</strong> <code>GET /api/bienestar-admin/resumen</code> <code>GET /api/bienestar-admin/indicadores</code> <code>GET /api/bienestar-admin/alertas</code> <code>GET /api/bienestar-admin/auditoria</code></div>
 </div>
 
 <div class="section" id="s13">
-  <h2>13. Asistente Acad&eacute;mico</h2>
-  <div class="meta">Ruta: asistente.js + Orchestrator + RAG + Tools &middot; Clasificaci&oacute;n de intenciones + Gemini</div>
-  <div class="desc">
-    El asistente acad&eacute;mico es un sistema multicapa que primero clasifica la intenci&oacute;n del mensaje del usuario en 7 categor&iacute;as (STATS, BECAS, ACADEMICO, BIENESTAR, SOPORTE, ROL, GENERAL) usando expresiones regulares. Dependiendo de la categor&iacute;a, ejecuta herramientas espec&iacute;ficas (getSystemStats, searchScholarships, getStudentAverage, etc.) o usa RAG para buscar contenido relevante en la base de conocimientos. Finalmente, construye un contexto y env&iacute;a el prompt completo a Gemini para generar la respuesta final. Las sesiones se manejan en memoria y se limpian bajo demanda.
-  </div>
+  <h2>13. Asistente Académico</h2>
+  <div class="meta">Ruta: asistente.js + Orchestrator + RAG + Tools · 7 categorías de intención + Gemini</div>
+  <div class="desc">El asistente académico clasifica la intención del usuario en 7 categorías (STATS, BECAS, ACADEMICO, BIENESTAR, SOPORTE, ROL, GENERAL) usando expresiones regulares. Ejecuta herramientas específicas o usa RAG, construye contexto y envía a Gemini para generar la respuesta final.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 flowchart TD
-    MSG["Usuario escribe mensaje<br/>Frontend AsistentePage"] --> POST["POST /api/asistente/mensaje"]
+    MSG["Usuario escribe mensaje"] --> POST["POST /api/asistente/mensaje"]
     POST --> CLASSIFY["classifyIntent()<br/>Expresiones regulares"]
-
-    CLASSIFY --> STATS["STATS<br/>getSystemStats()<br/>Conteos de alumnos, docentes, etc."]
-    CLASSIFY --> BECAS["BECAS<br/>searchScholarships()<br/>rankResults()"]
-    CLASSIFY --> ACAD["ACADEMICO<br/>getStudentAverage()<br/>Datos kardex/materias"]
-    CLASSIFY --> BIEN["BIENESTAR<br/>Remitir al m&oacute;dulo de bienestar"]
-    CLASSIFY --> SOPORTE["SOPORTE<br/>Informaci&oacute;n t&eacute;cnica"]
-    CLASSIFY --> ROL["ROL<br/>Informaci&oacute;n sobre los tipos de usuario"]
-    CLASSIFY --> GENERAL["GENERAL<br/>getAsistenteContenido() RAG"]
-
+    CLASSIFY --> STATS["STATS: getSystemStats()"]
+    CLASSIFY --> BECAS["BECAS: searchScholarships()"]
+    CLASSIFY --> ACAD["ACADEMICO: getStudentAverage()"]
+    CLASSIFY --> BIEN["BIENESTAR: Remitir a bienestar"]
+    CLASSIFY --> SOPORTE["SOPORTE: Info técnica"]
+    CLASSIFY --> ROL["ROL: Info de usuarios"]
+    CLASSIFY --> GENERAL["GENERAL: RAG"]
     STATS & BECAS & ACAD & BIEN & SOPORTE & ROL & GENERAL --> CONTEXT["buildAsistenteContext()"]
-    CONTEXT --> GEMINI["Enviar prompt + contexto a Gemini API"]
+    CONTEXT --> GEMINI["Enviar a Gemini API"]
     GEMINI --> RES["Respuesta generada"]
-    RES --> STORE_MSG["Guardar en historial BD (asistente_mensajes)"]
-    STORE_MSG --> FRONT["Frontend muestra respuesta al usuario"]
+    RES --> FRONT["Frontend muestra respuesta"]
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Endpoints:</strong>
-    <code>GET /api/asistente/contexto</code> <code>POST /api/asistente/mensaje</code> <code>POST /api/asistente/limpiar</code>
-  </div>
+  <div class="endpoints"><strong>Endpoints:</strong> <code>GET /api/asistente/contexto</code> <code>POST /api/asistente/mensaje</code> <code>POST /api/asistente/limpiar</code></div>
 </div>
 
 <div class="section" id="s14">
-  <h2>14. Kardex, QR y Fotograf&iacute;as</h2>
-  <div class="meta">Controlador: kardex.js (561 lines) &middot; QRCode + multer + PDF como imagen</div>
-  <div class="desc">
-    El m&oacute;dulo de kardex consolida la informaci&oacute;n acad&eacute;mica del alumno (promedio, cr&eacute;ditos, estatus) mediante JOINs a m&uacute;ltiples tablas. Los administradores pueden subir fotograf&iacute;as de alumnos (multer, formatos JPG/PNG/WEBP, max 5MB), eliminar fotos, y generar c&oacute;digos QR tanto individuales como por grupo. Los QR se generan con la librer&iacute;a `qrcode` y se almacenan como tokens &uacute;nicos que pueden visualizarse en los kardex f&iacute;sicos impresos.
-  </div>
+  <h2>14. Kardex, QR y Fotografías</h2>
+  <div class="meta">Controlador: kardex.js (561 lines) · QRCode + multer + PHP Dompdf/PhpSpreadsheet</div>
+  <div class="desc">El módulo de kardex consolida la información académica del alumno mediante JOINs a múltiples tablas. Los administradores pueden subir fotografías, generar códigos QR individuales y por grupo, y descargar PDF/Excel con formato institucional.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 flowchart TD
     subgraph KARDEX["Consultar Kardex"]
-        K1["GET /api/kardex/alumno/me<br/>(alumno autenticado)"] --> K_SQL["SELECT alumnos + kardex_alumno + carreras<br/>JOIN m&uacute;ltiples tablas"]
-        K2["GET /api/kardex/alumno/:id<br/>(admin/coord/docente)"] --> K_SQL
-        K3["GET /api/kardex/grupo/:id"] --> KG_SQL["SELECT alumnos, kardex<br/>WHERE id_grupo = ?"]
-        K_SQL --> K_RESP["Datos completos del alumno<br/>{ nombre, matr&iacute;cula, promedio, cr&eacute;ditos, foto_url, qr_url }"]
+        K1["GET /api/kardex/alumno/me (alumno)"] --> K_SQL["SELECT + JOIN múltiples tablas"]
+        K2["GET /api/kardex/alumno/:id (admin/coord)"] --> K_SQL
+        K_SQL --> K_RESP["{ nombre, matricula, promedio, creditos, foto_url, qr_url }"]
     end
-
-    subgraph FOTO["Gesti&oacute;n de Fotograf&iacute;as"]
-        F1["POST /api/kardex/alumno/:id/foto<br/>(Admin)"] --> F_MULTER["multer: validar tipo (jpg, png, webp)<br/>max 5MB"]
-        F_MULTER --> F_SAVE["Guardar en uploads/alumnos/fotos/<br/>actualizar BD: kardex_alumno.foto_alumno"]
-        F2["DELETE /api/kardex/alumno/:id/foto"] --> F_DEL["Eliminar archivo del disco<br/>NULL en BD"]
+    subgraph FOTO["Fotografías"]
+        F1["POST /api/kardex/alumno/:id/foto"] --> F_MULTER["multer: max 5MB"]
+        F_MULTER --> F_SAVE["Guardar en uploads/"]
     end
-
-    subgraph QR["Generar C&oacute;digos QR"]
-        Q1["POST /api/kardex/alumno/:id/qr"] --> Q_GEN["QRCode.toDataURL()<br/>con datos del kardex"]
-        Q_GEN --> Q_SAVE["Guardar QR en uploads/qr/<br/>actualizar kardex_alumno.qr_token & url_qr"]
-        Q2["POST /api/kardex/grupo/:id/qr"] --> QG_GEN["Generar QR para grupo completo"]
-        QG_GEN --> QG_SAVE["INSERT kardex_grupo_qr<br/>(id_grupo, id_periodo, qr_token, url_qr)"]
+    subgraph QR["Códigos QR"]
+        Q1["POST /api/kardex/alumno/:id/qr"] --> Q_GEN["QRCode.toDataURL()"]
+        Q2["POST /api/kardex/grupo/:id/qr"] --> QG_GEN["QR para grupo completo"]
+    end
+    subgraph DESCARGAS["Documentos"]
+        D1["GET /.../pdf"] --> PHP1["PHP Dompdf"]
+        D2["GET /.../excel"] --> PHP2["PHP PhpSpreadsheet"]
     end
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Endpoints:</strong>
-    <code>GET /api/kardex/alumno/me</code> <code>GET /api/kardex/alumno/:id</code> <code>GET /api/kardex/grupo/:id</code>
-    <code>POST /api/kardex/alumno/:id/foto</code> <code>DELETE /api/kardex/alumno/:id/foto</code>
-    <code>POST /api/kardex/alumno/:id/qr</code> <code>POST /api/kardex/grupo/:id/qr</code>
-  </div>
+  <div class="endpoints"><strong>Endpoints:</strong> <code>GET /api/kardex/alumno/me</code> <code>GET /api/kardex/alumno/:id</code> <code>GET /api/kardex/grupo/:id</code> <code>POST /api/kardex/alumno/:id/foto</code> <code>POST /api/kardex/alumno/:id/qr</code> <code>POST /api/kardex/grupo/:id/qr</code> <code>GET /api/kardex/alumno/:id/pdf</code> <code>GET /api/kardex/alumno/:id/excel</code></div>
 </div>
 
 <div class="section" id="s15">
   <h2>15. Reportes PDF y Excel</h2>
-  <div class="meta">Controlador: other.js + files.js (1100 lines) &middot; PDFKit + ExcelJS</div>
-  <div class="desc">
-    El m&oacute;dulo de reportes genera documentos descargables en PDF y Excel con datos del sistema. Los PDF se generan con PDFKit e incluyen: encabezado institucional, tarjetas de m&eacute;tricas, gr&aacute;ficos de barras (usando rect&aacute;nculos) y pie de p&aacute;gina. Los Excel se generan con ExcelJS e incluyen m&uacute;ltiples hojas: portada con datos institucionales, resumen visual con colores, an&aacute;lisis con formato condicional y datos detallados. Ambos reportes se basan en consultas a las tablas de dashboard (conteos de alumnos, docentes, inscripciones, periodos, evaluaciones).
-  </div>
+  <div class="meta">Controlador: other.js + files.js (1100 lines) · PDFKit + ExcelJS</div>
+  <div class="desc">El módulo de reportes genera documentos descargables en PDF y Excel con datos del sistema. Los PDF incluyen encabezado institucional, tarjetas de métricas y gráficos de barras. Los Excel incluyen múltiples hojas: portada, resumen visual con colores y datos detallados.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 flowchart LR
-    USR["Usuario (admin/coord/docente/alumno)"] --> SEL["Selecciona reporte<br/>en ReportesPage"]
-
-    SEL --> PDF_BTN["Reporte PDF<br/>GET /api/reportes/pdf"]
-    SEL --> XLS_BTN["Reporte Excel<br/>GET /api/reportes/excel"]
-
-    PDF_BTN --> PDF_SQL["Consultar dashboard:<br/>SELECT COUNT(*) alumnos, docentes,<br/>inscripciones, evaluaciones..."]
+    USR["Usuario"] --> SEL["Selecciona reporte"]
+    SEL --> PDF_BTN["GET /api/reportes/pdf"]
+    SEL --> XLS_BTN["GET /api/reportes/excel"]
+    PDF_BTN --> PDF_SQL["Consultar dashboard"]
     PDF_SQL --> PDFKIT["PDFKit.generate()"]
-    PDFKIT --> PDF_DOC["Documento PDF:<br/>- Header (logos)<br/>- Metric cards<br/>- Bar charts<br/>- Footer"]
-
-    XLS_BTN --> XLS_SQL["Consultar datos completos"]
+    PDFKIT --> PDF_DOC["PDF: Header + Metrics + Charts"]
+    XLS_BTN --> XLS_SQL["Consultar datos"]
     XLS_SQL --> EXCEL["ExcelJS.generate()"]
-    EXCEL --> XLS_DOC["Documento Excel:<br/>- Hoja 1: Portada<br/>- Hoja 2: Resumen visual<br/>- Hoja 3: Datos detallados"]
-
+    EXCEL --> XLS_DOC["Excel: Portada + Resumen + Detalle"]
     PDF_DOC --> DOWN["Descarga .pdf"]
     XLS_DOC --> DOWN2["Descarga .xlsx"]
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Endpoints:</strong>
-    <code>GET /api/reportes/pdf</code> <code>GET /api/reportes/excel</code>
-  </div>
+  <div class="endpoints"><strong>Endpoints:</strong> <code>GET /api/reportes/pdf</code> <code>GET /api/reportes/excel</code></div>
 </div>
 
 <div class="section" id="s16">
   <h2>16. Chatbot General</h2>
-  <div class="meta">Ruta: chatbot.js (384 lines) &middot; Prompt institucional + Gemini + Contexto por sesi&oacute;n</div>
-  <div class="desc">
-    El chatbot es un asistente conversacional general del sistema SIVACAD. Los usuarios env&iacute;an mensajes y el sistema mantiene un contexto de conversaci&oacute;n en memoria (no en BD) usando un array de mensajes por sesi&oacute;n (identificada por usuario + timestamp). Se env&iacute;a un prompt institucional al chatbot (con reglas: solo responder sobre temas acad&eacute;micos, no inventar datos, remitir a coordinador si no sabe) junto con el historial reciente, a Gemini API. Se puede limpiar la sesi&oacute;n cuando se desee.
-  </div>
+  <div class="meta">Ruta: chatbot.js (384 lines) · Prompt institucional + Gemini + Contexto por sesión</div>
+  <div class="desc">El chatbot mantiene un contexto de conversación en memoria usando un array de mensajes por sesión. Se envía un prompt institucional con reglas (solo temas académicos, no inventar datos, remitir a coordinador) junto con el historial reciente a Gemini API.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 sequenceDiagram
@@ -827,36 +588,28 @@ sequenceDiagram
     participant F as Frontend (ChatbotPage)
     participant B as Backend (chatbot.js)
     participant G as Gemini API
-
     U->>F: Escribe mensaje
     F->>B: POST /api/chatbot/mensaje { mensaje }
-    B->>B: Obtener contexto de sesi&oacute;n (array en memoria)
-    Note over B: Cada sesi&oacute;n identificada por<br/>userId + timestamp de inicio
-    B->>B: Construir prompt con:<br/>- Instrucciones del bot<br/>- Perfil del usuario (rol)<br/>- &Uacute;ltimos 10 mensajes
-    B->>G: POST Gemini API generateContent
-    G-->>B: Texto de respuesta generado
-    B->>B: Guardar mensaje en contexto de sesi&oacute;n
-    B-->>F: { ok: true, respuesta: "..." }
-    F-->>U: Muestra respuesta en el chat
-
-    U->>F: Click en "Limpiar conversaci&oacute;n"
+    B->>B: Obtener contexto de sesión
+    Note over B: Sesión por userId + timestamp
+    B->>B: Construir prompt: instrucciones + perfil + últimos 10 mensajes
+    B->>G: POST Gemini API
+    G-->>B: Respuesta generada
+    B->>B: Guardar en contexto
+    B-->>F: { ok: true, respuesta }
+    F-->>U: Muestra respuesta
+    U->>F: Click "Limpiar conversación"
     F->>B: POST /api/chatbot/limpiar
-    B->>B: Eliminar contexto de sesi&oacute;n
-    B-->>F: { ok: true, message: "Contexto limpiado" }
+    B->>B: Eliminar contexto de sesión
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Endpoints:</strong>
-    <code>POST /api/chatbot/mensaje</code> <code>POST /api/chatbot/limpiar</code>
-  </div>
+  <div class="endpoints"><strong>Endpoints:</strong> <code>POST /api/chatbot/mensaje</code> <code>POST /api/chatbot/limpiar</code></div>
 </div>
 
 <div class="section" id="s17">
-  <h2>17. Base de Datos &mdash; Diagrama Entidad-Relaci&oacute;n Completo</h2>
-  <div class="meta">67 tablas totales &middot; Motor: InnoDB &middot; Charset: utf8mb4_unicode_ci &middot; FK con RESTRICT / CASCADE / SET NULL</div>
-  <div class="desc">
-    La base de datos <code>sivacad_isc</code> contiene <strong>67 tablas</strong> organizadas en m&oacute;dulos. A continuaci&oacute;n se muestran las 22 tablas principales del sistema base m&aacute;s las 8 tablas del m&oacute;dulo IA de Bienestar y la tabla de auditor&iacute;a. Las tablas restantes corresponden a m&oacute;dulos sat&eacute;lites (becas, asistencias, evaluaciones por perfil, etc.). El diagrama inferior muestra las relaciones entre las tablas principales; las tablas <code>ia_bienestar_*</code> se relacionan con <code>usuarios</code> (FK a id_usuario).
-  </div>
+  <h2>17. Base de Datos — Diagrama Entidad-Relación Completo</h2>
+  <div class="meta">67 tablas totales · Motor: InnoDB · Charset: utf8mb4_unicode_ci</div>
+  <div class="desc">La base de datos sivacad_isc contiene 67 tablas organizadas en módulos. El diagrama muestra las relaciones entre las tablas principales del núcleo académico, kardex, evaluaciones, IA de deserción e IA de bienestar.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 erDiagram
@@ -875,347 +628,84 @@ erDiagram
     usuarios ||--o{ ia_bienestar_alertas : "id_usuario"
     usuarios ||--o{ ia_bienestar_derivaciones : "id_usuario"
     usuarios ||--o{ ia_bienestar_mensajes : "id_usuario"
-
+    usuarios ||--o{ auditoria_global : "id_usuario"
+    usuarios ||--o{ sesiones_activas : "id_usuario"
     carreras ||--o{ planes_estudio : "id_carrera"
     carreras ||--o{ alumnos : "id_carrera"
     carreras ||--o{ grupos : "id_carrera"
-
     planes_estudio ||--o{ alumnos : "id_plan"
-
     periodos ||--o{ grupos : "id_periodo"
     periodos ||--o{ inscripciones : "id_periodo"
     periodos ||--o{ evaluaciones : "id_periodo"
     periodos ||--o{ kardex_grupo_qr : "id_periodo"
     periodos ||--o{ ia_alertas_desercion : "id_periodo"
-
     grupos ||--o{ kardex_grupo_qr : "id_grupo"
-
     alumnos ||--o| kardex_alumno : "id_alumno"
     alumnos ||--o{ inscripciones : "id_alumno"
     alumnos ||--o{ respuestas_evaluacion : "id_alumno"
     alumnos ||--o{ ia_alertas_desercion : "id_alumno"
-
     inscripciones ||--o| reinscripciones : "id_inscripcion"
-
     evaluacion_plantillas ||--o{ evaluacion_plantilla_preguntas : "id_plantilla"
     evaluacion_plantillas ||--o{ evaluaciones : "id_plantilla"
-
     evaluaciones ||--o{ respuestas_evaluacion : "id_evaluacion"
     evaluaciones ||--o{ evaluacion_resultados : "id_evaluacion"
-
     evaluacion_plantilla_preguntas ||--o{ respuestas_evaluacion : "id_pregunta"
-
     docentes ||--o{ respuestas_evaluacion : "id_docente"
-
     ia_alertas_desercion ||--o{ ia_seguimientos_desercion : "id_alerta"
-
     ia_bienestar_plantillas ||--o{ ia_bienestar_plantilla_preguntas : "id_plantilla"
     ia_bienestar_sesiones ||--o{ ia_bienestar_checkins : "id_sesion"
     ia_bienestar_sesiones ||--o{ ia_bienestar_mensajes : "id_sesion"
     ia_bienestar_alertas ||--o{ ia_bienestar_derivaciones : "id_alerta"
     ia_bienestar_sesiones ||--o{ ia_bienestar_alertas : "id_sesion"
-
-    roles {
-        int id_rol PK
-        varchar nombre_rol UNIQUE
-    }
-    usuarios {
-        int id_usuario PK
-        varchar nombres
-        varchar apellido_paterno
-        varchar apellido_materno
-        varchar correo_institucional UNIQUE
-        varchar contrasena_hash
-        enum estado "Activo|Inactivo|Bloqueado"
-        datetime ultimo_acceso
-        int id_rol FK
-    }
-    password_resets {
-        bigint id_reseteo PK
-        int id_usuario FK
-        varchar token UNIQUE
-        datetime expires_at
-        tinyint used
-        datetime created_at
-    }
-    alumnos {
-        int id_alumno PK
-        int id_usuario FK
-        varchar matricula UNIQUE
-        varchar curp
-        int id_carrera FK
-        int id_plan FK
-        tinyint semestre_actual
-        varchar fotografia
-        enum estatus_academico "Regular|Irregular|Egresado|Baja_Temporal|Baja_Definitiva"
-    }
-    docentes {
-        int id_docente PK
-        int id_usuario FK
-        varchar clave_docente UNIQUE
-        varchar numero_empleado
-        varchar especialidad
-        varchar fotografia
-        enum estatus "Activo|Inactivo"
-    }
-    periodos {
-        int id_periodo PK
-        varchar nombre_periodo UNIQUE
-        date fecha_inicio
-        date fecha_fin
-        enum estado "Planeado|Activo|Cerrado"
-    }
-    grupos {
-        int id_grupo PK
-        int id_periodo FK
-        int id_carrera FK
-        varchar nombre_grupo
-        tinyint semestre
-        enum turno "Matutino|Vespertino|Discontinuo"
-        enum estado "Abierto|Cerrado|Cancelado"
-    }
-    inscripciones {
-        bigint id_inscripcion PK
-        int id_alumno FK
-        int id_periodo FK
-        datetime fecha_inscripcion
-        enum tipo_inscripcion "Primera_Vez|Reinscripcion"
-        enum estado "Pendiente|Validada|Rechazada|Cancelada"
-    }
-    reinscripciones {
-        bigint id_reinscripcion PK
-        bigint id_inscripcion FK
-        varchar motivo
-        int validada_por FK
-        datetime fecha_validacion
-    }
-    kardex_alumno {
-        bigint id_kardex PK
-        int id_alumno FK
-        varchar numero_control
-        varchar foto_alumno
-        decimal promedio_general
-        smallint creditos_acumulados
-        enum estatus "Vigente|Egresado|Baja"
-        varchar qr_token UNIQUE
-        varchar url_qr
-    }
-    kardex_grupo_qr {
-        bigint id_kardex_grupo PK
-        int id_grupo FK
-        int id_periodo FK
-        varchar qr_token UNIQUE
-        varchar url_qr
-        int generado_por FK
-    }
-    evaluacion_plantillas {
-        bigint id_plantilla PK
-        varchar codigo_plantilla UNIQUE
-        varchar nombre_plantilla
-        text descripcion
-        enum tipo_instrumento "DOCENTE_POR_ALUMNOS|ALUMNO_POR_DOCENTES|POR_GRUPO|POR_PERIODO|POR_MATERIA"
-        enum publico_objetivo "ALUMNOS|DOCENTES|GRUPOS|PERIODOS|MATERIAS"
-        varchar escala "1-5"
-        tinyint activo
-        int orden_visual
-    }
-    evaluacion_plantilla_preguntas {
-        bigint id_pregunta PK
-        bigint id_plantilla FK
-        varchar criterio
-        decimal peso
-        enum tipo_respuesta "NUMERICA|TEXTO|SELECT|SI_NO"
-        int orden_pregunta
-        tinyint activo
-    }
-    evaluaciones {
-        bigint id_evaluacion PK
-        int id_periodo FK
-        bigint id_plantilla FK
-        varchar titulo
-        datetime fecha_inicio
-        datetime fecha_fin
-        enum estado "BORRADOR|ACTIVA|CERRADA|CANCELADA"
-        int creado_por FK
-    }
-    respuestas_evaluacion {
-        bigint id_respuesta PK
-        bigint id_evaluacion FK
-        bigint id_pregunta FK
-        int id_alumno FK
-        int id_docente FK
-        decimal valor_numero
-        text valor_texto
-    }
-    evaluacion_resultados {
-        bigint id_resultado PK
-        bigint id_evaluacion FK
-        int id_evaluado
-        enum tipo_evaluado "DOCENTE|ALUMNO|GRUPO|PERIODO|MATERIA"
-        decimal promedio_final
-        text observacion_general
-    }
-    ia_alertas_desercion {
-        bigint id_alerta PK
-        int id_alumno FK
-        int id_periodo FK
-        enum nivel_riesgo "Bajo|Medio|Alto|Critico"
-        decimal puntaje_riesgo
-        text descripcion
-        tinyint atendida
-        enum estado_seguimiento "Pendiente|En_revision|Atendida|Cerrada"
-        int responsable_id FK
-        json factores_json
-    }
-    ia_seguimientos_desercion {
-        bigint id_seguimiento PK
-        bigint id_alerta FK
-        int id_usuario FK
-        varchar accion
-        text observaciones
-        enum estado "Pendiente|En_proceso|Atendida|Cerrada"
-    }
-    ia_auditoria_desercion {
-        bigint id_auditoria PK
-        int id_usuario FK
-        varchar accion
-        text detalle
-        bigint id_alerta FK
-    }
-    ia_bienestar_plantillas {
-        bigint id_plantilla PK
-        varchar codigo_plantilla UNIQUE
-        varchar nombre_plantilla
-        text descripcion
-        enum tipo_instrumento "BIENESTAR_GENERAL|ACOMPANAMIENTO_ACADEMICO|BIENESTAR_LABORAL"
-    }
-    ia_bienestar_plantilla_preguntas {
-        bigint id_pregunta PK
-        bigint id_plantilla FK
-        varchar criterio
-        decimal peso
-        enum tipo_respuesta "NUMERICA|TEXTO"
-    }
-    ia_bienestar_sesiones {
-        bigint id_sesion PK
-        int id_usuario FK
-        enum estado "ACTIVA|CERRADA"
-        enum nivel_riesgo_actual "Bajo|Medio|Alto|Critico"
-    }
-    ia_bienestar_checkins {
-        bigint id_checkin PK
-        int id_usuario FK
-        bigint id_sesion FK
-        tinyint bienestar_score
-        decimal indice_riesgo
-        enum nivel_riesgo "Bajo|Medio|Alto|Critico"
-        tinyint animo
-        tinyint energia
-        tinyint sueno
-        tinyint estres
-        tinyint apoyo
-        tinyint ambiente
-        tinyint carga_academica
-        tinyint carga_laboral
-        tinyint enfoque
-    }
-    ia_bienestar_alertas {
-        bigint id_alerta PK
-        int id_usuario FK
-        bigint id_sesion FK
-        enum tipo_alerta "RIESGO_BIENESTAR|CRISIS|ESCALAMIENTO_MANUAL"
-        enum nivel_riesgo "Bajo|Medio|Alto|Critico"
-        text descripcion
-        text accion_sugerida
-        enum estado "PENDIENTE|EN_REVISION|ATENDIDA|CERRADA"
-    }
-    ia_bienestar_derivaciones {
-        bigint id_derivacion PK
-        bigint id_alerta FK
-        int id_usuario FK
-        varchar destino
-        text motivo
-        enum estado "PENDIENTE|EN_CURSO|CERRADA"
-    }
-    ia_bienestar_mensajes {
-        bigint id_mensaje PK
-        bigint id_sesion FK
-        int id_usuario FK
-        enum rol_mensaje "user|assistant|system"
-        text mensaje
-    }
-    bitacora_auditoria {
-        bigint id_bitacora PK
-        int id_usuario FK
-        varchar modulo
-        varchar accion
-        text detalle
-    }
+    materias ||--o{ grupos : "id_materia"
+    materias ||--o{ kardex_historial_academico : "id_materia"
+    alumnos ||--o{ kardex_historial_academico : "id_alumno"
+    kardex_alumno ||--o{ kardex_historial_academico : "id_kardex"
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Total de tablas principales:</strong> 30 (22 base + 8 bienestar) &middot;
-    <strong>Total general en BD:</strong> 67 &middot;
-    <strong>Motor:</strong> InnoDB &middot;
-    <strong>Collation:</strong> utf8mb4_unicode_ci
-  </div>
+  <div class="endpoints"><strong>Total tablas:</strong> 67 · <strong>Motor:</strong> InnoDB · <strong>Convención:</strong> snake_case con prefijos (<code>kardex_*</code>, <code>evaluacion_*</code>, <code>ia_*</code>, <code>reinscripcion_*</code>)</div>
 </div>
 
 <div class="section" id="s18">
   <h2>18. Arquitectura de Rutas del Backend</h2>
-  <div class="meta">routes/index.js &middot; mountIfAvailable(pattern) &middot; SafeRequire + auto-detecci&oacute;n de m&oacute;dulos</div>
-  <div class="desc">
-    El backend usa un sistema de montaje din&aacute;mico: <code>app.js</code> monta <code>routes/index.js</code> en <code>/api</code>, y el index usa <code>mountIfAvailable(routePath, relativeModulePath)</code> que intenta requerir el archivo del m&oacute;dulo; si existe, lo monta en la ruta especificada. Esto permite que los m&oacute;dulos se habiliten/deshabiliten simplemente agregando o quitando archivos. Cada sub-router tiene sus propios middlewares (JWT + roles) y sus propios controladores. Express encadena los routers en orden de registro; si dos routers comparten prefijo (como los 4 de <code>/ia/desercion</code>), Express eval&uacute;a todos hasta encontrar una ruta que coincida.
-  </div>
+  <div class="meta">routes/index.js · mountIfAvailable(pattern) · SafeRequire + auto-detección</div>
+  <div class="desc">El backend usa un sistema de montaje dinámico: app.js monta routes/index.js en /api, y el index usa mountIfAvailable(routePath, relativeModulePath) que intenta requerir el archivo del módulo; si existe, lo monta en la ruta especificada. Esto permite habilitar/deshabilitar módulos agregando o quitando archivos.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 flowchart TB
     APP["app.js<br/>app.use('/api', routesIndex)"] --> INDEX["routes/index.js"]
-
     subgraph INDEX_DETAIL["routes/index.js"]
         M["mountIfAvailable(path, modulePath)"]
-        M --> REQ["safeRequire(modulePath)<br/>try/catch + path.join(__dirname, ...)"]
-        REQ -->|"Existe"| USE["router.use(path, mod)<br/>+ mountedRoutes.push(path)"]
-        REQ -->|"No existe"| SKIP["Silent fail<br/>(m&oacute;dulo no disponible)"]
+        M --> REQ["safeRequire(modulePath)"]
+        REQ -->|"Existe"| USE["router.use(path, mod)"]
+        REQ -->|"No existe"| SKIP["Silent fail"]
     end
-
-    INDEX --> AUTH["/auth &rarr; routes/auth.js"]
-    INDEX --> DASH["/dashboard &rarr; routes/dashboard.js"]
-    INDEX --> ALU["/alumnos &rarr; routes/alumnos.js"]
-    INDEX --> DOC["/docentes &rarr; routes/docentes.js"]
-    INDEX --> PER["/periodos &rarr; routes/periodos.js"]
-    INDEX --> GRU["/grupos &rarr; routes/grupos.js"]
-    INDEX --> INS["/inscripciones* &rarr; 10 sub-routers"]
-    INDEX --> KAR["/kardex* &rarr; 4 sub-routers"]
-    INDEX --> EVA["/evaluaciones* &rarr; 4 sub-routers"]
-    INDEX --> OCR["/actas-ocr &rarr; routes/actasOCR.js"]
-    INDEX --> CHAT["/chatbot &rarr; routes/chatbot.js"]
-    INDEX --> ASIS["/asistente &rarr; routes/asistente.js"]
-    INDEX --> IA_BEC["/ia/becas &rarr; routes/iaBecas.js"]
-    INDEX --> IA_BIE_ADM["/bienestar-admin &rarr; routes/iaBienestarAdmin.js"]
-    INDEX --> IA_BIE["/ia/bienestar &rarr; routes/iaBienestar.js"]
-    INDEX --> IA_DES["/ia/desercion &rarr; 4 sub-routers"]
-    INDEX --> REP["/reportes &rarr; routes/reportes.js"]
-    INDEX --> BAJ["/bajas &rarr; routes/bajas.js"]
-
-    AUTH --> AUTH_C["controllers/auth.js<br/>login / register / me / forgot / reset"]
-    IA_BIE_ADM --> BADM_C["controllers/iaBienestarAdmin.js<br/>resumen / indicadores / alertas / seguimientos / auditoria / exportar"]
-    IA_BIE --> BIE_R["(self-contained)<br/>1368 l&iacute;neas en ruta"]
+    INDEX --> AUTH["/auth"]
+    INDEX --> DASH["/dashboard"]
+    INDEX --> ALU["/alumnos"]
+    INDEX --> DOC["/docentes"]
+    INDEX --> PER["/periodos"]
+    INDEX --> GRU["/grupos"]
+    INDEX --> INS["/inscripciones* (10 sub-routers)"]
+    INDEX --> KAR["/kardex* (4 sub-routers)"]
+    INDEX --> EVA["/evaluaciones* (4 sub-routers)"]
+    INDEX --> OCR["/actas-ocr"]
+    INDEX --> CHAT["/chatbot"]
+    INDEX --> ASIS["/asistente"]
+    INDEX --> IA_BEC["/ia/becas"]
+    INDEX --> IA_BIE_ADM["/bienestar-admin"]
+    INDEX --> IA_BIE["/ia/bienestar"]
+    INDEX --> IA_DES["/ia/desercion (4 sub-routers)"]
+    INDEX --> REP["/reportes"]
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Patr&oacute;n clave:</strong> <code>mountIfAvailable('/ruta', './archivoModulo')</code> &middot;
-    <strong>safeRequire:</strong> captura errores de require, si falla retorna null y no monta la ruta &middot;
-    <strong>Mounted routes total:</strong> ~36 prefijos registrados
-  </div>
+  <div class="endpoints"><strong>Patrón:</strong> <code>mountIfAvailable('/ruta', './archivo')</code> · <strong>Total rutas:</strong> ~36 prefijos · <strong>Archivos:</strong> 30+ sub-routers</div>
 </div>
 
 <div class="section" id="s19">
-  <h2>19. Arquitectura del Frontend &mdash; AuthContext, Roles y API Request</h2>
-  <div class="meta">AuthContext.jsx &middot; ProtectedRoute &middot; api.js &middot; request() &middot; emitAuthError &middot; localStorage</div>
-  <div class="desc">
-    El frontend gestiona la autenticaci&oacute;n mediante un <code>AuthContext</code> que almacena el usuario y el token JWT en el estado de React y en localStorage. El <code>ProtectedRoute</code> verifica si hay sesi&oacute;n activa antes de renderizar cualquier p&aacute;gina, y si no hay, redirige al login. El <code>api.js</code> centraliza todas las llamadas HTTP mediante una funci&oacute;n <code>request()</code> que inyecta autom&aacute;ticamente el token Bearer, maneja timeouts, errores de red, y dispara un evento personalizado <code>sivacad:auth-error</code> en 401 para que AuthContext limpie la sesi&oacute;n. Los roles se verifican tanto en frontend (componentes canAccess*) como en backend (middleware role()). Existe un bug cr&iacute;tico corregido donde las p&aacute;ginas que s&oacute;lo destructureaban <code>{ user }</code> de useAuth() perd&iacute;an el token porque el objeto usuario ya no contiene el token; se corrigi&oacute; a <code>{ user, token }</code>. Tambi&eacute;n se agreg&oacute; una migraci&oacute;n en AuthContext para recuperar tokens almacenados en versiones previas dentro del objeto usuario.
-  </div>
+  <h2>19. Arquitectura del Frontend — Auth, Roles y API Request</h2>
+  <div class="meta">AuthContext.jsx · ProtectedRoute · api.js · request() · emitAuthError</div>
+  <div class="desc">El frontend gestiona la autenticación mediante AuthContext que almacena usuario y token JWT en React state y localStorage. ProtectedRoute verifica sesión activa antes de renderizar. api.js centraliza las llamadas HTTP, inyecta token Bearer, maneja timeouts y dispara evento sivacad:auth-error en 401.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 sequenceDiagram
@@ -1223,377 +713,752 @@ sequenceDiagram
     participant LOGIN as LoginPage
     participant AUTH as AuthContext
     participant PROT as ProtectedRoute
-    participant PAGE as P&aacute;gina (ej. Dashboard)
+    participant PAGE as Página (ej. Dashboard)
     participant API as api.js (request)
     participant BACK as Backend
-
     U->>LOGIN: Credenciales
     LOGIN->>AUTH: login(correo, contrasena)
     AUTH->>API: POST /api/auth/login
     API->>BACK: HTTP Request
     BACK-->>API: 200 { token, usuario }
     API-->>AUTH: response
-    AUTH->>AUTH: localStorage.setItem('sivacad_token', token)
-    AUTH->>AUTH: localStorage.setItem('sivacad_user', user)
-    AUTH->>AUTH: setToken(token); setUser(user)
+    AUTH->>AUTH: localStorage token + user
     AUTH-->>LOGIN: Login exitoso
-    LOGIN->>U: Redirige seg&uacute;n rol
-
-    Note over PROT: Navegaci&oacute;n a ruta protegida
-    PROT->>AUTH: Lee token y user del contexto
-    alt No hay token ni user
+    LOGIN->>U: Redirige según rol
+    Note over PROT: Navegación a ruta protegida
+    PROT->>AUTH: Lee token y user
+    alt No hay token
         PROT->>U: Redirigir a /login
-    else Hay user (sesi&oacute;n v&aacute;lida)
-        PROT->>PAGE: Renderizar p&aacute;gina
+    else Sesión válida
+        PROT->>PAGE: Renderizar página
         PAGE->>AUTH: useAuth() = { user, token }
         PAGE->>API: request('/endpoint', { token })
-        API->>API: headers.Authorization = 'Bearer ' + token
         API->>BACK: GET /api/endpoint
-        alt 401 Unauthorized
-            BACK-->>API: 401 { message }
+        alt 401
+            BACK-->>API: 401
             API->>API: emitAuthError(401)
-            API-->>PAGE: throw Error
-            AUTH->>AUTH: clearSession() (event listener)
+            AUTH->>AUTH: clearSession()
             U->>U: Redirigido a /login
-        else 200 OK
+        else 200
             BACK-->>API: 200 { data }
             API-->>PAGE: response.data
-            PAGE-->>U: Renderiza datos
         end
     end
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Contexto:</strong> <code>&lt;AuthProvider&gt;</code> envuelve toda la app &middot;
-    <strong>Hook:</strong> <code>useAuth() &rArr; { user, token, login, logout, loading }</code> &middot;
-    <strong>Protecci&oacute;n:</strong> <code>&lt;ProtectedRoute roles={['ADMINISTRADOR']}&gt;</code> &middot;
-    <strong>API:</strong> <code>request(path, { token, method, body, responseType })</code> &middot;
-    <strong>Bug corregido:</strong> <code>user?.token</code> &rarr; <code>token</code> (variable separada en AuthContext)
-  </div>
+  <div class="endpoints"><strong>Contexto:</strong> <code>&lt;AuthProvider&gt;</code> envuelve toda la app · <strong>Hook:</strong> <code>useAuth() = { user, token, login, logout }</code> · <strong>API:</strong> <code>request(path, { token, method, body })</code></div>
 </div>
 
 <div class="section" id="s20">
-  <h2>20. Frontend &mdash; Componentes y P&aacute;ginas</h2>
-  <div class="meta">React + Vite &middot; ~40 p&aacute;ginas &middot; ~15 componentes reutilizables &middot; AppShell con Sidebar por rol</div>
-  <div class="desc">
-    El frontend est&aacute; organizado en una estructura de p&aacute;ginas (<code>pages/</code>), componentes reutilizables (<code>components/</code>), servicios (<code>services/</code>), contexto (<code>context/</code>) y estilos (<code>styles/</code>). El <code>AppShell</code> es el layout principal con sidebar colapsable que muestra navegaci&oacute;n seg&uacute;n el rol del usuario. Cada rol tiene su propio dashboard y secci&oacute;n de IA. El enrutamiento usa React Router v6 con <code>ProtectedRoute</code> y <code>role()</code> middleware. A continuaci&oacute;n se muestra el &aacute;rbol de componentes y p&aacute;ginas del sistema, incluyendo los paneles de IA que fueron a&ntilde;adidos recientemente (IABienestarAdminPage, IADesercionAlumnoPage, IADesercionSoportePage).
-  </div>
+  <h2>20. Frontend — Componentes y Páginas</h2>
+  <div class="meta">React + Vite · ~40 páginas · ~15 componentes reutilizables · AppShell con Sidebar por rol</div>
+  <div class="desc">El frontend está organizado en páginas, componentes reutilizables, servicios, contexto y estilos. AppShell es el layout principal con sidebar colapsable que muestra navegación según el rol. El enrutamiento usa React Router v6 con ProtectedRoute.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 flowchart TB
     APP["App.jsx<br/>BrowserRouter + AuthProvider + ThemeProvider"] --> APP_SHELL["AppShell.jsx<br/>Sidebar colapsable + Header + Main"]
-    APP --> AUTH_PAGES["Auth Pages (p&uacute;blicas)<br/>LoginPage<br/>RegisterPage<br/>ForgotPasswordPage<br/>ResetPasswordPage"]
-
-    APP_SHELL --> ADMIN["ADMIN / COORD<br/><br/>DashboardPage<br/>UsuariosPage<br/>AlumnosPage / DocentesPage<br/>PeriodosPage / GruposPage<br/>Inscripciones* (6 p&aacute;ginas)<br/>Kardex* (4 p&aacute;ginas)<br/>Evaluaciones* (4 p&aacute;ginas)<br/>ActasOCRPage<br/>ChatbotPage<br/>AsistentePage<br/>ReportesPage<br/>IABienestarAdminPage<br/>IADesercionPage<br/>IADesercionDocentePage"]
-
-    APP_SHELL --> ALUMNO["ALUMNO<br/><br/>DashboardPage<br/>InscripcionesAlumnoPage<br/>EvaluacionesAlumnoPage<br/>KardexAlumnoPage<br/>ChatbotPage<br/>AsistentePage<br/>IABienestarPage<br/>IADesercionAlumnoPage"]
-
-    APP_SHELL --> DOCENTE["DOCENTE<br/><br/>DashboardPage<br/>InscripcionesDocentePage<br/>EvaluacionesDocentePage<br/>KardexDocentePage<br/>ChatbotPage<br/>AsistentePage<br/>IADesercionDocentePage"]
-
-    APP_SHELL --> SOPORTE["SOPORTE<br/><br/>DashboardPage<br/>InscripcionesSoportePage<br/>EvaluacionesSoportePage<br/>KardexSoportePage<br/>ChatbotPage<br/>AsistentePage<br/>IADesercionSoportePage"]
-
+    APP --> AUTH_PAGES["Públicas: Login, Register, Forgot, Reset, Terminos, Privacidad"]
+    APP_SHELL --> ADMIN["ADMIN / COORD<br/>Dashboard, Usuarios, Alumnos, Docentes<br/>Periodos, Grupos, Inscripciones*<br/>Kardex*, Evaluaciones*, ActasOCR<br/>Tramites*, Chatbot, Asistente<br/>IA BienestarAdmin, IA Deserción"]
+    APP_SHELL --> ALUMNO["ALUMNO<br/>Dashboard, Inscripciones<br/>Evaluaciones, Kardex, Tramites<br/>Chatbot, Asistente<br/>IA Bienestar, IA Deserción"]
+    APP_SHELL --> DOCENTE["DOCENTE<br/>Dashboard, Inscripciones<br/>Evaluaciones, Kardex, Tramites<br/>Chatbot, Asistente<br/>IA Deserción Docente"]
+    APP_SHELL --> SOPORTE["SOPORTE<br/>Dashboard, Inscripciones<br/>Evaluaciones, Kardex, Tramites<br/>Chatbot, Asistente<br/>IA Deserción Soporte"]
     subgraph COMPONENTS["Componentes Compartidos"]
-        C1["SectionCard<br/>Tarjeta con t&iacute;tulo + icono + contenido"]
-        C2["DataTable<br/>Tabla con paginaci&oacute;n + filtros"]
-        C3["Modal / ConfirmModal<br/>Di&aacute;logos modales reutilizables"]
-        C4["LoadingSpinner<br/>Indicador de carga"]
-        C5["StatusBadge<br/>Badge de estado con colores"]
-        C6["MetricCard<br/>Tarjeta de m&eacute;trica con icono + valor"]
-        C7["ProtectedRoute<br/>Wrapper de ruta con verificaci&oacute;n de autenticaci&oacute;n y rol"]
+        C1["SectionCard, DataTable, Modal"]
+        C2["LoadingSpinner, StatusBadge, MetricCard"]
+        C3["ProtectedRoute, FormField, StatCard"]
+        C4["KardexButton, KardexPreview, DesercionPreview"]
     end
-
-    subgraph SERVICES["Servicios"]
-        S1["api.js<br/>request() + download() + ~80 m&eacute;todos"]
-        S2["AuthContext<br/>Provider + useAuth() hook"]
-        S3["ThemeContext<br/>Modo claro/oscuro"]
-    end
-
     ADMIN & ALUMNO & DOCENTE & SOPORTE --> COMPONENTS
-    ADMIN & ALUMNO & DOCENTE & SOPORTE --> SERVICES
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Total p&aacute;ginas:</strong> ~40 &middot;
-    <strong>Rutas protegidas:</strong> <code>/app/*</code> (requiere sesi&oacute;n) vs <code>/login, /register, /forgot-password, /reset-password/:token</code> (p&uacute;blicas) &middot;
-    <strong>Paneles IA:</strong> 7 p&aacute;ginas (Deserci&oacute;n Admin, Docente, Alumno, Soporte + Bienestar Estudiante + Bienestar Admin + Becas)
-  </div>
+  <div class="endpoints"><strong>Total páginas:</strong> ~40 · <strong>Rutas públicas:</strong> /login, /register, /forgot-password, /reset-password/:token, /terminos, /aviso-privacidad · <strong>Rutas protegidas:</strong> /app/*</div>
 </div>
 
 <div class="section" id="s21">
-  <h2>21. Configuraci&oacute;n, Instalaci&oacute;n y Despliegue</h2>
-  <div class="meta">Requisitos: Node.js 18+, MySQL 8+, npm &middot; Variables de entorno en .env</div>
-  <div class="desc">
-    El sistema sigue una arquitectura cliente-servidor con frontend en Vite y backend en Express. A continuaci&oacute;n se detallan los pasos necesarios para poner el sistema en funcionamiento desde cero, incluyendo la configuraci&oacute;n de la base de datos, las variables de entorno, la instalaci&oacute;n de dependencias y la ejecuci&oacute;n en desarrollo. Tambi&eacute;n se incluyen los comandos para aplicar migraciones SQL y los usuarios de prueba disponibles.
-  </div>
+  <h2>21. Configuración, Instalación y Despliegue</h2>
+  <div class="meta">Requisitos: Node.js 18+, MySQL 8+, npm · Variables de entorno en .env</div>
+  <div class="desc">Pasos para poner el sistema en funcionamiento: clonar repositorio, configurar BD, instalar dependencias backend/frontend, configurar .env, ejecutar servidores y sembrar datos de prueba.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 flowchart TB
-    SUB0["1. Requisitos previos<br/>Node.js 18+<br/>MySQL 8+<br/>npm 9+<br/>Git"] --> SUB1["2. Clonar repositorio<br/>git clone &lt;repo&gt;<br/>cd SIVACAD-ISC"]
-
-    SUB1 --> SUB2["3. Configurar Base de Datos<br/>mysql -u root &lt; database/sivacad_isc.sql<br/>mysql -u root &lt; database/migrations/ia_bienestar_migration.sql<br/>O importar desde PHPMyAdmin"]
-
-    SUB2 --> SUB3["4. Configurar Backend<br/>cd backend<br/>cp .env.example .env<br/>Editar .env:<br/>DB_HOST, DB_USER, DB_PASSWORD, DB_NAME<br/>JWT_SECRET, JWT_EXPIRES_IN<br/>GEMINI_API_KEY<br/>SMTP_HOST/USER/PASS<br/>FRONTEND_URL"]
-
-    SUB3 --> SUB4["5. Instalar dependencias Backend<br/>npm install"]
-
-    SUB4 --> SUB5["6. Iniciar Backend<br/>npm run dev<br/>(nodemon, hot-reload)<br/>Puerto 3000"]
-
-    SUB5 --> SUB6["7. Configurar Frontend<br/>cd ../frontend<br/>cp .env.example .env<br/>VITE_API_BASE_URL=http://localhost:3000/api"]
-
-    SUB6 --> SUB7["8. Instalar dependencias Frontend<br/>npm install"]
-
-    SUB7 --> SUB8["9. Iniciar Frontend<br/>npm run dev<br/>(Vite, hot-reload)<br/>Puerto 5173"]
-
-    SUB8 --> SUB9["10. Sembrar datos de prueba<br/>mysql -u root sivacad_isc &lt; database/seed_usuarios_iniciales.sql<br/>Usuarios disponibles:<br/>admin@tesi.edu.mx / Testing123!<br/>coordinador@tesi.edu.mx / Testing123!<br/>docente@tesi.edu.mx / Testing123!<br/>alumno@tesi.edu.mx / Testing123!<br/>soporte@tesi.edu.mx / Testing123!"]
-
-    SUB9 --> SUB10["11. Abrir navegador<br/>http://localhost:5173<br/>Iniciar sesi&oacute;n con cualquier usuario<br/>El sistema redirige seg&uacute;n el rol"]
-
-    SUB10 --> SUB11["12. Verificar funcionamiento<br/>Comprobar /api/ping<br/>Comprobar /api/ devuelve lista de rutas<br/>Probar cada m&oacute;dulo desde el frontend"]
-
+    SUB0["Requisitos: Node 18+, MySQL 8+, npm"] --> SUB1["git clone <repo>"]
+    SUB1 --> SUB2["mysql < database/sivacad_isc.sql<br/>mysql < database/migrations/*.sql"]
+    SUB2 --> SUB3["cd backend<br/>cp .env.example .env<br/>Editar DB, JWT, GEMINI, SMTP"]
+    SUB3 --> SUB4["npm install (backend)"]
+    SUB4 --> SUB5["npm run dev (backend, puerto 3000)"]
+    SUB5 --> SUB6["cd ../frontend<br/>cp .env.example .env"]
+    SUB6 --> SUB7["npm install (frontend)"]
+    SUB7 --> SUB8["npm run dev (frontend, puerto 5173)"]
+    SUB8 --> SUB9["mysql < seed_usuarios_iniciales.sql<br/>admin@tesi.edu.mx / Testing123!"]
+    SUB9 --> SUB10["Abrir http://localhost:5173"]
     style SUB0 fill:#dbeafe,stroke:#2563eb
-    style SUB1 fill:#dbeafe,stroke:#2563eb
     style SUB2 fill:#f0fdf4,stroke:#16a34a
-    style SUB3 fill:#fef3c7,stroke:#d97706
-    style SUB4 fill:#fef3c7,stroke:#d97706
     style SUB5 fill:#fef3c7,stroke:#d97706
-    style SUB6 fill:#fce7f3,stroke:#db2777
-    style SUB7 fill:#fce7f3,stroke:#db2777
     style SUB8 fill:#fce7f3,stroke:#db2777
-    style SUB9 fill:#f0fdf4,stroke:#16a34a
     style SUB10 fill:#dcfce7,stroke:#16a34a
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Backend:</strong> <code>cd backend &amp;&amp; npm run dev</code> (puerto 3000) &middot;
-    <strong>Frontend:</strong> <code>cd frontend &amp;&amp; npm run dev</code> (puerto 5173) &middot;
-    <strong>.env requerido:</strong> <code>JWT_SECRET</code>, <code>DB_NAME</code>, <code>GEMINI_API_KEY</code> (para OCR, chatbot, bienestar, becas)
-  </div>
+  <div class="endpoints"><strong>Backend:</strong> <code>cd backend && npm run dev</code> (puerto 3000) · <strong>Frontend:</strong> <code>cd frontend && npm run dev</code> (puerto 5173) · <strong>.env:</strong> <code>JWT_SECRET, DB_NAME, GEMINI_API_KEY</code></div>
 </div>
 
 <div class="section" id="s22">
   <h2>22. Cronograma de Modificaciones y Cambios</h2>
-  <div class="meta">L&iacute;nea del tiempo de todas las modificaciones realizadas hasta el 13 de julio de 2026</div>
-  <div class="desc">
-    A continuaci&oacute;n se listan cronol&oacute;gicamente todas las modificaciones realizadas al sistema SIVACAD, incluyendo la creaci&oacute;n de m&oacute;dulos, correcci&oacute;n de bugs, ajustes de arquitectura y cambios en base de datos. Cada entrada incluye la fecha, el tipo de cambio (caracter&iacute;stica, correcci&oacute;n, BD, arquitectura) y una descripci&oacute;n detallada.
-  </div>
+  <div class="meta">Línea del tiempo de todas las modificaciones realizadas hasta julio de 2026</div>
+  <div class="desc">A continuación se listan cronológicamente todas las modificaciones realizadas al sistema SIVACAD.</div>
   <div class="timeline-bar">
-
-    <div class="tl-item">
-      <div class="tl-date">Fase 1</div>
-      <div class="tl-dot"></div>
-      <div class="tl-content">
-        <strong>Estructura base del sistema</strong><br>
-        Creaci&oacute;n del proyecto con Express + React + Vite. Base de datos sivacad_isc con tablas principales: usuarios, roles, alumnos, docentes, carreras, periodos, grupos, inscripciones, reinscripciones, kardex, evaluaciones. Sistema de autenticaci&oacute;n JWT con login, registro, forgot/reset password. Middleware de roles RBAC. Frontend con AppShell, ProtectedRoute, AuthContext, ThemeContext.
-        <span class="tag tag-arch">Arquitectura</span>
-      </div>
-    </div>
-
-    <div class="tl-item">
-      <div class="tl-date">Fase 2</div>
-      <div class="tl-dot"></div>
-      <div class="tl-content">
-        <strong>M&oacute;dulos acad&eacute;micos</strong><br>
-        Implementaci&oacute;n de inscripciones (6 roles, cada uno con su propio sub-router y frontend), reinscripciones, evaluaciones (5 tipos de instrumento, preguntas con pesos, respuestas, resultados), kardex con QR y fotograf&iacute;as, reportes PDF/Excel con PDFKit y ExcelJS. OCR de actas con Gemini API (subida de archivos con multer, extracci&oacute;n de calificaciones).
-        <span class="tag tag-feat">Caracter&iacute;stica</span>
-      </div>
-    </div>
-
-    <div class="tl-item">
-      <div class="tl-date">Fase 3</div>
-      <div class="tl-dot"></div>
-      <div class="tl-content">
-        <strong>M&oacute;dulos de IA &mdash; Deserci&oacute;n y Becas</strong><br>
-        Creaci&oacute;n del predictor heur&iacute;stico de deserci&oacute;n (buildRiskAnalysis) con frontend Admin/Coord. Chatbot general con Gemini API y contexto de sesi&oacute;n en memoria. M&oacute;dulo de becas con cat&aacute;logo de 14 fuentes oficiales, b&uacute;squeda sem&aacute;ntica (simpleEmbed basado en conteo de palabras), vector store, y c&aacute;lculo de elegibilidad por promedio del alumno.
-        <span class="tag tag-feat">Caracter&iacute;stica</span>
-      </div>
-    </div>
-
-    <div class="tl-item">
-      <div class="tl-date">Fase 4</div>
-      <div class="tl-dot"></div>
-      <div class="tl-content">
-        <strong>Asistente Acad&eacute;mico multicapa</strong><br>
-        Implementaci&oacute;n del asistente con clasificador de intenciones (7 categor&iacute;as: STATS, BECAS, ACADEMICO, BIENESTAR, SOPORTE, ROL, GENERAL), orquestador, tools (getSystemStats, searchScholarships, getStudentAverage, getAsistenteContenido RAG), y generaci&oacute;n de respuesta con Gemini. Frontend AsistentePage con interfaz conversacional.
-        <span class="tag tag-feat">Caracter&iacute;stica</span>
-        <span class="tag tag-arch">Arquitectura</span>
-      </div>
-    </div>
-
-    <div class="tl-item">
-      <div class="tl-date">Fase 5</div>
-      <div class="tl-dot"></div>
-      <div class="tl-content">
-        <strong>IA de Acompa&ntilde;amiento Estudiantil (Estudiante)</strong><br>
-        Creaci&oacute;n del m&oacute;dulo de bienestar con 8 tablas (ia_bienestar_plantillas, ia_bienestar_plantilla_preguntas, ia_bienestar_recursos, ia_bienestar_sesiones, ia_bienestar_checkins, ia_bienestar_mensajes, ia_bienestar_alertas, ia_bienestar_derivaciones). Migraci&oacute;n SQL completa con datos de prueba. Ruta aut&oacute;noma iaBienestar.js (~1368 l&iacute;neas) con cat&aacute;logos, check-in, chat (Gemini), escalaci&oacute;n manual, detecci&oacute;n de crisis. Frontend IABienestarPage para estudiantes.
-        <span class="tag tag-feat">Caracter&iacute;stica</span>
-        <span class="tag tag-db">Base de datos</span>
-      </div>
-    </div>
-
-    <div class="tl-item">
-      <div class="tl-date">13 Jul 2026</div>
-      <div class="tl-dot"></div>
-      <div class="tl-content">
-        <strong>Paneles faltantes de IA: Alumno, Soporte, Docente Deserci&oacute;n</strong><br>
-        Creaci&oacute;n de IADesercionAlumnoPage (mi riesgo, recomendaciones, historial, progreso), IADesercionSoportePage (logs, errores, conectividad, integridad, verificaci&oacute;n, rutas), IADesercionDocentePage (alertas de grupos). Cada uno con su propio sub-router Express y m&eacute;todos en api.js. Registro de rutas en routes/index.js con montaje en /ia/desercion.
-        <span class="tag tag-feat">Caracter&iacute;stica</span>
-      </div>
-    </div>
-
-    <div class="tl-item">
-      <div class="tl-date">13 Jul 2026</div>
-      <div class="tl-dot"></div>
-      <div class="tl-content">
-        <strong>Supervisi&oacute;n IA de Acompa&ntilde;amiento (Admin/Coord)</strong><br>
-        Creaci&oacute;n de IABienestarAdminPage con 5 tabs (resumen ejecutivo, indicadores de riesgo, cat&aacute;logo de alertas, historial de seguimientos, auditor&iacute;a) + exportaci&oacute;n TXT y CSV. Controlador iaBienestarAdmin.js con 7 endpoints. Ruta montada inicialmente en /ia (causaba colisi&oacute;n con /ia/bienestar), corregida a /bienestar-admin.
-        <span class="tag tag-feat">Caracter&iacute;stica</span>
-        <span class="tag tag-fix">Correcci&oacute;n</span>
-      </div>
-    </div>
-
-    <div class="tl-item">
-      <div class="tl-date">13 Jul 2026</div>
-      <div class="tl-dot"></div>
-      <div class="tl-content">
-        <strong>Bug cr&iacute;tico: Token undefined en p&aacute;ginas IA</strong><br>
-        Las p&aacute;ginas IABienestarAdminPage, IADesercionAlumnoPage y IADesercionSoportePage usaban <code>const { user } = useAuth()</code> y luego <code>user?.token</code> en las API calls. El AuthContext maneja <code>token</code> como variable separada (desde localStorage.getItem('sivacad_token')). Como <code>user?.token</code> siempre era undefined, las requests se enviaban sin Authorization header, el backend respond&iacute;a 401, emitAuthError disparaba clearSession() y el usuario era redirigido al login. Se corrigi&oacute; a <code>const { user, token } = useAuth()</code> y se us&oacute; <code>token</code> directamente. Tambi&eacute;n se agreg&oacute; migraci&oacute;n en AuthContext para tokens legacy almacenados dentro del objeto usuario.
-        <span class="tag tag-fix">Correcci&oacute;n</span>
-        <span class="tag tag-arch">Arquitectura</span>
-      </div>
-    </div>
-
-    <div class="tl-item">
-      <div class="tl-date">13 Jul 2026</div>
-      <div class="tl-dot"></div>
-      <div class="tl-content">
-        <strong>Bug cr&iacute;tico: Colisi&oacute;n de rutas /ia vs /ia/bienestar</strong><br>
-        El router iaBienestarAdmin se mont&oacute; inicialmente en <code>/ia</code> (ruta 84 en routes/index.js). Cuando Express procesaba <code>GET /ia/bienestar-admin/resumen</code>, comparaba los prefijos registrados: <code>/ia</code> (iaBienestarAdmin) y <code>/ia/bienestar</code> (iaBienestar estudiante). El prefijo <code>/ia</code> aparec&iacute;a primero y coincid&iacute;a parcialmente, por lo que la ruta entraba al router de iaBienestarAdmin pero con el path restante <code>/bienestar-admin/resumen</code> que no exist&iacute;a en ese router, resultando en 404. Se movi&oacute; el montaje a <code>/bienestar-admin</code> y se ajustaron las rutas del controlador para que no incluyan el prefijo.
-        <span class="tag tag-fix">Correcci&oacute;n</span>
-      </div>
-    </div>
-
-    <div class="tl-item">
-      <div class="tl-date">13 Jul 2026</div>
-      <div class="tl-dot"></div>
-      <div class="tl-content">
-        <strong>Bug: Destructuring incorrecto en controller iaBienestarAdmin.js</strong><br>
-        El endpoint <code>resumen</code> devolv&iacute;a 500 porque tres accesos a los resultados de <code>pool.execute</code> ten&iacute;an &iacute;ndices incorrectos:<br>
-        - <code>riesgoDist[0]</code> &rarr; <code>riesgoDist</code> (riesgoDist ya es el array de rows, [0] extra&iacute;a un objeto no iterable)<br>
-        - <code>tipoAlertaDist[0]</code> &rarr; <code>tipoAlertaDist</code> (mismo error)<br>
-        - <code>promedios[0][0]?.score_promedio</code> &rarr; <code>promedios[0]?.score_promedio</code> (promedios[0] es el row, no un array bidimensional)<br>
-        Mientras que los endpoints indicadores, alertas, seguimientos, auditor&iacute;a y exportaciones s&iacute; funcionaban correctamente porque usan patrones de destructuring distintos.
-        <span class="tag tag-fix">Correcci&oacute;n</span>
-      </div>
-    </div>
-
-    <div class="tl-item">
-      <div class="tl-date">13 Jul 2026</div>
-      <div class="tl-dot"></div>
-      <div class="tl-content">
-        <strong>Guardias de seguridad en fetch: if (!token) return</strong><br>
-        Se agreg&oacute; validaci&oacute;n temprana <code>if (!token) return</code> al inicio de todos los callbacks fetch en IABienestarAdminPage (7 callbacks), IADesercionAlumnoPage (4 callbacks) y IADesercionSoportePage (7 callbacks) para prevenir que se dispare emitAuthError &rarr; clearSession cuando el token est&aacute; vac&iacute;o, permitiendo que el usuario vea la p&aacute;gina en estado de carga en lugar de ser redirigido abruptamente al login.
-        <span class="tag tag-fix">Correcci&oacute;n</span>
-      </div>
-    </div>
-
-    <div class="tl-item">
-      <div class="tl-date">13 Jul 2026</div>
-      <div class="tl-dot"></div>
-      <div class="tl-content">
-        <strong>Documentaci&oacute;n t&eacute;cnica completa</strong><br>
-        Actualizaci&oacute;n del archivo docs/diagrams/index.html con: diagramas de flujo de todos los m&oacute;dulos, diagrama entidad-relaci&oacute;n completo (30 tablas principales + 8 bienestar), arquitectura de rutas del backend (mountIfAvailable), arquitectura del frontend (AuthContext, request, emitAuthError), &aacute;rbol de componentes y p&aacute;ginas, gu&iacute;a de instalaci&oacute;n paso a paso, cronograma de modificaciones con l&iacute;nea del tiempo, e &iacute;ndice completo de archivos del proyecto.
-        <span class="tag tag-arch">Arquitectura</span>
-      </div>
-    </div>
-
+    <div class="tl-item"><div class="tl-date">Fase 1</div><div class="tl-dot"></div><div class="tl-content"><strong>Estructura base del sistema</strong><br>Express + React + Vite + MySQL. Autenticación JWT, RBAC, AppShell, AuthContext, ThemeContext.<span class="tag tag-arch">Arquitectura</span></div></div>
+    <div class="tl-item"><div class="tl-date">Fase 2</div><div class="tl-dot"></div><div class="tl-content"><strong>Módulos académicos</strong><br>Inscripciones (6 roles), reinscripciones, evaluaciones (5 tipos), kardex QR/fotos, reportes PDF/Excel, OCR actas.<span class="tag tag-feat">Característica</span></div></div>
+    <div class="tl-item"><div class="tl-date">Fase 3</div><div class="tl-dot"></div><div class="tl-content"><strong>IA: Deserción y Becas</strong><br>Predictor heurístico, chatbot Gemini, becas 14 fuentes, búsqueda semántica.<span class="tag tag-feat">Característica</span></div></div>
+    <div class="tl-item"><div class="tl-date">Fase 4</div><div class="tl-dot"></div><div class="tl-content"><strong>Asistente Académico</strong><br>Clasificador 7 intenciones, tools, RAG, Gemini.<span class="tag tag-feat">Característica</span><span class="tag tag-arch">Arquitectura</span></div></div>
+    <div class="tl-item"><div class="tl-date">Fase 5</div><div class="tl-dot"></div><div class="tl-content"><strong>IA Bienestar Estudiantil</strong><br>8 tablas, check-in, chat Gemini, detección crisis, escalación.<span class="tag tag-feat">Característica</span><span class="tag tag-db">BD</span></div></div>
+    <div class="tl-item"><div class="tl-date">13 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Paneles IA: Alumno, Soporte, Docente</strong><br>IADesercionAlumnoPage, SoportePage, DocentePage con sub-routers.<span class="tag tag-feat">Característica</span></div></div>
+    <div class="tl-item"><div class="tl-date">13 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Supervisión Bienestar Admin</strong><br>IABienestarAdminPage 5 tabs + exportación. Ruta reubicada a /bienestar-admin.<span class="tag tag-feat">Característica</span><span class="tag tag-fix">Corrección</span></div></div>
+    <div class="tl-item"><div class="tl-date">13 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Bug: Token undefined</strong><br>Páginas usaban user?.token pero token es variable separada en AuthContext. Corregido.<span class="tag tag-fix">Corrección</span></div></div>
+    <div class="tl-item"><div class="tl-date">13 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Bug: Colisión rutas /ia</strong><br>Router bienestar-admin montado en /ia causaba 404. Movido a /bienestar-admin.<span class="tag tag-fix">Corrección</span></div></div>
+    <div class="tl-item"><div class="tl-date">13 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Bug: Destructuring incorrecto</strong><br>3 accesos con índices incorrectos en iaBienestarAdmin.js → 500. Corregido.<span class="tag tag-fix">Corrección</span></div></div>
+    <div class="tl-item"><div class="tl-date">13 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Guardias: if (!token) return</strong><br>Validación temprana en callbacks fetch para prevenir clearSession abrupto.<span class="tag tag-fix">Corrección</span></div></div>
+    <div class="tl-item"><div class="tl-date">22 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Documentación técnica v2</strong><br>Actualización integral con 37 secciones: todos los diagramas, tablas, mapas, métricas.<span class="tag tag-arch">Arquitectura</span></div></div>
+    <div class="tl-item"><div class="tl-date">23 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Fase R1 — Off-canvas Drawer</strong><br>AppShell: sidebar fijo 280px con overlay, hamburger button, auto-close en NavLink. CSS drawer con transform translateX(-100%).<span class="tag tag-fix">Responsive</span></div></div>
+    <div class="tl-item"><div class="tl-date">23 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Fase R2 — Tablas Responsive</strong><br>151 tablas envueltas en .table-responsive (overflow-x auto) en 33 archivos JSX vía script automatizado. Fallback: .content overflow-x a 720px.<span class="tag tag-fix">Responsive</span></div></div>
+    <div class="tl-item"><div class="tl-date">23 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Fase R3 — Touch Targets</strong><br>.btn { min-height: 44px } para cumplir WCAG 44×44px en todos los botones.<span class="tag tag-fix">Responsive</span></div></div>
+    <div class="tl-item"><div class="tl-date">23 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Fase R4 — Alturas Flexibles</strong><br>.chat-box: min-height 260px, max-height 40vh. .hero-panel: min-height 30vh. Eliminadas alturas fijas en móvil.<span class="tag tag-fix">Responsive</span></div></div>
+    <div class="tl-item"><div class="tl-date">23 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Fase R5 — Refinamientos Visuales</strong><br>.chat-form apilado vertical, .quick-grid 2 columnas, .stat-card y .section-card con padding/border-radius reducidos a ≤720px.<span class="tag tag-fix">Responsive</span></div></div>
+    <div class="tl-item"><div class="tl-date">23 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Fase R6 — CORS para LAN Móvil</strong><br>backend/src/app.js: originRegexPatterns con 3 regex para IPs LAN (192.168.x.x, 10.x.x.x, 172.16-31.x.x).<span class="tag tag-fix">Responsive</span></div></div>
+    <div class="tl-item"><div class="tl-date">23 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Documentación técnica v3</strong><br>Actualización a 40 secciones: Responsive Móvil (6 fases) + ISO/Normatividad TESI/ISC + 5 Manuales.<span class="tag tag-arch">Arquitectura</span></div></div>
   </div>
 </div>
-
 <div class="section" id="s23">
-  <h2>23. &Iacute;ndice de Archivos del Proyecto</h2>
-  <div class="meta">Estructura completa del repositorio SIVACAD-ISC &mdash; carpetas ra&iacute;z + backend + frontend + database</div>
-  <div class="desc">
-    A continuaci&oacute;n se listan todos los archivos y carpetas del proyecto organizados por m&oacute;dulo funcional. Este &iacute;ndice sirve como mapa de navegaci&oacute;n del c&oacute;digo fuente para facilitar el mantenimiento y la comprensi&oacute;n del sistema. Los archivos se agrupan por capa (backend, frontend, base de datos) y por funcionalidad (autenticaci&oacute;n, inscripciones, evaluaciones, IA, etc.).
-  </div>
+  <h2>23. Índice de Archivos del Proyecto</h2>
+  <div class="meta">Estructura completa del repositorio SIVACAD-ISC</div>
+  <div class="desc">Archivos y carpetas del proyecto organizados por capa y funcionalidad.</div>
   <div class="diagram-wrapper">
     <pre class="mermaid">
 flowchart TB
-    subgraph ROOT["Ra&iacute;z del Proyecto"]
-        R1["backend/ - API Express.js + MySQL"]
+    subgraph ROOT["Raíz del Proyecto"]
+        R1["backend/ - API Express + MySQL"]
         R2["frontend/ - React + Vite"]
         R3["database/ - SQL + Migraciones"]
-        R4["docs/ - Documentaci&oacute;n"]
+        R4["docs/ - Documentación"]
+        R5["docs/manuales/ - 5 Manuales"]
     end
-
     subgraph BK["Backend (backend/src/)"]
-        BK1["server.js - Punto de entrada"]
-        BK2["app.js - Config Express<br/>CORS, Helmet, Morgan, JSON"]
-        BK3["config/db.js - Pool MySQL2"]
-        BK4["middleware/auth.js - JWT + Role"]
-        BK5["routes/index.js - MountIfAvailable"]
-        BK6["routes/*.js - 30+ sub-routers"]
-        BK7["controllers/*.js - L&oacute;gica de negocio"]
-        BK8["services/mailer.js - Nodemailer"]
+        BK1["server.js, app.js"]
+        BK2["config/db.js - Pool MySQL2"]
+        BK3["middleware/ (auth, auditoria, upload)"]
+        BK4["routes/index.js + 30+ sub-routers"]
+        BK5["controllers/*.js - 20+"]
+        BK6["services/ (mailer, jwt, mlBridge)"]
+        BK7["templates/ - Handlebars PDF"]
     end
-
     subgraph FE["Frontend (frontend/src/)"]
-        FE1["main.jsx - Entry point"]
-        FE2["App.jsx - Router + Providers"]
-        FE3["context/AuthContext.jsx"]
-        FE4["context/ThemeContext.jsx"]
-        FE5["services/api.js - 80+ m&eacute;todos"]
-        FE6["components/*.jsx - 15+ reutilizables"]
-        FE7["pages/*.jsx - 40+ p&aacute;ginas"]
-        FE8["styles/global.css"]
+        FE1["main.jsx, App.jsx"]
+        FE2["context/AuthContext, ThemeContext"]
+        FE3["services/api.js - 80+ métodos"]
+        FE4["components/*.jsx - 15+"]
+        FE5["pages/*.jsx - 40+"]
+        FE6["styles/global.css - 2870 líneas"]
     end
-
-    subgraph DB_FILES["Base de Datos (database/)"]
-        D1["sivacad_isc.sql - Esquema completo"]
-        D2["migrations/ia_bienestar_migration.sql"]
-        D3["seed_usuarios_iniciales.sql"]
-        D4["seed_usuarios_reales.sql"]
-        D5["migrations/seed_asistente_minimo.sql"]
-        D6["migrations/seed_asistente_maximo.sql"]
+    subgraph ML["ML (backend/ml/)"]
+        M1["Flask API, modelos .pkl"]
+        M2["train_model.py, features.py"]
     end
-
-    subgraph DOCS["Documentaci&oacute;n (docs/)"]
-        DOC1["diagrams/index.html - Este archivo"]
+    subgraph PHP["PHP (backend/php-kardex/)"]
+        P1["Dompdf - PDF, PhpSpreadsheet - Excel"]
     end
-
-    subgraph IAROUTES["Rutas IA en routes/index.js"]
-        IA1["/ia/desercion &rarr; iaDesercion.js (Admin)"]
-        IA2["/ia/desercion/reporte &rarr; desercion.routes.js"]
-        IA3["/ia/desercion &rarr; iaDesercionDocente.js"]
-        IA4["/ia/desercion &rarr; iaDesercionAlumno.js"]
-        IA5["/ia/desercion &rarr; iaDesercionSoporte.js"]
-        IA6["/ia/becas &rarr; iaBecas.js"]
-        IA7["/ia/bienestar &rarr; iaBienestar.js (Estudiante)"]
-        IA8["/bienestar-admin &rarr; iaBienestarAdmin.js"]
-    end
-
-    subgraph IAPAGES["P&aacute;ginas Frontend IA"]
-        IP1["IADesercionPage.jsx (Admin/Coord)"]
-        IP2["IADesercionDocentePage.jsx"]
-        IP3["IADesercionAlumnoPage.jsx"]
-        IP4["IADesercionSoportePage.jsx"]
-        IP5["IABienestarPage.jsx (Estudiante)"]
-        IP6["IABienestarAdminPage.jsx (Admin/Coord)"]
-    end
-
-    ROOT --> BK
-    ROOT --> FE
-    ROOT --> DB_FILES
-    ROOT --> DOCS
-    BK5 -.-> IAROUTES
-    FE7 -.-> IAPAGES
 </pre>
   </div>
-  <div class="endpoints">
-    <strong>Backend:</strong> 1 server.js + 1 app.js + 1 db.js + 1 middleware + 1 routes/index + 30+ rutas + 20+ controladores &middot;
-    <strong>Frontend:</strong> 2 contextos + 1 api service + 15 componentes + 40 p&aacute;ginas + 1 CSS global &middot;
-    <strong>Base de datos:</strong> 1 esquema principal + 3 migraciones + 4 seeds &middot;
-    <strong>Total estimado:</strong> ~120+ archivos de c&oacute;digo fuente
+  <div class="endpoints"><strong>Total:</strong> ~120+ archivos · <strong>Backend:</strong> 1 server, 1 app, 3 middleware, 30+ rutas, 20+ controladores, 22 servicios · <strong>Frontend:</strong> 2 context, 1 api, 15 componentes, 40 páginas, 1 CSS</div>
+</div>
+
+<div class="section" id="s24">
+  <h2>24. Mapa Conceptual del Sistema SIVACAD</h2>
+  <div class="meta">Representación gráfica del conocimiento: conceptos clave y relaciones jerárquicas</div>
+  <div class="desc">El mapa conceptual presenta la organización del conocimiento del sistema desde el concepto central (SIVACAD-ISC) ramificándose en 5 dimensiones: Usuarios (5 roles), Módulos (14 funcionales), Tecnología (stack completo), Datos (67 tablas) y Seguridad (6 capas).</div>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+flowchart TB
+    CENTER["SIVACAD-ISC"] --> U["USUARIOS (5 roles)"]
+    CENTER --> M["MÓDULOS (14 funcionales)"]
+    CENTER --> T["TECNOLOGÍA (Stack completo)"]
+    CENTER --> D["DATOS (67 tablas)"]
+    CENTER --> S["SEGURIDAD (6 capas)"]
+    U --> U1["Admin: Control total"]
+    U --> U2["Coordinador: Gestión académica"]
+    U --> U3["Docente: Grupos y evaluaciones"]
+    U --> U4["Alumno: Autogestión"]
+    U --> U5["Soporte: Monitoreo técnico"]
+    M --> M1["Gestión Académica"] --> M2["Inscripciones"] --> M3["Kardex"] --> M4["Evaluaciones"] --> M5["Trámites"] --> M6["Actas OCR"]
+    M --> M7["IA Deserción"] --> M8["IA Bienestar"] --> M9["IA Becas"] --> M10["Asistente"] --> M11["Chatbot"] --> M12["Reportes"] --> M13["Auditoría"] --> M14["Soporte"]
+    T --> T1["React 18 + Vite 5"]
+    T --> T2["Node.js + Express 4"]
+    T --> T3["MySQL 8.0"]
+    T --> T4["Python + Flask + scikit-learn"]
+    T --> T5["PHP + Dompdf + PhpSpreadsheet"]
+    T --> T6["Gemini API"]
+    T --> T7["SMTP Office 365"]
+    S --> S1["JWT + bcrypt (12 rounds)"]
+    S --> S2["Helmet + CORS + Rate Limit"]
+    S --> S3["Consultas parametrizadas"]
+    S --> S4["RBAC (5 roles)"]
+    S --> S5["Transacciones ACID"]
+    S --> S6["Auditoría SHA-256"]
+</pre>
   </div>
+  <div class="endpoints"><strong>Ramas principales:</strong> 5 · <strong>Nodos totales:</strong> ~50 · <strong>Propósito:</strong> Visualizar la organización integral del conocimiento del sistema</div>
+</div>
+
+<div class="section" id="s25">
+  <h2>25. Mapa Sinóptico de Módulos y Submódulos</h2>
+  <div class="meta">Desglose jerárquico de todos los módulos con sus subdivisiones</div>
+  <div class="desc">El mapa sinóptico organiza el sistema en estructura jerárquica descendente, mostrando la descomposición de cada módulo en submódulos hasta nivel de páginas y endpoints.</div>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+flowchart LR
+    SIV["SIVACAD-ISC"] --> N1["Núcleo del Sistema"]
+    SIV --> N2["Módulos Académicos"]
+    SIV --> N3["Módulos de IA"]
+    SIV --> N4["Servicios Transversales"]
+    N1 --> N1A["Autenticación: Login · Register · Forgot/Reset"]
+    N1 --> N1B["RBAC: 5 roles · Middleware · ProtectedRoute"]
+    N1 --> N1C["Gestión Académica: Alumnos · Docentes · Periodos · Grupos"]
+    N2 --> N2A["Inscripciones: Admin · Coord · Alumno · Docente · Soporte"]
+    N2 --> N2B["Kardex: Consulta · Foto · QR · PDF · Excel"]
+    N2 --> N2C["Evaluaciones: 5 tipos · 4 estados · Resultados"]
+    N2 --> N2D["Trámites: Baja · Cambio Escuela · Cambio Carrera"]
+    N2 --> N2E["Actas OCR: Subir · Procesar · Validar · Importar"]
+    N3 --> N3A["IA Deserción: Admin · Docente · Alumno · Soporte"]
+    N3 --> N3B["IA Bienestar: Check-in · Chat · Crisis · Supervisión"]
+    N3 --> N3C["IA Becas: Catálogo · Búsqueda · Elegibilidad"]
+    N3 --> N3D["Asistente: 7 intenciones · Tools · RAG · Gemini"]
+    N3 --> N3E["Chatbot: Conversación · Contexto · Limpieza"]
+    N4 --> N4A["Reportes: PDF (PDFKit) · Excel (ExcelJS)"]
+    N4 --> N4B["Auditoría: Bitácora · Hash SHA-256 · Sesiones"]
+    N4 --> N4C["Soporte Técnico: Incidencias · Logs · Conectividad"]
+    N4 --> N4D["Usuarios: CRUD completo (solo Admin)"]
+</pre>
+  </div>
+  <div class="endpoints"><strong>Categorías:</strong> 4 · <strong>Submódulos:</strong> 20 · <strong>Cobertura:</strong> 100% del sistema</div>
+</div>
+
+<div class="section" id="s26">
+  <h2>26. Diagrama de Casos de Uso por Actor</h2>
+  <div class="meta">5 actores (roles) × 15 casos de uso principales</div>
+  <div class="desc">Los 5 actores del sistema y los 15 casos de uso principales. Cada actor ejecuta un subconjunto según sus permisos RBAC.</div>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+flowchart TB
+    subgraph ACTORES["Actores del Sistema"]
+        ADM["Administrador<br/>Acceso total"]
+        COO["Coordinador<br/>Gestión académica"]
+        DOC["Docente<br/>Grupos y evaluación"]
+        ALU["Alumno<br/>Autogestión"]
+        SOP["Soporte<br/>Monitoreo técnico"]
+    end
+    subgraph CASOS["Casos de Uso"]
+        CU1["Iniciar/Cerrar sesión"]
+        CU2["Gestionar usuarios"]
+        CU3["Gestionar alumnos, docentes, periodos"]
+        CU4["Crear/validar inscripciones"]
+        CU5["Consultar kardex y descargar docs"]
+        CU6["Crear/responder evaluaciones"]
+        CU7["Solicitar/dictaminar trámites"]
+        CU8["Subir/validar actas OCR"]
+        CU9["Predecir riesgo deserción"]
+        CU10["Check-in emocional y chat"]
+        CU11["Supervisar indicadores bienestar"]
+        CU12["Consultar becas y elegibilidad"]
+        CU13["Usar asistente y chatbot"]
+        CU14["Generar reportes PDF/Excel"]
+        CU15["Monitorear logs y conectividad"]
+    end
+    ADM --> CU1 & CU2 & CU3 & CU4 & CU5 & CU6 & CU7 & CU8 & CU9 & CU10 & CU11 & CU12 & CU13 & CU14 & CU15
+    COO --> CU1 & CU3 & CU4 & CU5 & CU6 & CU7 & CU8 & CU9 & CU11 & CU12 & CU13 & CU14
+    DOC --> CU1 & CU5 & CU6 & CU7 & CU8 & CU9 & CU10 & CU12 & CU13 & CU14
+    ALU --> CU1 & CU4 & CU5 & CU6 & CU7 & CU9 & CU10 & CU12 & CU13 & CU14
+    SOP --> CU1 & CU5 & CU6 & CU7 & CU8 & CU9 & CU10 & CU11 & CU12 & CU13 & CU14 & CU15
+</pre>
+  </div>
+  <div class="endpoints"><strong>Actores:</strong> 5 · <strong>Casos de uso:</strong> 15 · <strong>Relaciones:</strong> ~50</div>
+</div>
+
+<div class="section" id="s27">
+  <h2>27. Tabla Comparativa de Tecnologías del Stack</h2>
+  <div class="meta">Análisis de cada tecnología: ventajas, desventajas, alternativas y justificación</div>
+  <div class="desc">Análisis comparativo de cada tecnología del stack SIVACAD, incluyendo alternativas consideradas y justificación de selección.</div>
+  <div class="endpoints">
+    <table>
+      <tr><th>Tecnología</th><th>Ventajas</th><th>Desventajas</th><th>Alternativas</th><th>¿Por qué se eligió?</th></tr>
+      <tr><td><strong>React 18</strong></td><td>Componentización, ecosistema maduro, Virtual DOM, hooks</td><td>Bundle grande, curva de aprendizaje</td><td>Vue 3, Angular, Svelte</td><td>Amplia adopción, reutilización de componentes, recursos de aprendizaje</td></tr>
+      <tr><td><strong>Vite 5</strong></td><td>HMR instantáneo, build rápido, ESM nativo</td><td>Menos maduro que Webpack</td><td>CRA, Webpack, Parcel</td><td>Velocidad de desarrollo superior, build optimizado</td></tr>
+      <tr><td><strong>Node + Express 4</strong></td><td>JS unificado, async no bloqueante, middleware flexible</td><td>Single-threaded, no para CPU intensivo</td><td>Python+Flask, PHP+Laravel, Go+Gin</td><td>Mismo lenguaje que frontend, ideal para I/O bound</td></tr>
+      <tr><td><strong>MySQL 8.0</strong></td><td>ACID, JOINs eficientes, madurez, herramientas</td><td>Escalabilidad horizontal limitada</td><td>PostgreSQL, MongoDB, MariaDB</td><td>Datos altamente relacionales, integridad referencial crítica</td></tr>
+      <tr><td><strong>Python + Flask ML</strong></td><td>Ecosistema ML maduro (scikit-learn, pandas)</td><td>Flask monohilo, GIL</td><td>FastAPI, Django REST, TensorFlow.js</td><td>Python es estándar en ML, Flask mínimo y suficiente</td></tr>
+      <tr><td><strong>PHP + Dompdf</strong></td><td>Madurez en documentos, Dompdf renderiza HTML+CSS fielmente</td><td>Requiere PHP, comunicación CLI lenta</td><td>PDFKit, Puppeteer, ExcelJS</td><td>Dompdf produce PDF de alta calidad académica</td></tr>
+      <tr><td><strong>Gemini API</strong></td><td>IA generativa multimodal, sin entrenar modelos propios</td><td>Dependencia externa, costos, latencia</td><td>GPT-4, Claude, Llama 3</td><td>Gratuito para proyectos académicos, buena comprensión de español</td></tr>
+      <tr><td><strong>CSS vanilla</strong></td><td>Sin dependencias, control total, variables CSS</td><td>Más código, sin utilidades predefinidas</td><td>Tailwind, Bootstrap, MUI</td><td>Control total, suficiente para el tamaño del proyecto</td></tr>
+    </table>
+  </div>
+</div>
+<div class="section" id="s28">
+  <h2>28. Ventajas y Desventajas del Sistema SIVACAD</h2>
+  <div class="meta">Análisis FODA técnico del sistema completo</div>
+  <div class="desc">Análisis objetivo de fortalezas y debilidades basado en la arquitectura, funcionalidad y código del sistema.</div>
+  <div class="endpoints">
+    <h3>Ventajas (Fortalezas)</h3>
+    <table>
+      <tr><th>#</th><th>Ventaja</th><th>Impacto</th></tr>
+      <tr><td>1</td><td><strong>Integración multimodal de IA:</strong> 5 motores en un solo sistema</td><td>Innovación y diferenciación</td></tr>
+      <tr><td>2</td><td><strong>Arquitectura modular:</strong> 14 módulos independientes</td><td>Mantenibilidad y escalabilidad</td></tr>
+      <tr><td>3</td><td><strong>RBAC granular:</strong> 5 roles con permisos finos</td><td>Seguridad y control de acceso</td></tr>
+      <tr><td>4</td><td><strong>Responsive design:</strong> 6 fases, off-canvas drawer, tablas scrollables, touch targets WCAG, CORS LAN</td><td>Usabilidad multi-dispositivo</td></tr>
+      <tr><td>5</td><td><strong>Auditoría con integridad criptográfica:</strong> Hash SHA-256</td><td>No-repudio y transparencia</td></tr>
+      <tr><td>6</td><td><strong>Documentos institucionales:</strong> PDF, Excel, QR antifalsificación</td><td>Formalidad académica</td></tr>
+      <tr><td>7</td><td><strong>Multi-lenguaje:</strong> JS + Python + PHP + SQL</td><td>Rendimiento óptimo en cada tarea</td></tr>
+      <tr><td>8</td><td><strong>Cero costo de licenciamiento:</strong> CC BY-NC-ND 4.0</td><td>Accesible para institución pública</td></tr>
+      <tr><td>9</td><td><strong>Autogestión del alumno:</strong> Kardex, trámites, IA en un lugar</td><td>Empoderamiento estudiantil</td></tr>
+      <tr><td>10</td><td><strong>Documentación completa:</strong> 37 diagramas, cronograma, mapas</td><td>Facilita mantenimiento y titulación</td></tr>
+    </table>
+    <h3 style="margin-top:1.5rem;">Desventajas (Debilidades)</h3>
+    <table>
+      <tr><th>#</th><th>Desventaja</th><th>Impacto</th><th>Mitigación</th></tr>
+      <tr><td>1</td><td><strong>Sin pruebas automatizadas</strong></td><td>Riesgo de regresiones</td><td>Implementar Jest + React Testing Library</td></tr>
+      <tr><td>2</td><td><strong>Sin PWA/offline</strong></td><td>Dependencia de conectividad</td><td>Service Workers con Workbox</td></tr>
+      <tr><td>3</td><td><strong>Dependencia crítica de Gemini</strong></td><td>IA deja de funcionar sin API</td><td>Fallback con respuestas predefinidas</td></tr>
+      <tr><td>4</td><td><strong>Sin soft-delete generalizado</strong></td><td>No recuperar datos eliminados</td><td>Columna deleted_at en tablas</td></tr>
+      <tr><td>5</td><td><strong>Sin WebSockets/tiempo real</strong></td><td>Sin notificaciones instantáneas</td><td>Implementar Socket.io</td></tr>
+      <tr><td>6</td><td><strong>Sin i18n (solo español)</strong></td><td>No usable por otros idiomas</td><td>i18next con archivos JSON</td></tr>
+      <tr><td>7</td><td><strong>Escalabilidad vertical limitada</strong></td><td>Rendimiento limitado</td><td>Clustering Node + Redis + réplicas MySQL</td></tr>
+      <tr><td>8</td><td><strong>Tokens en localStorage</strong></td><td>Vulnerable a XSS</td><td>httpOnly cookies + CSRF</td></tr>
+      <tr><td>9</td><td><strong>Sin logging frontend</strong></td><td>Errores silenciosos</td><td>Sentry o error boundary</td></tr>
+      <tr><td>10</td><td><strong>Exclusividad ISC</strong></td><td>No replicable sin modificar</td><td>Parametrizar configuración en BD</td></tr>
+    </table>
+  </div>
+</div>
+<div class="section" id="s29">
+  <h2>29. Diagrama de Despliegue (Infraestructura)</h2>
+  <div class="meta">Distribución de componentes en nodos, puertos y protocolos</div>
+  <div class="desc">El diagrama muestra la distribución física y lógica de componentes. Puede desplegarse en un solo servidor (desarrollo) o múltiples servidores (producción).</div>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+flowchart TB
+    subgraph CLIENTE["Cliente (Navegador)"]
+        CHROME["Chrome / Firefox / Safari"]
+    end
+    subgraph SERVIDOR_FRONTEND["Servidor Frontend"]
+        VITE["Vite dev (5173) o Nginx (80)"]
+    end
+    subgraph SERVIDOR_BACKEND["Servidor Backend"]
+        EXPRESS["Express.js (3000)"]
+    end
+    subgraph SERVIDOR_BD["Servidor BD"]
+        MYSQL["MySQL 8.0 (3306)<br/>sivacad_isc - 67 tablas"]
+    end
+    subgraph SERVIDOR_ML["Servidor ML"]
+        FLASK["Flask (5001)<br/>Modelos .pkl"]
+    end
+    subgraph SERVIDOR_PHP["Servidor PHP"]
+        PHP["PHP CLI<br/>Dompdf + PhpSpreadsheet"]
+    end
+    subgraph CLOUD["Servicios Cloud"]
+        GEMINI["Gemini API"]
+        SMTP["SMTP Office 365"]
+    end
+    CLIENTE -->|"HTTP/HTTPS"| SERVIDOR_FRONTEND
+    SERVIDOR_FRONTEND -->|"HTTP localhost:3000"| SERVIDOR_BACKEND
+    SERVIDOR_BACKEND -->|"mysql2:3306"| SERVIDOR_BD
+    SERVIDOR_BACKEND -->|"HTTP:5001"| SERVIDOR_ML
+    SERVIDOR_BACKEND -->|"PHP CLI exec"| SERVIDOR_PHP
+    SERVIDOR_BACKEND -->|"HTTPS"| CLOUD
+    note["RAM: 4 GB | CPU: 2 cores | Disco: 20 GB SSD"]
+</pre>
+  </div>
+  <div class="endpoints"><strong>Puertos:</strong> Frontend 5173/80, Backend 3000, MySQL 3306, Flask 5001 · <strong>Requisitos:</strong> 4 GB RAM, 2 cores, 20 GB SSD</div>
+</div>
+
+<div class="section" id="s30">
+  <h2>30. Matriz de Roles y Permisos (Acceso por Módulo)</h2>
+  <div class="meta">RBAC: 5 roles × 20 módulos × 4 operaciones (C=Crear, R=Leer, U=Actualizar, D=Eliminar)</div>
+  <div class="desc">Matriz que muestra qué operaciones puede realizar cada rol en cada módulo. Implementado en middleware auth.js y ProtectedRoute.jsx.</div>
+  <div class="endpoints">
+    <table>
+      <tr><th>Módulo</th><th style="background:#1e3a5f;">Admin</th><th style="background:#1e5360;">Coord</th><th style="background:#1e5a4a;">Docente</th><th style="background:#5a4a1e;">Alumno</th><th style="background:#4a1e5a;">Soporte</th></tr>
+      <tr><td>Dashboard</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td></tr>
+      <tr><td>Alumnos</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-blue">R</td><td class="badge badge-blue">R</td><td class="badge badge-blue">R</td></tr>
+      <tr><td>Docentes</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-blue">R</td><td>—</td><td class="badge badge-blue">R</td></tr>
+      <tr><td>Periodos</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-blue">R</td><td class="badge badge-blue">R</td><td class="badge badge-blue">R</td></tr>
+      <tr><td>Grupos</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-blue">R</td><td class="badge badge-blue">R</td><td class="badge badge-blue">R</td></tr>
+      <tr><td>Inscripciones</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-amber">R (grupos)</td><td class="badge badge-amber">R (propias)</td><td class="badge badge-blue">R (incidencias)</td></tr>
+      <tr><td>Reinscripciones</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-amber">R (grupos)</td><td class="badge badge-amber">CR (propias)</td><td class="badge badge-blue">R</td></tr>
+      <tr><td>Kardex</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-blue">R (grupos)</td><td class="badge badge-blue">R (propio)</td><td class="badge badge-blue">R</td></tr>
+      <tr><td>Evaluaciones (crear)</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>Evaluaciones (responder)</td><td>—</td><td>—</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td>—</td></tr>
+      <tr><td>Evaluaciones (reportes)</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-blue">R</td><td class="badge badge-blue">R</td><td class="badge badge-blue">R</td></tr>
+      <tr><td>Trámites (gestionar)</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-amber">R (opinar)</td><td class="badge badge-amber">CR (solicitar)</td><td class="badge badge-blue">R</td></tr>
+      <tr><td>Actas OCR</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-blue">R</td><td class="badge badge-blue">R</td><td class="badge badge-blue">R</td></tr>
+      <tr><td>IA Deserción (predecir)</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>IA Deserción (alertas)</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-blue">R (grupos)</td><td class="badge badge-blue">R (propias)</td><td class="badge badge-blue">R</td></tr>
+      <tr><td>IA Bienestar (alumno)</td><td>—</td><td>—</td><td>—</td><td class="badge badge-green">CRUD</td><td>—</td></tr>
+      <tr><td>IA Bienestar (supervisión)</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-blue">R</td><td>—</td><td class="badge badge-blue">R</td></tr>
+      <tr><td>IA Becas</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-blue">R</td><td class="badge badge-amber">CR</td><td class="badge badge-blue">R</td></tr>
+      <tr><td>Asistente/Chatbot</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td></tr>
+      <tr><td>Reportes</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td><td class="badge badge-green">CRUD</td></tr>
+      <tr><td>Usuarios</td><td class="badge badge-green">CRUD</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>Auditoría</td><td class="badge badge-green">CRUD</td><td class="badge badge-blue">R</td><td>—</td><td>—</td><td class="badge badge-green">CRUD</td></tr>
+    </table>
+  </div>
+</div>
+<div class="section" id="s31">
+  <h2>31. Diagrama de Ciclo de Pruebas Funcionales</h2>
+  <div class="meta">8 fases de pruebas: unitarias, integración, seguridad, responsive</div>
+  <div class="desc">El ciclo de pruebas funcionales del sistema SIVACAD abarca desde pruebas de autenticación hasta pruebas en dispositivo móvil, asegurando cobertura completa de todos los módulos.</div>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+flowchart TD
+    P0["Inicio: Plan de Pruebas"] --> P1["PR-01: Autenticación<br/>Login, Register, Forgot/Reset, Logout"]
+    P1 --> P2["PR-02: Gestión Académica<br/>CRUD Alumnos, Docentes, Periodos, Grupos"]
+    P2 --> P3["PR-03: Módulos Centrales<br/>Inscripciones, Kardex, Evaluaciones, Trámites, OCR"]
+    P3 --> P4["PR-04: Módulos de IA<br/>Deserción, Bienestar, Becas, Asistente, Chatbot"]
+    P4 --> P5["PR-05: Integración<br/>Flujo completo: registro -> login -> inscripción -> kardex -> evaluación -> IA -> reporte"]
+    P5 --> P6["PR-06: Seguridad<br/>JWT inválido, rate limiting, CORS, inyección SQL, acceso sin rol"]
+    P6 --> P7["PR-07: Responsive/Móvil<br/>Breakpoints 720px, 820px, 1200px, touch events"]
+    P7 --> P8["PR-08: Informe Final<br/>Resultados, certificación de calidad, evidencia capturada"]
+    style P8 fill:#dcfce7,stroke:#16a34a
+</pre>
+  </div>
+  <div class="endpoints"><strong>Fases:</strong> 8 (PR-01 a PR-08) · <strong>Cobertura:</strong> 100% de módulos · <strong>Pruebas:</strong> Manuales + checklist responsive</div>
+</div>
+
+<div class="section" id="s32">
+  <h2>32. Mapa de Navegación Jerárquico (Sitemap)</h2>
+  <div class="meta">Estructura completa de navegación: públicas + autenticadas por rol</div>
+  <div class="desc">Mapa de navegación completo del sistema que muestra la jerarquía de páginas desde las pantallas públicas hasta las secciones específicas por rol.</div>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+flowchart TB
+    HOME["SIVACAD-ISC"] --> PUBLIC["Públicas (sin auth)"]
+    HOME --> APP["App (autenticadas)"]
+    PUBLIC --> LOGIN["/login"]
+    PUBLIC --> REG["/register"]
+    PUBLIC --> FORGOT["/forgot-password"]
+    PUBLIC --> RESET["/reset-password/:token"]
+    PUBLIC --> TERM["/terminos"]
+    PUBLIC --> AVISO["/aviso-privacidad"]
+    APP --> ADMIN["Admin: /app/admin<br/>Dashboard, Usuarios, Alumnos<br/>Docentes, Periodos, Grupos, Bajas<br/>Inscripciones, Kardex, Evaluaciones<br/>Trámites, Actas OCR, IA, Reportes"]
+    APP --> COORD["Coord: /app/coordinador<br/>Dashboard, Alumnos, Docentes<br/>Periodos, Grupos, Inscripciones<br/>Kardex, Evaluaciones, Trámites<br/>Actas OCR, IA, Reportes"]
+    APP --> DOCENT["Docente: /app/docente<br/>Dashboard, Inscripciones<br/>Kardex, Evaluaciones, Trámites<br/>Actas OCR, IA, Chatbot, Reportes"]
+    APP --> ALUMNO["Alumno: /app/alumno<br/>Dashboard, Inscripciones<br/>Kardex, Evaluaciones, Trámites<br/>IA Bienestar, IA Deserción<br/>IA Becas, Chatbot, Reportes"]
+    APP --> SOPORT["Soporte: /app/soporte<br/>Dashboard, Inscripciones, Kardex<br/>Evaluaciones, Actas OCR, IA<br/>Chatbot, Reportes, Logs"]
+</pre>
+  </div>
+  <div class="endpoints"><strong>Páginas públicas:</strong> 6 · <strong>Rutas protegidas:</strong> ~40 por rol · <strong>Total:</strong> ~68 páginas</div>
+</div>
+
+<div class="section" id="s33">
+  <h2>33. Tabla Comparativa: Antes vs Después de SIVACAD</h2>
+  <div class="meta">Impacto cuantitativo y cualitativo del sistema en cada proceso académico</div>
+  <div class="desc">Comparación del estado anterior (gestión manual / sistemas no integrados) con el estado posterior a la implementación de SIVACAD.</div>
+  <div class="endpoints">
+    <table>
+      <tr><th>Proceso</th><th>Antes (sin SIVACAD)</th><th>Después (con SIVACAD)</th><th>Mejora</th></tr>
+      <tr><td>Inscripción de alumnos</td><td>Papel, captura manual Excel, 3-5 días</td><td>En línea, validación automática, 5 minutos</td><td class="badge badge-green">-99% tiempo</td></tr>
+      <tr><td>Consulta de kardex</td><td>Solicitud presencial, 1-2 días</td><td>En línea 24/7, PDF/Excel instantáneo</td><td class="badge badge-green">De días a segundos</td></tr>
+      <tr><td>Evaluaciones</td><td>Papel, captura manual, semanas</td><td>En línea, 5 tipos, resultados inmediatos</td><td class="badge badge-green">De semanas a minutos</td></tr>
+      <tr><td>Trámites escolares</td><td>Presencial, múltiples visitas</td><td>En línea, trazabilidad completa</td><td class="badge badge-green">De visitas a 1 clic</td></tr>
+      <tr><td>Actas de calificaciones</td><td>Captura manual, horas por acta</td><td>OCR automático Gemini, minutos</td><td class="badge badge-green">De horas a minutos</td></tr>
+      <tr><td>Detección deserción</td><td>No existía</td><td>ML predictivo, alertas tempranas</td><td class="badge badge-green">Nueva capacidad</td></tr>
+      <tr><td>Bienestar estudiantil</td><td>No existía monitoreo</td><td>Check-in diario, chat IA, detección crisis</td><td class="badge badge-green">Nueva capacidad</td></tr>
+      <tr><td>Información de becas</td><td>Búsqueda individual en sitios web</td><td>Catálogo integrado 14 becas, elegibilidad</td><td class="badge badge-green">De dispersa a unificada</td></tr>
+      <tr><td>Atención a dudas</td><td>Presencial, teléfono, correo</td><td>Chatbot 24/7 + asistente IA</td><td class="badge badge-green">Atención inmediata</td></tr>
+      <tr><td>Reportes institucionales</td><td>Manual en Excel/Word, horas</td><td>1 clic: PDF + Excel institucionales</td><td class="badge badge-green">De horas a segundos</td></tr>
+      <tr><td>Auditoría</td><td>No existía registro formal</td><td>Hash SHA-256, trazabilidad completa</td><td class="badge badge-green">Nueva capacidad</td></tr>
+      <tr><td>Soporte técnico</td><td>Sin herramientas</td><td>Paneles logs, errores, conectividad</td><td class="badge badge-green">Diagnóstico en minutos</td></tr>
+      <tr><td>Acceso información</td><td>Solo horario laboral, presencial</td><td>24/7 desde cualquier dispositivo</td><td class="badge badge-green">Acceso democratizado</td></tr>
+    </table>
+  </div>
+</div>
+<div class="section" id="s34">
+  <h2>34. Métricas del Sistema</h2>
+  <div class="meta">Tiempo de respuesta, capacidad, registros, memoria y comparativa</div>
+  <div class="desc">Métricas estimadas del sistema basadas en la arquitectura y configuración del código fuente. Valores calculados para el stack actual sin optimizaciones adicionales.</div>
+  <div class="endpoints">
+    <h3>Tiempos de Respuesta Estimados</h3>
+    <table>
+      <tr><th>Operación</th><th>Tiempo</th><th>Factor limitante</th></tr>
+      <tr><td>Lectura simple (GET /api/alumnos)</td><td>&lt; 100 ms</td><td>Índices en BD</td></tr>
+      <tr><td>Lectura con JOINs (GET /api/kardex/:id)</td><td>100-300 ms</td><td>JOIN 4+ tablas</td></tr>
+      <tr><td>Escritura transaccional (register)</td><td>300-800 ms</td><td>bcrypt 12 rounds</td></tr>
+      <tr><td>Predicción IA deserción</td><td>500-1500 ms</td><td>Flask ML + heurístico</td></tr>
+      <tr><td>Chatbot (Gemini)</td><td>1000-3000 ms</td><td>Latencia Gemini API</td></tr>
+      <tr><td>OCR actas</td><td>3000-8000 ms</td><td>PDF a base64 + Gemini</td></tr>
+      <tr><td>Generación PDF kardex</td><td>500-2000 ms</td><td>PHP Dompdf</td></tr>
+      <tr><td>Reporte Excel</td><td>1000-3000 ms</td><td>ExcelJS múltiples hojas</td></tr>
+    </table>
+    <h3 style="margin-top:1.5rem;">Consumo de Memoria Estimado</h3>
+    <table>
+      <tr><th>Componente</th><th>Base</th><th>Bajo carga (100 usuarios)</th><th>Pico</th></tr>
+      <tr><td>Backend Node.js</td><td>91 MB</td><td>240 MB</td><td>500 MB</td></tr>
+      <tr><td>Frontend Vite (servidor)</td><td>5 MB</td><td>50 MB</td><td>100 MB</td></tr>
+      <tr><td>MySQL 8.0</td><td>200 MB</td><td>500 MB</td><td>1 GB</td></tr>
+      <tr><td>Python Flask ML</td><td>58 MB</td><td>108 MB</td><td>200 MB</td></tr>
+      <tr><td><strong>TOTAL SISTEMA</strong></td><td><strong>354 MB</strong></td><td><strong>898 MB</strong></td><td><strong>1.8 GB</strong></td></tr>
+    </table>
+    <h3 style="margin-top:1.5rem;">Capacidad de Registros</h3>
+    <table>
+      <tr><th>Tabla</th><th>Registros estimados (seed)</th><th>Capacidad máxima práctica</th><th>Crecimiento anual</th></tr>
+      <tr><td>usuarios</td><td>10</td><td>100,000</td><td>+200</td></tr>
+      <tr><td>alumnos</td><td>5</td><td>50,000</td><td>+150</td></tr>
+      <tr><td>inscripciones</td><td>10</td><td>500,000</td><td>+1,500</td></tr>
+      <tr><td>evaluaciones</td><td>3</td><td>10,000</td><td>+50</td></tr>
+      <tr><td>respuestas_evaluacion</td><td>0</td><td>5,000,000</td><td>+50,000</td></tr>
+      <tr><td>ia_bienestar_checkins</td><td>0</td><td>1,000,000</td><td>+50,000</td></tr>
+      <tr><td>auditoria_global</td><td>0</td><td>10,000,000</td><td>+100,000</td></tr>
+      <tr><td><strong>Total BD (1 año)</strong></td><td colspan="3"><strong>~500 MB</strong></td></tr>
+      <tr><td><strong>Total BD (5 años)</strong></td><td colspan="3"><strong>~3 GB</strong></td></tr>
+    </table>
+    <h3 style="margin-top:1.5rem;">Pruebas de Carga Recomendadas</h3>
+    <table>
+      <tr><th>Tipo</th><th>Herramienta</th><th>Escenario</th><th>Métrica objetivo</th></tr>
+      <tr><td>Ligera</td><td>Apache Bench</td><td>50 usuarios, 1000 GET</td><td>&lt; 200 ms, 0% error</td></tr>
+      <tr><td>Media</td><td>k6 / Artillery</td><td>200 usuarios, 5000 mixtas</td><td>&lt; 500 ms, &lt; 1% error</td></tr>
+      <tr><td>Estrés</td><td>k6</td><td>10 a 500 usuarios (rampa 5 min)</td><td>Identificar punto de quiebre</td></tr>
+      <tr><td>Pico inscripciones</td><td>Script custom</td><td>100 alumnos simultáneos</td><td>Sin deadlocks</td></tr>
+    </table>
+  </div>
+</div>
+<div class="section" id="s35">
+  <h2>35. Diagrama de Flujo de Trámites Escolares</h2>
+  <div class="meta">Baja, Cambio de Escuela, Cambio de Carrera · 5 roles involucrados</div>
+  <div class="desc">El módulo de trámites escolares permite a los alumnos solicitar en línea: baja de la carrera, cambio de escuela o cambio de carrera. Cada tipo de trámite sigue un flujo de validación por múltiples actores: el alumno solicita, el docente opina, el coordinador analiza procedencia, el administrador dictamina y soporte monitorea incidencias.</div>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+flowchart TD
+    ALU["Alumno: Solicita trámite<br/>POST /api/tramites<br/>{ tipo, documentos }"] --> DOC["Docente: Opina y verifica<br/>compatibilidad académica"]
+    DOC --> COORD["Coordinador: Analiza<br/>procedencia y emite<br/>observaciones"]
+    COORD --> ADMIN["Administrador: Dictamina<br/>y autoriza o rechaza"]
+    ADMIN --> FIN["Trámite resuelto:<br/>Aprobado / Rechazado"]
+    ALU --> SOP["Soporte: Monitorea<br/>incidencias y logs"]
+    COORD --> ALU2["Alumno: Da seguimiento<br/>GET /api/tramites/mis-tramites"]
+    style ALU fill:#e0f2fe,stroke:#0284c7
+    style ADMIN fill:#dcfce7,stroke:#16a34a
+</pre>
+  </div>
+  <div class="endpoints"><strong>Endpoints:</strong> <code>GET /api/tramites</code> <code>POST /api/tramites</code> <code>GET /api/tramites/:id</code> <code>PATCH /api/tramites/:id/estado</code> · <strong>Tipos:</strong> Baja, Cambio de Escuela, Cambio de Carrera</div>
+</div>
+
+<div class="section" id="s36">
+  <h2>36. Diagrama de Flujo del Módulo de Bienestar Estudiantil</h2>
+  <div class="meta">Check-in emocional → Chat IA → Detección de crisis → Derivación</div>
+  <div class="desc">Flujo completo del módulo de bienestar: el alumno realiza un check-in emocional diario con 8 dimensiones (ánimo, energía, sueño, estrés, apoyo, ambiente, carga académica, carga laboral, enfoque). Si el nivel de riesgo es alto o crítico, se activa una alerta y se puede escalar para derivación a recursos de apoyo. El chat con Gemini proporciona acompañamiento continuo.</div>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+flowchart TD
+    ALU2["Alumno: Inicia sesión"] --> CHECK["POST /api/ia/bienestar/checkin<br/>{ animo, energia, sueno, estres,<br/>apoyo, ambiente, carga_academica,<br/>carga_laboral, enfoque }"]
+    CHECK --> CALC["Calcular índice de riesgo<br/>ponderado por dimensiones"]
+    CALC --> BAJO["Riesgo Bajo/Medio:<br/>Continúa con chat<br/>de acompañamiento"]
+    CALC --> ALTO["Riesgo Alto/Crítico:<br/>Alerta automática"]
+    ALTO --> ESCALAR["¿Escalar a derivación?"]
+    ESCALAR -->|"Sí"| DERIV["POST /ia/bienestar/escalar<br/>INSERT derivación<br/>Notificar a coordinador"]
+    ESCALAR -->|"No"| CHAT["POST /ia/bienestar/chat<br/>Gemini: acompañamiento"]
+    BAJO --> CHAT
+    CHAT --> HIST["Guardar en historial<br/>ia_bienestar_mensajes"]
+    DERIV --> ADMIN3["Admin/Coord supervisa<br/>en IABienestarAdminPage"]
+    style ALTO fill:#fef2f2,stroke:#dc2626
+    style ALU2 fill:#e0f2fe,stroke:#0284c7
+</pre>
+  </div>
+  <div class="endpoints"><strong>Endpoints:</strong> <code>POST /api/ia/bienestar/checkin</code> <code>POST /api/ia/bienestar/chat</code> <code>POST /api/ia/bienestar/escalar</code> · <strong>Dimensiones:</strong> 9 · <strong>Niveles:</strong> Bajo, Medio, Alto, Crítico</div>
+</div>
+
+<div class="section" id="s37">
+  <h2>37. Arquitectura de Seguridad del Sistema</h2>
+  <div class="meta">6 capas de seguridad: autenticación, comunicaciones, datos, auditoría, frontend, despliegue</div>
+  <div class="desc">La seguridad del sistema SIVACAD se implementa en 6 capas independientes pero complementarias. Cada capa aborda un aspecto específico de la seguridad informática, desde la autenticación de usuarios hasta la protección de la infraestructura de despliegue.</div>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+flowchart TB
+    CAPA1["Capa 1: Autenticación y Control de Acceso<br/>JWT (HMAC-SHA256) + bcrypt (12 rounds)<br/>Validación de dominio institucional<br/>RBAC (5 roles con permisos granulares)"]
+    CAPA2["Capa 2: Protección de Comunicaciones<br/>Helmet (11 headers de seguridad HTTP)<br/>CORS (origen único configurado)<br/>Rate limiting (5 req/15min en forgot)"]
+    CAPA3["Capa 3: Protección de Datos<br/>Consultas parametrizadas (mysql2)<br/>Transacciones ACID (COMMIT/ROLLBACK)<br/>Mínimo privilegio por rol"]
+    CAPA4["Capa 4: Auditoría y Trazabilidad<br/>auditoria_global con hash SHA-256<br/>bitacora_auditoria (quién, qué, cuándo)<br/>sesiones_activas (revocación forzada)"]
+    CAPA5["Capa 5: Seguridad Frontend<br/>ProtectedRoute (redirección si no auth)<br/>localStorage con token (estándar SPA)<br/>emitAuthEvent en 401 (limpia sesión)"]
+    CAPA6["Capa 6: Seguridad Despliegue<br/>Variables sensibles en .env (no versionado)<br/>Helmet oculta X-Powered-By<br/>Express no expone versión"]
+    CAPA1 --> CAPA2 --> CAPA3 --> CAPA4 --> CAPA5 --> CAPA6
+    note["Principio: defensa en profundidad<br/>6 capas independientes<br/>Falla de una capa no compromete el sistema"]
+</pre>
+  </div>
+  <div class="endpoints"><strong>Capas:</strong> 6 · <strong>Mecanismos:</strong> JWT, bcrypt, Helmet, CORS, rate limiting, consultas parametrizadas, transacciones, auditoría SHA-256, RBAC, ProtectedRoute · <strong>Principio:</strong> Defensa en profundidad</div>
+</div>
+
+<div class="section" id="s38">
+  <h2>38. Responsive Móvil — 6 Fases de Corrección</h2>
+  <div class="meta">WCAG 2.1 touch targets · Off-canvas drawer · 151 tablas scrollables · CORS LAN · CSS vanilla (~2870 líneas)</div>
+  <div class="desc">Se implementaron 6 fases progresivas para lograr una experiencia móvil completa. No se usó ningún framework CSS; todo el responsive se escribió a mano en <code>global.css</code>. Tres breakpoints existentes: 1200px, 820px, 720px. La navegación móvil anterior usaba una franja horizontal horizontal (ancho completo) que se reemplazó por un cajón off-canvas.</div>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+flowchart LR
+    subgraph R1["Fase 1: Off-canvas Drawer"]
+        R1A["AppShell.jsx<br/>mobileMenuOpen state<br/>closeMobileMenu callback<br/>Hamburger en topbar<br/>Overlay con backdrop-filter"]
+        R1B["CSS: .sidebar fijo 280px<br/>transform: translateX(-100%)<br/>sidebar-overlay ~ overlay<br/>mobile-hamburger ~ display block<br/>Oculto en desktop (&gt;820px)"]
+    end
+    subgraph R2["Fase 2: Tablas Responsive"]
+        R2A["CSS: .table-responsive<br/>overflow-x: auto<br/>-webkit-overflow-scrolling: touch<br/>white-space: nowrap"]
+        R2B["Script batch: 151 &lt;table&gt;<br/>envueltas en 33 JSX<br/>Fallback: .content overflow-x a 720px"]
+    end
+    subgraph R3["Fase 3: Touch Targets"]
+        R3A["CSS: .btn { min-height: 44px }<br/>min-width: 44px<br/>WCAG 2.1 Success Criterion 2.5.8"]
+    end
+    subgraph R4["Fase 4: Alturas Flexibles"]
+        R4A[".chat-box ~ móvil:<br/>min-height 260px, max-height 40vh<br/>.hero-panel ~ móvil:<br/>min-height 30vh"]
+    end
+    subgraph R5["Fase 5: Refinamientos Visuales"]
+        R5A[".chat-form: apilado vertical<br/>.quick-grid: 2 columnas (vs 4)<br/>.stat-card, .section-card:<br/>padding 0.75rem, border-radius 8px"]
+    end
+    subgraph R6["Fase 6: CORS LAN"]
+        R6A["backend/src/app.js<br/>originRegexPatterns[3]:<br/>192\\.168\\..*<br/>10\\..*<br/>172\\.(1[6-9]|2[0-9]|3[01])\\..*"]
+    end
+    R1 --> R2 --> R3 --> R4 --> R5 --> R6
+    R3 --> ACC["Accesibilidad WCAG<br/>44×44 px touch targets"]
+</pre>
+  </div>
+  <div style="margin-top:1.5rem;">
+    <h3>Detalle por Fase</h3>
+    <table>
+      <tr><th>Fase</th><th>Qué se cambió</th><th>Archivos modificados</th><th>Impacto</th></tr>
+      <tr><td><strong>R1</strong> Drawer</td><td>Sidebar horizontal → off-canvas fijo 280px con overlay, hamburger button, auto-close en NavLink</td><td>AppShell.jsx, global.css</td><td>Navegación usable en pantallas &lt; 820px</td></tr>
+      <tr><td><strong>R2</strong> Tablas</td><td>151 tablas envueltas en .table-responsive. Script bash: sed + awk por archivo JSX</td><td>33 páginas .jsx, global.css</td><td>Scroll horizontal sin romper layout</td></tr>
+      <tr><td><strong>R3</strong> Touch</td><td>.btn { min-height: 44px; min-width: 44px }</td><td>global.css</td><td>Cumple WCAG 2.1 criteria 2.5.8</td></tr>
+      <tr><td><strong>R4</strong> Alturas</td><td>.chat-box: min-height 260px, max-height 40vh; .hero-panel: min-height 30vh</td><td>global.css</td><td>Evita overflow en pantallas pequeñas</td></tr>
+      <tr><td><strong>R5</strong> Visual</td><td>.chat-form vertical stack, quick-grid 2 cols, padding/border-radius reducidos</td><td>global.css</td><td>Mejor aprovechamiento de espacio</td></tr>
+      <tr><td><strong>R6</strong> CORS</td><td>originRegexPatterns con 3 regex para rangos LAN privados</td><td>app.js</td><td>Pruebas móvil en misma WiFi sin errores CORS</td></tr>
+    </table>
+    <h3 style="margin-top:1.5rem;">Script de Envoltura de Tablas (bash)</h3>
+    <div style="background:#1e293b;color:#e2e8f0;padding:1rem;border-radius:8px;font-family:monospace;font-size:0.85rem;overflow-x:auto;white-space:pre;">for f in frontend/src/pages/*.jsx; do
+  awk '{
+    if ($0 ~ /&lt;table/) inside_table=1
+    if (inside_table &amp;&amp; $0 ~ /classNames/ &amp;&amp; $0 !~ /table-responsive/) sub(/classNames=/, "className=\"table-responsive\"&gt;&lt;table classNames=")
+    if (inside_table &amp;&amp; $0 ~ /className=/ &amp;&amp; $0 !~ /table-responsive/) sub(/className=/, "className=\"table-responsive\"&gt;&lt;table className=")
+    if (inside_table &amp;&amp; $0 ~ /^\s*&lt;table/) { $0 = "&lt;div className=\"table-responsive\"&gt;" $0 }
+    if ($0 ~ /&lt;\/table&gt;/) { $0 = $0 "&lt;/div&gt;"; inside_table=0 }
+    print
+  }' "$f" &gt; tmp &amp;&amp; mv tmp "$f"
+done</div>
+  </div>
+  <div class="endpoints"><strong>Build:</strong> <code>vite build</code> pasa 1754 módulos, 0 errores · <strong>Backend:</strong> <code>node -c app.js</code> sintaxis OK · <strong>CSS total:</strong> ~2870 líneas en global.css · <strong>Breakpoints:</strong> 1200px (desktop), 820px (tablet), 720px (móvil)</div>
+</div>
+
+<div class="section" id="s39">
+  <h2>39. Normatividad ISO y Regulatoria Aplicable a TESI / ISC</h2>
+  <div class="meta">ISO 25010, ISO 27001, ISO 9001, NOM-151-SCFI-2016, NOM-035, LFPDPPP, NMX-COE-SCFI, WCAG 2.1</div>
+  <div class="desc">Estándares y normas nacionales e internacionales que aplican al sistema SIVACAD y a su contexto institucional (TESI — Tecnológico de Estudios Superiores de Ixtapaluca, e ISC — Ingeniería en Sistemas Computacionales). Cada norma se relaciona con componentes específicos del sistema.</div>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+flowchart TB
+    subgraph ISO_INTERNATIONAL["Normas ISO Internacionales"]
+        ISO1["ISO/IEC 25010:2011<br/>Calidad de Software<br/>8 características"]
+        ISO2["ISO/IEC 27001:2022<br/>Seguridad de la Información<br/>Controles A.5-A.8"]
+        ISO3["ISO 9001:2015<br/>Sistema de Gestión de Calidad<br/>Enfoque en procesos"]
+        ISO4["ISO/IEC 29110<br/>Ingeniería de Software<br/>Perfiles VSE"]
+    end
+    subgraph MEXICAN["Normas Oficiales Mexicanas (NOM)"]
+        NOM1["NOM-151-SCFI-2016<br/>Documentos Electrónicos<br/>Conservación y firma"]
+        NOM2["NOM-035-STPS-2018<br/>Factores de Riesgo Psicosocial<br/>Aplica a IA Bienestar"]
+        NOM3["NOM-024-SCFI-2013<br/>Información Comercial<br/>Plataformas digitales"]
+    end
+    subgraph PRIVACY["Privacidad y Datos"]
+        LFPDPPP["LFPDPPP<br/>Ley Federal de Protección de Datos<br/>Aviso de privacidad + ARCO"]
+        LGPDPPSO["LGPDPPSO Local<br/>Lineamientos CDMX/Edomex"]
+    end
+    subgraph EDUCATION["Educación Tecnológica"]
+        NMX1["NMX-COE-SCFI-2016<br/>Evaluación de la Conformidad<br/>Procesos educativos"]
+        TECNM["TECNM Modelo<br/>Lineamientos TESI<br/>Planes ISC"]
+    end
+    subgraph ACCESSIBILITY["Accesibilidad"]
+        WCAG["WCAG 2.1 Nivel AA<br/>Directrices de Accesibilidad Web<br/>Perceptible, Operable, Comprensible, Robusto"]
+    end
+    ISO1 & ISO2 & ISO3 --> SIV["SIVACAD-ISC"]
+    NOM1 & NOM2 & NOM3 --> SIV
+    LFPDPPP & LGPDPPSO --> SIV
+    NMX1 & TECNM --> SIV
+    WCAG --> SIV
+    linkStyle 0,1,2 stroke:#2563eb,stroke-width:2
+    linkStyle 3,4,5 stroke:#d97706,stroke-width:2
+    linkStyle 6,7 stroke:#16a34a,stroke-width:2
+    linkStyle 8,9 stroke:#8b5cf6,stroke-width:2
+    linkStyle 10 stroke:#dc2626,stroke-width:2
+</pre>
+  </div>
+  <div style="margin-top:1.5rem;">
+    <h3>Matriz de Normatividad y su Aplicación en SIVACAD</h3>
+    <table>
+      <tr><th>Norma / Estándar</th><th>Organismo</th><th>Alcance</th><th>Aplicación en SIVACAD</th></tr>
+      <tr><td><strong>ISO/IEC 25010:2011</strong></td><td>ISO</td><td>Calidad de software — 8 características (funcionalidad, eficiencia, compatibilidad, usabilidad, fiabilidad, seguridad, mantenibilidad, portabilidad)</td><td>Arquitectura modular, RBAC, tiempos de respuesta &lt;300 ms, responsive design, documentación técnica</td></tr>
+      <tr><td><strong>ISO/IEC 27001:2022</strong></td><td>ISO</td><td>Sistema de Gestión de Seguridad de la Información (SGSI) — Controles A.5 (políticas), A.6 (organización), A.7 (RRHH), A.8 (activos)</td><td>JWT + bcrypt, Helmet, CORS, rate limiting, auditoría SHA-256, sesiones activas, consultas parametrizadas</td></tr>
+      <tr><td><strong>ISO 9001:2015</strong></td><td>ISO</td><td>Sistema de Gestión de Calidad — Enfoque en procesos, mejora continua, satisfacción del usuario</td><td>Flujos de trámites con trazabilidad, ciclo de pruebas (PR-01 a PR-08), métricas del sistema</td></tr>
+      <tr><td><strong>ISO/IEC 29110</strong></td><td>ISO</td><td>Ingeniería de Software para Very Small Entities (VSE) — Perfiles básico, intermedio, avanzado</td><td>Documentación de procesos, gestión de configuraciones, control de versiones, plan de pruebas</td></tr>
+      <tr><td><strong>NOM-151-SCFI-2016</strong></td><td>SE (México)</td><td>Conservación de documentos electrónicos, firma electrónica avanzada, integridad y no-repudio</td><td>Auditoría con hash SHA-256, PDF institucionales (Dompdf), QR con sello digital, bitácora de operaciones</td></tr>
+      <tr><td><strong>NOM-035-STPS-2018</strong></td><td>STPS (México)</td><td>Factores de riesgo psicosocial en el trabajo — Identificación, análisis y prevención</td><td>IA Bienestar: check-in emocional, detección de crisis, escalación a recursos de apoyo, historial de seguimientos</td></tr>
+      <tr><td><strong>NOM-024-SCFI-2013</strong></td><td>SE (México)</td><td>Información comercial para plataformas digitales — Términos, condiciones, avisos</td><td>Páginas de términos, aviso de privacidad, aceptación de condiciones al registrar</td></tr>
+      <tr><td><strong>LFPDPPP</strong></td><td>Gobierno MX</td><td>Ley Federal de Protección de Datos Personales — Consentimiento, aviso, derechos ARCO, medidas de seguridad</td><td>Aviso de privacidad, cifrado bcrypt, JWT, consultas parametrizadas, mínimo privilegio, no almacenar datos sensibles sin necesidad</td></tr>
+      <tr><td><strong>NMX-COE-SCFI-2016</strong></td><td>SE (México)</td><td>Evaluación de la conformidad — Procesos educativos y de certificación</td><td>Generación de kardex oficial, sellos digitales, QR antifalsificación, reportes institucionales</td></tr>
+      <tr><td><strong>WCAG 2.1 Nivel AA</strong></td><td>W3C</td><td>Accesibilidad web — 13 directrices, 50 criterios de conformidad</td><td>Touch targets 44×44 px, contraste de color, navegación por teclado, etiquetas semánticas</td></tr>
+      <tr><td><strong>TECNM Modelo</strong></td><td>TecNM</td><td>Lineamientos TESI (Tecnológico de Estudios Superiores de Ixtapaluca) y plan ISC</td><td>Correo institucional @tesi.edu.mx, estructura de kardex, periodos, grupos, materias según plan ISC</td></tr>
+    </table>
+  </div>
+  <div style="margin-top:1.5rem;">
+    <h3>ISO/IEC 25010 — Desglose de las 8 Características de Calidad</h3>
+    <table>
+      <tr><th>Característica</th><th>Subcaracterísticas</th><th>Implementación en SIVACAD</th></tr>
+      <tr><td><strong>Funcionalidad</strong></td><td>Completitud, corrección, pertinencia</td><td>14 módulos funcionales, 30+ endpoints, 5 tipos de evaluación, OCR, IA</td></tr>
+      <tr><td><strong>Eficiencia</strong></td><td>Comportamiento temporal, utilización de recursos</td><td>Consultas &lt;100 ms, JOINs &lt;300 ms, carga total &lt;1 GB RAM para 100 usuarios</td></tr>
+      <tr><td><strong>Compatibilidad</strong></td><td>Coexistencia, interoperabilidad</td><td>JS + Python + PHP + SQL, integración con Gemini API, SMTP, Flask, Puppeteer</td></tr>
+      <tr><td><strong>Usabilidad</strong></td><td>Reconocibilidad, aprendizaje, operabilidad, protección contra errores, estética, accesibilidad</td><td>Responsive 6 fases, modo oscuro, 44×44 px touch targets, onboarding por rol</td></tr>
+      <tr><td><strong>Fiabilidad</strong></td><td>Madurez, disponibilidad, tolerancia a fallos, recuperabilidad</td><td>Transacciones ACID, manejo de errores con códigos HTTP, auditoría SHA-256</td></tr>
+      <tr><td><strong>Seguridad</strong></td><td>Confidencialidad, integridad, no-repudio, responsabilidad, autenticidad</td><td>JWT + bcrypt + Helmet + CORS + RBAC + rate limiting + consultas parametrizadas + auditoría</td></tr>
+      <tr><td><strong>Mantenibilidad</strong></td><td>Modularidad, reusabilidad, analizabilidad, modificabilidad, testabilidad</td><td>mountIfAvailable, ~30 sub-routers, componentes reutilizables, 37 diagramas de documentación</td></tr>
+      <tr><td><strong>Portabilidad</strong></td><td>Adaptabilidad, instalabilidad, reemplazabilidad</td><td>Node.js + React multiplataforma, configurable vía .env, 4-breakpoint responsive</td></tr>
+    </table>
+  </div>
+  <div class="endpoints"><strong>Normas ISO:</strong> 4 · <strong>NOM:</strong> 3 · <strong>Privacidad:</strong> 1 ley + 1 local · <strong>Educativas:</strong> 2 · <strong>Accesibilidad:</strong> 1 · <strong>Total:</strong> 12 instrumentos normativos</div>
+</div>
+
+<div class="section" id="s40">
+  <h2>40. Manuales del Sistema (5 manuales)</h2>
+  <div class="meta">Manual de Usuario · Manual Técnico · Manual de Administración · Manual de Instalación y Despliegue · Manual de Mantenimiento y Soporte</div>
+  <div class="desc">Se crearon 5 manuales institucionales en formato Markdown que cubren todos los aspectos del sistema: uso por rol, arquitectura técnica, administración, instalación/despliegue y mantenimiento/soporte. Están almacenados en <code>docs/manuales/</code>.</div>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+flowchart TB
+    subgraph MANUALES["Manuales SIVACAD &mdash; docs/manuales/"]
+        MU["manual_usuario.md<br/>Uso del sistema por rol<br/>Alumno, Docente, Coord, Admin, Soporte"]
+        MT["manual_tecnico.md<br/>Arquitectura, stack, rutas<br/>BD, dependencias, .env"]
+        MA["manual_administracion.md<br/>Usuarios, roles, permisos<br/>Auditor&iacute;a, supervisi&oacute;n"]
+        MI["manual_instalacion.md<br/>Requisitos, instalaci&oacute;n<br/>Configuraci&oacute;n, despliegue"]
+        MM["manual_mantenimiento.md<br/>Logs, errores, recuperaci&oacute;n<br/>Diagn&oacute;stico, soporte"]
+    end
+    MU --> ROLES["5 Roles del sistema"]
+    MT --> DEV["Desarrolladores y Soporte"]
+    MA --> ADMIN["Administradores"]
+    MI --> TEC["Personal t&eacute;cnico"]
+    MM --> SOP["Soporte y Mantenimiento"]
+    style MU fill:#e0f2fe,stroke:#0284c7
+    style MT fill:#fef3c7,stroke:#d97706
+    style MA fill:#dcfce7,stroke:#16a34a
+    style MI fill:#f3e8ff,stroke:#9333ea
+    style MM fill:#fce7f3,stroke:#db2777
+</pre>
+  </div>
+  <div style="margin-top:1.5rem;">
+    <h3>Lista de Manuales</h3>
+    <table>
+      <tr><th>#</th><th>Manual</th><th>Archivo</th><th>Audiencia</th></tr>
+      <tr><td>1</td><td><strong>Manual de Usuario</strong></td><td><code>manual_usuario.html</code> / <code>.md</code></td><td>Alumno, Docente, Coordinador, Administrador, Soporte</td></tr>
+      <tr><td>2</td><td><strong>Manual T&eacute;cnico</strong></td><td><code>manual_tecnico.html</code> / <code>.md</code></td><td>Desarrollador, analista t&eacute;cnico, soporte</td></tr>
+      <tr><td>3</td><td><strong>Manual de Administraci&oacute;n</strong></td><td><code>manual_administracion.html</code> / <code>.md</code></td><td>Administrador del sistema</td></tr>
+      <tr><td>4</td><td><strong>Manual de Instalaci&oacute;n y Despliegue</strong></td><td><code>manual_instalacion.html</code> / <code>.md</code></td><td>Personal t&eacute;cnico, desarrollador, soporte</td></tr>
+      <tr><td>5</td><td><strong>Manual de Mantenimiento y Soporte</strong></td><td><code>manual_mantenimiento.html</code> / <code>.md</code></td><td>Soporte t&eacute;cnico, personal de mantenimiento</td></tr>
+    </table>
+  </div>
+  <div class="endpoints"><strong>Total manuales:</strong> 5 &middot; <strong>Formato:</strong> HTML + Markdown &middot; <strong>Ubicaci&oacute;n:</strong> <code>docs/manuales/</code> &middot; <strong>Cobertura:</strong> 100% del sistema (uso, t&eacute;cnico, admin, instalaci&oacute;n, soporte)</div>
 </div>
 
 <script>

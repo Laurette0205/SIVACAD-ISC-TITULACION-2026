@@ -565,7 +565,7 @@ export default function IADesercionPage() {
       <div className="stack">
         <SectionCard title="Alertas por periodo" subtitle="Distribución histórica por periodo académico">
           <div className="table-wrapper">
-            <table className="table">
+            <div className="table-responsive"><table className="table">
               <thead><tr><th>Periodo</th><th>Total</th><th>Pendientes</th><th>Atendidas</th><th>Críticos</th><th>Alto</th><th>Medio</th><th>Bajo</th></tr></thead>
               <tbody>
                 {(resumen.porPeriodo || []).map((p, i) => (
@@ -581,7 +581,7 @@ export default function IADesercionPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </SectionCard>
 
@@ -655,7 +655,7 @@ export default function IADesercionPage() {
 
       <SectionCard title={`Historial de alertas (${alertasMeta.total})`} subtitle="Casos registrados de riesgo de deserción">
         <div className="table-wrapper">
-          <table className="table">
+          <div className="table-responsive"><table className="table">
             <thead>
               <tr>
                 <th>#</th>
@@ -690,7 +690,7 @@ export default function IADesercionPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
 
         {alertasMeta.totalPaginas > 1 && (
@@ -976,7 +976,7 @@ export default function IADesercionPage() {
           title={`Supervisión de auditoría (${auditoriaTotal})`}
           subtitle="Registro de todas las acciones realizadas en el módulo">
           <div className="table-wrapper">
-            <table className="table">
+            <div className="table-responsive"><table className="table">
               <thead>
                 <tr>
                   <th style={{ width: 40 }}>
@@ -1007,7 +1007,7 @@ export default function IADesercionPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
 
           {auditoriaTotalPaginas > 1 && (

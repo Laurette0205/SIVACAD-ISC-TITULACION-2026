@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual de Mantenimiento y Soporte — SIVACAD</title>
+<style>
+  :root { --bg: #ffffff; --text: #1e293b; --accent: #2563eb; --border: #e2e8f0; --code-bg: #f1f5f9; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; padding: 2.5rem; max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 2rem; color: #0f172a; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 0.25rem; }
+  .subtitle { color: #64748b; margin-bottom: 2rem; font-size: 0.95rem; }
+  h2 { font-size: 1.5rem; color: #0f172a; margin: 2.5rem 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; page-break-before: always; }
+  h2:first-of-type { page-break-before: avoid; }
+  h3 { font-size: 1.15rem; color: #1e293b; margin: 1.5rem 0 0.5rem; }
+  h4 { font-size: 1rem; color: #334155; margin: 1rem 0 0.3rem; }
+  p { margin-bottom: 0.8rem; }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+  li { margin-bottom: 0.3rem; }
+  code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
+  pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 0.8rem 0; font-size: 0.85rem; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+  th { background: #1e3a5f; color: #fff; padding: 0.6rem; text-align: left; }
+  td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); }
+  tr:nth-child(even) { background: #f8fafc; }
+  .toc { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; margin: 2rem 0; }
+  .toc h2 { margin-top: 0; page-break-before: avoid; border-bottom: none; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .header-inst { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--accent); }
+  .header-inst h1 { border-bottom: none; margin-bottom: 0.2rem; }
+  .header-inst .sistema { font-size: 1.1rem; font-weight: 600; color: #0f172a; }
+  .header-inst .autoras { font-size: 0.9rem; color: #64748b; }
+  .header-inst .version { font-size: 0.8rem; color: #94a3b8; margin-top: 0.3rem; }
+  .footer-page { text-align: center; font-size: 0.75rem; color: #94a3b8; margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+  @media print {
+    @page { margin: 2cm 2.5cm 2.5cm 2.5cm; size: A4; }
+    body { padding: 0; font-size: 11pt; line-height: 1.5; color: #000; background: #fff; }
+    h1 { font-size: 18pt; }
+    h2 { font-size: 14pt; page-break-before: always; margin-top: 0; padding-top: 0; }
+    h2:first-of-type { page-break-before: avoid; }
+    h3 { font-size: 12pt; page-break-after: avoid; }
+    h4 { font-size: 11pt; page-break-after: avoid; }
+    p, li { font-size: 11pt; }
+    table { font-size: 9pt; page-break-inside: avoid; }
+    tr { page-break-inside: avoid; }
+    pre { font-size: 8pt; white-space: pre-wrap; word-break: break-word; page-break-inside: avoid; }
+    code { font-size: 8pt; }
+    .toc { page-break-after: always; }
+    .toc h2 { page-break-before: avoid; }
+    .header-inst { page-break-before: avoid; }
+    a { color: #000; text-decoration: none; }
+    .print-footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 8pt; color: #666; border-top: 0.5pt solid #ccc; padding: 4pt 0 2pt; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header-inst">
+  <h1>Manual de Mantenimiento y Soporte</h1>
+  <div class="sistema">Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos (SIVACAD)</div>
+  <div class="autoras">Autoras: Bárcenas González Laura Casandra &amp; Morales Ibarra Sandivel</div>
+  <div class="autoras">TESI Ixtapaluca — Ingeniería en Sistemas Computacionales</div>
+  <div class="version">Versión 1.0 — Julio 2026</div>
+</div>
+
+<div class="toc">
+  <h2>Índice</h2>
+  <ol>
+    <li><a href="#s1">Introducción</a></li>
+    <li><a href="#s2">Arquitectura de Logs</a></li>
+    <li><a href="#s3">Validación de Rutas</a></li>
+    <li><a href="#s4">Revisión de Sesiones</a></li>
+    <li><a href="#s5">Recuperación de Acceso</a></li>
+    <li><a href="#s6">Solución a Fallas Comunes</a></li>
+    <li><a href="#s7">Verificación de Exportaciones</a></li>
+    <li><a href="#s8">Diagnóstico General</a></li>
+    <li><a href="#s9">Mantenimiento Preventivo</a></li>
+    <li><a href="#s10">Procedimientos de Recuperación</a></li>
+  </ol>
+</div>
+
+<h2 id="s1">1. Introducción</h2>
+<p>Este manual describe los procedimientos de mantenimiento y soporte técnico para el Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos (SIVACAD). Está dirigido al personal de soporte técnico y a las desarrolladoras del sistema responsables de atender incidencias, diagnosticar fallas y garantizar la estabilidad operativa de la plataforma.</p>
+
+<h2 id="s2">2. Arquitectura de Logs</h2>
+
+<h3>2.1 Logs del Backend (Node.js + Morgan)</h3>
+<p>El servidor Express utiliza Morgan para logging de peticiones HTTP. Los logs incluyen método, ruta, código de estado y tiempo de respuesta. En producción se redirigen a archivo:</p>
+<pre>node src/server.js > logs/backend.log 2>&1</pre>
+
+<h3>2.2 Logs de Base de Datos (MySQL)</h3>
+<pre>SET GLOBAL slow_query_log = 'ON';
+SET GLOBAL long_query_time = 2;  -- segundos</pre>
+
+<h3>2.3 Logs de Flask ML</h3>
+<pre>python app.py > logs/flask.log 2>&1</pre>
+
+<h3>2.4 Logs de Auditoría del Sistema</h3>
+<table>
+  <tr><th>Campo</th><th>Descripción</th></tr>
+  <tr><td>id_bitacora</td><td>Identificador único</td></tr>
+  <tr><td>id_usuario</td><td>Usuario que realizó la acción</td></tr>
+  <tr><td>accion</td><td>INSERT, UPDATE, DELETE, LOGIN, LOGOUT</td></tr>
+  <tr><td>tabla</td><td>Tabla afectada</td></tr>
+  <tr><td>id_registro</td><td>ID del registro afectado</td></tr>
+  <tr><td>valores_anteriores</td><td>JSON con valores previos</td></tr>
+  <tr><td>valores_nuevos</td><td>JSON con valores nuevos</td></tr>
+  <tr><td>ip_origen</td><td>Dirección IP</td></tr>
+  <tr><td>fecha_hora</td><td>Marca de tiempo</td></tr>
+</table>
+
+<h2 id="s3">3. Validación de Rutas y Endpoints</h2>
+
+<h3>3.1 Verificar rutas montadas</h3>
+<pre>node -e "
+const app = require('./src/app');
+app._router.stack.forEach(r => {
+  if (r.route) console.log(r.route.path);
+  else if (r.name === 'router') {
+    r.handle.stack.forEach(rr => {
+      if (rr.route) console.log(rr.route.path);
+    });
+  }
+});
+"</pre>
+
+<h3>3.2 Probar endpoint</h3>
+<pre># Login
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"correo":"admin@tesi.edu.mx","contrasena":"Testing123!"}'
+
+# Endpoint protegido
+curl http://localhost:3000/api/alumnos \
+  -H "Authorization: Bearer TOKEN"</pre>
+
+<h3>3.3 Verificar Flask ML</h3>
+<pre>curl http://localhost:5001/health
+# {"status": "ok", "modelos": ["desercion"]}</pre>
+
+<h2 id="s4">4. Revisión de Sesiones</h2>
+
+<h3>4.1 Consultar sesiones activas</h3>
+<pre>SELECT u.nombres, u.apellidos, r.nombre_rol, s.fecha_inicio,
+       s.ultima_actividad, s.ip_origen, s.estado
+FROM sesiones_activas s
+JOIN usuarios u ON s.id_usuario = u.id_usuario
+JOIN roles r ON u.id_rol = r.id_rol
+WHERE s.estado = 'activa'
+ORDER BY s.ultima_actividad DESC;</pre>
+
+<h3>4.2 Cerrar sesión forzadamente</h3>
+<pre>UPDATE sesiones_activas
+SET estado = 'expirada', fecha_fin = NOW()
+WHERE id_sesion = ?;</pre>
+
+<h3>4.3 Limpiar sesiones expiradas (CRON)</h3>
+<pre>DELETE FROM sesiones_activas
+WHERE estado = 'expirada'
+AND fecha_fin < NOW() - INTERVAL 30 DAY;</pre>
+
+<h2 id="s5">5. Recuperación de Acceso</h2>
+
+<h3>5.1 Usuario olvidó su contraseña</h3>
+<p>Usar <strong>¿Olvidaste tu contraseña?</strong> en el login. Si SMTP no funciona, usar modo desarrollo o restablecer en BD:</p>
+<pre>-- Generar hash bcrypt con: node -e "console.log(require('bcryptjs').hashSync('NuevaPass', 12))"
+UPDATE usuarios SET contrasena_hash = 'HASH_AQUI'
+WHERE correo_institucional = 'usuario@tesi.edu.mx';
+
+-- También marcar tokens previos como usados
+UPDATE password_resets SET used = 1 WHERE id_usuario = (SELECT id_usuario FROM usuarios WHERE correo_institucional = 'usuario@tesi.edu.mx');</pre>
+
+<h3>5.2 Token JWT expirado</h3>
+<p>El token expira según <code>JWT_EXPIRES_IN</code> (default: 24h). El usuario debe iniciar sesión nuevamente. Verifique que la fecha/hora del servidor sea correcta.</p>
+
+<h3>5.3 Cuenta desactivada</h3>
+<pre>UPDATE usuarios SET estado = 'Activo'
+WHERE correo_institucional = 'usuario@tesi.edu.mx';</pre>
+
+<h2 id="s6">6. Solución a Fallas Comunes</h2>
+
+<table>
+  <tr><th>Problema</th><th>Causa probable</th><th>Solución</th></tr>
+  <tr><td>Error 401 en cada petición</td><td>token undefined en frontend</td><td>Verificar localStorage, cerrar sesión y reiniciar</td></tr>
+  <tr><td>Error 404 en ruta</td><td>Archivo de ruta faltante</td><td>Verificar backend/src/routes/ y mountIfAvailable</td></tr>
+  <tr><td>Error 500 sin mensaje</td><td>Error de sintaxis o BD caída</td><td>Revisar consola backend, verificar MySQL</td></tr>
+  <tr><td>Chatbot no responde</td><td>GEMINI_API_KEY faltante o API caída</td><td>Verificar .env y conectividad con Google</td></tr>
+  <tr><td>Predicción deserción falla</td><td>Flask ML no disponible</td><td>curl localhost:5001/health, reiniciar Flask</td></tr>
+  <tr><td>PDF/Excel no se genera</td><td>PHP no instalado o faltan dependencias</td><td>php -v, composer install</td></tr>
+  <tr><td>No conecta a BD</td><td>MySQL caído o credenciales incorrectas</td><td>Verificar mysql service y .env DB_*</td></tr>
+  <tr><td>Build frontend falla</td><td>Dependencias corruptas</td><td>rm -rf node_modules && npm install</td></tr>
+</table>
+
+<h2 id="s7">7. Verificación de Exportaciones</h2>
+
+<h3>7.1 Probar PDF</h3>
+<pre>curl -X GET http://localhost:3000/api/reportes/pdf \
+  -H "Authorization: Bearer TOKEN" \
+  -o reporte_prueba.pdf
+ls -la reporte_prueba.pdf</pre>
+
+<h3>7.2 Probar Excel</h3>
+<pre>curl -X GET http://localhost:3000/api/reportes/excel \
+  -H "Authorization: Bearer TOKEN" \
+  -o reporte_prueba.xlsx</pre>
+
+<h3>7.3 Probar Kardex PDF</h3>
+<pre>curl -X GET http://localhost:3000/api/kardex/alumno/1/pdf \
+  -H "Authorization: Bearer TOKEN" \
+  -o kardex_prueba.pdf</pre>
+
+<h2 id="s8">8. Diagnóstico General</h2>
+
+<h3>8.1 Script de diagnóstico</h3>
+<pre>#!/bin/bash
+echo "=== SIVACAD - Diagnóstico ==="
+echo "[1] Node.js: $(node --version)"
+echo "[2] MySQL: $(mysql --version)"
+echo "[3] Backend (3000): $(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/api/dashboard)"
+echo "[4] Frontend (5173): $(curl -s -o /dev/null -w '%{http_code}' http://localhost:5173)"
+echo "[5] Flask ML (5001): $(curl -s http://localhost:5001/health)"
+echo "[6] PHP: $(php --version | head -1)"
+echo "=== Fin ==="</pre>
+
+<h3>8.2 Puntos de verificación</h3>
+<table>
+  <tr><th>Componente</th><th>Puerto</th><th>Comando</th></tr>
+  <tr><td>Backend</td><td>3000</td><td>curl http://localhost:3000/api/dashboard</td></tr>
+  <tr><td>Frontend</td><td>5173</td><td>curl http://localhost:5173</td></tr>
+  <tr><td>Flask ML</td><td>5001</td><td>curl http://localhost:5001/health</td></tr>
+  <tr><td>MySQL</td><td>3306</td><td>mysql -u root -p -e "SELECT 1"</td></tr>
+  <tr><td>PHP</td><td>CLI</td><td>php -v</td></tr>
+</table>
+
+<h3>8.3 Verificar integridad BD</h3>
+<pre>SELECT table_name, table_rows, engine
+FROM information_schema.tables
+WHERE table_schema = 'sivacad_isc';
+
+SELECT TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME
+FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+WHERE TABLE_SCHEMA = 'sivacad_isc'
+  AND REFERENCED_TABLE_NAME IS NOT NULL;</pre>
+
+<h2 id="s9">9. Mantenimiento Preventivo</h2>
+
+<h3>9.1 Tareas diarias</h3>
+<ul>
+  <li>Revisar logs del backend en busca de errores.</li>
+  <li>Verificar que los 3 servidores funcionen.</li>
+  <li>Revisar dashboard de auditoría.</li>
+  <li>Atender incidencias reportadas.</li>
+</ul>
+
+<h3>9.2 Tareas semanales</h3>
+<ul>
+  <li>Respaldar la base de datos.</li>
+  <li>Limpiar sesiones expiradas.</li>
+  <li>Verificar espacio en disco.</li>
+  <li>Revisar consultas lentas en MySQL.</li>
+</ul>
+
+<h3>9.3 Tareas mensuales</h3>
+<ul>
+  <li>Actualizar dependencias npm (backend y frontend).</li>
+  <li>Verificar que los modelos ML funcionen correctamente.</li>
+  <li>Revisar integridad de la cadena SHA-256 de auditoría.</li>
+  <li>Realizar pruebas de carga ligeras.</li>
+</ul>
+
+<h3>9.4 Comandos de mantenimiento</h3>
+<pre># Respaldar BD
+mysqldump -u root -p sivacad_isc > backups/sivacad_isc_$(date +%Y%m%d).sql
+
+# Limpiar temporales
+find backend/uploads/actas-ocr/ -type f -mtime +30 -delete
+
+# Actualizar dependencias
+cd backend && npm update
+cd frontend && npm update
+
+# Verificar vulnerabilidades
+cd backend && npm audit
+cd frontend && npm audit</pre>
+
+<h2 id="s10">10. Procedimientos de Recuperación</h2>
+
+<h3>10.1 Recuperación de BD</h3>
+<pre>mysql -u root -p sivacad_isc < backups/sivacad_isc_20260722.sql</pre>
+
+<h3>10.2 Recuperación de uploads</h3>
+<p>Los archivos subidos están en <code>backend/uploads/</code>. Si se pierden, los usuarios deberán subirlos nuevamente. Los datos de la BD (rutas) se conservan.</p>
+
+<h3>10.3 Recuperación tras caída del servidor</h3>
+<ol>
+  <li>Reiniciar servicios en orden: MySQL → Backend → Frontend → Flask ML.</li>
+  <li>Ejecutar script de diagnóstico.</li>
+  <li>Verificar que todos los servicios respondan.</li>
+  <li>Notificar a los usuarios.</li>
+</ol>
+
+<h3>10.4 Recuperación de acceso de administrador</h3>
+<pre>-- Si no hay admin accesible:
+UPDATE usuarios SET estado = 'Activo' WHERE id_rol = 1 LIMIT 1;
+
+-- Si no hay admins, crear uno (requiere hash bcrypt):
+-- node -e "console.log(require('bcryptjs').hashSync('Admin123!', 12))"
+INSERT INTO usuarios (nombres, apellidos, correo_institucional,
+  contrasena_hash, estado, id_rol)
+VALUES ('Admin', 'Recuperado', 'admin@tesi.edu.mx',
+  '$2a$12$...hash...', 'Activo', 1);</pre>
+
+<h3>10.5 Rollback de actualización</h3>
+<pre>git log --oneline -5
+git checkout &lt;hash_anterior&gt;
+mysql -u root -p sivacad_isc < backups/sivacad_isc_anterior.sql
+# Reiniciar servidores</pre>
+
+<div class="footer-page">Fin del Manual de Mantenimiento y Soporte — SIVACAD v1.0 — TESI Ixtapaluca — ISC 2026</div>
+
+<div class="print-footer">SIVACAD &mdash; Manual de Mantenimiento y Soporte &mdash; TESI Ixtapaluca &mdash; ISC 2026</div>
+</body>
+</html>

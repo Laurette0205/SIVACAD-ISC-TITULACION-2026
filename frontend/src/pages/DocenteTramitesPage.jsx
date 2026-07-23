@@ -634,7 +634,7 @@ export default function DocenteTramitesPage() {
 
                           <h4 style={{ margin: '1rem 0 0.5rem' }}>Historial académico</h4>
                           {trayectoria.historial?.length > 0 ? (
-                            <table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
+                            <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
                               <thead>
                                 <tr>
                                   <th>Periodo</th>
@@ -657,14 +657,14 @@ export default function DocenteTramitesPage() {
                                   </tr>
                                 ))}
                               </tbody>
-                            </table>
+                            </table></div>
                           ) : (
                             <p className="text-muted">Sin historial académico registrado</p>
                           )}
 
                           <h4 style={{ margin: '1rem 0 0.5rem' }}>Kardex / Materias cursadas</h4>
                           {trayectoria.kardex?.length > 0 ? (
-                            <table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
+                            <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
                               <thead>
                                 <tr>
                                   <th>Clave</th>
@@ -685,7 +685,7 @@ export default function DocenteTramitesPage() {
                                   </tr>
                                 ))}
                               </tbody>
-                            </table>
+                            </table></div>
                           ) : (
                             <p className="text-muted">Sin materias registradas en kardex</p>
                           )}
@@ -754,7 +754,7 @@ export default function DocenteTramitesPage() {
               <div className="card" style={{ padding: '1rem' }}>
                 <h4 style={{ marginBottom: '0.75rem' }}>Alumnos del grupo ({alumnosGrupo?.length || 0})</h4>
                 {alumnosGrupo?.length > 0 ? (
-                  <table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
+                  <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
                     <thead>
                       <tr>
                         <th>Matrícula</th>
@@ -786,7 +786,7 @@ export default function DocenteTramitesPage() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 ) : (
                   <p className="text-muted">No hay alumnos activos en este grupo.</p>
                 )}
@@ -809,7 +809,7 @@ export default function DocenteTramitesPage() {
             {reportes.length === 0 ? (
               <p className="text-muted" style={{ textAlign: 'center', padding: '2rem' }}>No se encontraron reportes.</p>
             ) : (
-              <table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
                 <thead>
                   <tr>
                     <th>Folio</th>
@@ -835,7 +835,7 @@ export default function DocenteTramitesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             )}
           </div>
         </div>
@@ -852,7 +852,7 @@ export default function DocenteTramitesPage() {
             {bitacora.length === 0 ? (
               <p className="text-muted" style={{ textAlign: 'center', padding: '2rem' }}>Sin actividad registrada.</p>
             ) : (
-              <table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
                 <thead>
                   <tr>
                     <th>Fecha</th>
@@ -873,7 +873,7 @@ export default function DocenteTramitesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             )}
           </div>
         </div>

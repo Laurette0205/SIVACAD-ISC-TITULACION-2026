@@ -15,6 +15,10 @@ import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
+// Páginas legales
+import TerminosPage from './pages/TerminosPage';
+import AvisoPrivacidadPage from './pages/AvisoPrivacidadPage';
+
 // Páginas privadas
 import DashboardPage from './pages/DashboardPage';
 import AlumnoPage from './pages/AlumnoPage';
@@ -238,6 +242,9 @@ function AppRoutes() {
           </PublicOnlyRoute>
         }
       />
+
+      <Route path="/terminos" element={<TerminosPage />} />
+      <Route path="/aviso-privacidad" element={<AvisoPrivacidadPage />} />
 
       <Route
         path="/app"

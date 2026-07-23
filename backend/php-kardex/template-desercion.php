@@ -1,5 +1,9 @@
 <?php
 /**
+ * SIVACAD-ISC — Copyright (c) 2026 Bárcenas González Laura Casandra &
+ *                    Morales Ibarra Sandivel — TESI — ISC
+ *
+/**
  * template-desercion.php
  *
  * Plantilla HTML para el Reporte Estratégico de Deserción Académica.
@@ -321,13 +325,16 @@ function getDesercionTemplate(array $data): string
     $logoSivacad = base64_encode_file($logoPath . '/Logo-SIVACAD.jpeg');
     $logoTesi    = base64_encode_file($logoPath . '/Logo-TESI.png');
     $watermark   = base64_encode_file($logoPath . '/marcadeagua_SIVACAD.jpeg');
+    $selloSivacad = base64_encode_file($logoPath . '/Sello-SIVACAD.jpeg');
     $wmStyle = $watermark ? "background-image: url('data:image/jpeg;base64,{$watermark}');" : '';
+    $copyHeader = '<div style="font-size:6.5pt;color:#64748b;text-align:center;font-weight:600;margin-bottom:3px;">SIVACAD-ISC &mdash; &copy; 2026 B&aacute;rcenas Gonz&aacute;lez Laura Casandra &amp; Morales Ibarra Sandivel &mdash; TESI &mdash; Ingenier&iacute;a en Sistemas Computacionales</div>';
+    $selloImg = $selloSivacad ? '<img src="data:image/jpeg;base64,' . $selloSivacad . '" style="height:28px;opacity:0.85;" alt="Sello SIVACAD"/>' : '';
     $alertColor = $tasaAt >= 50 ? '#16a34a' : '#dc2626';
     $pctAltoCritico = $totalDist > 0 ? round((($criticos + $alto) / $totalDist) * 100, 1) : 0;
 
     return '<!DOCTYPE html>'
     . '<html lang="es-MX"><head><meta charset="UTF-8"><style>'
-    . '@page{margin:0.5cm 0.7cm 1.5cm 0.7cm;size:letter;}'
+    . '@page{margin:2.54cm 2.54cm 3.0cm 3.0cm;size:letter;}'
     . '*{margin:0;padding:0;}'
     . 'body{font-family:Helvetica,Arial,sans-serif;font-size:9pt;color:#0f172a;line-height:1.35;}'
     . '.watermark{position:fixed;top:0;left:0;right:0;bottom:0;background-size:100% 100%;background-position:center;background-repeat:no-repeat;opacity:0.06;z-index:-1;pointer-events:none;'.$wmStyle.'}'
@@ -409,18 +416,19 @@ function getDesercionTemplate(array $data): string
     // 9. MATERIAS
     . $materiaSection
 
-    . '<div style="height:40px;"></div>'
+    . '<div style="height:50px;"></div>'
     . '<div class="fixed-bottom">'
     . '<table style="width:100%;border-collapse:collapse;border:none;"><tr>'
-    . '<td style="width:33.3%;vertical-align:top;text-align:center;border:none;padding:4px 8px 0 8px;">'.$sello1.'</td>'
-    . '<td style="width:33.3%;vertical-align:top;text-align:center;border:none;padding:4px 8px 0 8px;">'.$sello2.'</td>'
-    . '<td style="width:33.3%;vertical-align:top;text-align:center;border:none;padding:4px 8px 0 8px;">'.$sello3.'</td>'
+    . '<td style="width:25%;vertical-align:middle;text-align:left;border:none;padding:4px;">'.$selloImg.'</td>'
+    . '<td style="width:25%;vertical-align:top;text-align:center;border:none;padding:4px 8px 0 8px;">'.$sello1.'</td>'
+    . '<td style="width:25%;vertical-align:top;text-align:center;border:none;padding:4px 8px 0 8px;">'.$sello2.'</td>'
+    . '<td style="width:25%;vertical-align:top;text-align:center;border:none;padding:4px 8px 0 8px;">'.$sello3.'</td>'
     . '</tr></table>'
     . '<table style="width:100%;border-collapse:collapse;border:none;"><tr>'
-    . '<td style="text-align:center;font-size:5pt;color:#94a3b8;border-top:1px solid #cbd5e1;padding:2px 0;">'
-    . '<strong>SIVACAD</strong> &mdash; Sistema Integral para la Valoraci\u00f3n del Conocimiento y Aprovechamiento Acad\u00e9mico &nbsp;|&nbsp; '
-    . 'Generado el '.$fecha.' &nbsp;|&nbsp; Folio: '.$folio.' &nbsp;|&nbsp; Periodo: '.$periodo.' &nbsp;|&nbsp; '
-    . '<strong>CONFIDENCIAL</strong> &mdash; Uso Acad\u00e9mico Exclusivo'
+    . '<td style="text-align:center;font-size:5.5pt;color:#94a3b8;border-top:1px solid #cbd5e1;padding:3px 0;">'
+    . 'Documento generado por SIVACAD-ISC &copy; 2026 B&aacute;rcenas Gonz&aacute;lez Laura Casandra &amp; Morales Ibarra Sandivel &mdash; '
+    . 'TESI &mdash; Ingenier&iacute;a en Sistemas Computacionales &mdash; Proyecto de Titulaci&oacute;n &mdash; '
+    . 'Folio: '.$folio.' &mdash; Periodo: '.$periodo.' &mdash; <strong>CONFIDENCIAL</strong> &mdash; Uso Acad\u00e9mico Exclusivo'
     . '</td></tr></table>'
     . '</div>'
     . '</body></html>';

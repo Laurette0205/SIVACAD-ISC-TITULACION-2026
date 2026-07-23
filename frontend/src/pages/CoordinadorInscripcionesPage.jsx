@@ -320,7 +320,7 @@ export default function CoordinadorInscripcionesPage() {
           <div className="empty">No hay solicitudes pendientes.</div>
         ) : (
           <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-            <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="table-responsive"><table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left' }}>
                   <th style={{ padding: '0.4rem' }}>ID</th>
@@ -372,7 +372,7 @@ export default function CoordinadorInscripcionesPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         )}
       </SectionCard>
@@ -421,7 +421,7 @@ export default function CoordinadorInscripcionesPage() {
       {validacionGrupos.length > 0 && (
         <SectionCard title="Resumen por Grupo" subtitle="Total de inscripciones agrupadas">
           <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-            <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="table-responsive"><table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left' }}>
                   <th style={{ padding: '0.4rem' }}>Grupo</th>
@@ -446,7 +446,7 @@ export default function CoordinadorInscripcionesPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </SectionCard>
       )}
@@ -459,7 +459,7 @@ export default function CoordinadorInscripcionesPage() {
           <div className="empty">Seleccione filtros para ver inscripciones.</div>
         ) : (
           <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-            <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="table-responsive"><table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left' }}>
                   <th style={{ padding: '0.4rem' }}>Grupo</th>
@@ -501,7 +501,7 @@ export default function CoordinadorInscripcionesPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         )}
       </SectionCard>
@@ -576,7 +576,7 @@ export default function CoordinadorInscripcionesPage() {
           <div className="empty">No hay datos de cupos disponibles.</div>
         ) : (
           <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-            <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="table-responsive"><table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left' }}>
                   <th style={{ padding: '0.4rem' }}>Carrera</th>
@@ -625,7 +625,7 @@ export default function CoordinadorInscripcionesPage() {
                   );
                 })}
               </tbody>
-            </table>
+            </table></div>
           </div>
         )}
       </SectionCard>
@@ -676,7 +676,7 @@ export default function CoordinadorInscripcionesPage() {
               <div className="empty">Sin registro de cambios.</div>
             ) : (
               <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-                <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                <div className="table-responsive"><table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left' }}>
                       <th style={{ padding: '0.4rem' }}>Fecha</th>
@@ -706,7 +706,7 @@ export default function CoordinadorInscripcionesPage() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             )}
           </SectionCard>
@@ -772,7 +772,7 @@ export default function CoordinadorInscripcionesPage() {
           <div className="empty">No hay observaciones registradas.</div>
         ) : (
           <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-            <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="table-responsive"><table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left' }}>
                   <th style={{ padding: '0.4rem' }}>ID</th>
@@ -810,7 +810,7 @@ export default function CoordinadorInscripcionesPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         )}
       </SectionCard>

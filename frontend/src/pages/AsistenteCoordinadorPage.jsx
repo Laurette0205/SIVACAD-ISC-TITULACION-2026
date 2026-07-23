@@ -243,7 +243,7 @@ export default function AsistenteCoordinadorPage() {
                 <div style={{ padding: '1rem', background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 12 }}>
                   <div className="eyebrow" style={{ marginBottom: '0.5rem' }}><Users size={14} /> Grupos recientes</div>
                   <div style={{ overflowX: 'auto' }}>
-                    <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+                    <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                       <thead>
                         <tr>
                           <th>Grupo</th>
@@ -268,7 +268,7 @@ export default function AsistenteCoordinadorPage() {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </table></div>
                   </div>
                 </div>
               )}
@@ -294,7 +294,7 @@ export default function AsistenteCoordinadorPage() {
           </div>
           {groups.length > 0 ? (
             <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                 <thead>
                   <tr>
                     <th>Grupo</th>
@@ -329,7 +329,7 @@ export default function AsistenteCoordinadorPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : <p className="muted">No hay grupos registrados.</p>}
         </div>
@@ -340,7 +340,7 @@ export default function AsistenteCoordinadorPage() {
           <div className="eyebrow" style={{ marginBottom: '0.75rem' }}><Calendar size={14} /> Períodos académicos</div>
           {periods.length > 0 ? (
             <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.85rem' }}>
                 <thead>
                   <tr>
                     <th>Nombre</th>
@@ -365,7 +365,7 @@ export default function AsistenteCoordinadorPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : <p className="muted">No hay periodos registrados.</p>}
         </div>
@@ -404,7 +404,7 @@ export default function AsistenteCoordinadorPage() {
                 : 'Sin alertas'}</p>
               {groupReport.alumnos.length > 0 && (
                 <div style={{ overflowX: 'auto' }}>
-                  <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+                  <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                     <thead>
                       <tr>
                         <th>Matrícula</th>
@@ -427,7 +427,7 @@ export default function AsistenteCoordinadorPage() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 </div>
               )}
             </div>
@@ -437,7 +437,7 @@ export default function AsistenteCoordinadorPage() {
             <div className="eyebrow" style={{ marginBottom: '0.5rem' }}><AlertTriangle size={14} /> Alertas de deserción y riesgo</div>
             {alerts.length > 0 ? (
               <div style={{ overflowX: 'auto' }}>
-                <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+                <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                   <thead>
                     <tr>
                       <th>Alumno</th>
@@ -468,7 +468,7 @@ export default function AsistenteCoordinadorPage() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             ) : <p className="muted">No hay alertas activas.</p>}
           </div>
@@ -520,7 +520,7 @@ export default function AsistenteCoordinadorPage() {
           </div>
           {tracking.length > 0 ? (
             <div style={{ overflowX: 'auto' }}>
-              <table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
+              <div className="table-responsive"><table className="table" style={{ width: '100%', fontSize: '0.8rem' }}>
                 <thead>
                   <tr>
                     <th>Matrícula</th>
@@ -553,7 +553,7 @@ export default function AsistenteCoordinadorPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
               <p className="muted" style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>{tracking.length} alumno(s) encontrado(s).</p>
             </div>
           ) : <p className="muted">No se encontraron alumnos con esos criterios.</p>}

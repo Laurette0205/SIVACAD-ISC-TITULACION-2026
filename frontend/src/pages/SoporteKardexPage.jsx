@@ -273,7 +273,7 @@ export default function SoporteKardexPage() {
 
           {data?.incidencias?.length > 0 ? (
             <div className="table-wrap">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr>
                     <th>#</th>
@@ -308,7 +308,7 @@ export default function SoporteKardexPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : !loading ? (
             <div className="empty">No hay incidencias registradas.</div>
@@ -397,7 +397,7 @@ function renderDiagnostico(data) {
         <div className="section-card">
           <div className="section-head"><Activity size={18} /><h3>Actividad reciente</h3></div>
           <div className="table-wrap">
-            <table className="table">
+            <div className="table-responsive"><table className="table">
               <thead>
                 <tr>
                   <th>Acción</th>
@@ -416,7 +416,7 @@ function renderDiagnostico(data) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </div>
       )}
@@ -430,7 +430,7 @@ function renderRutas(data) {
       <div className="section-card">
         <div className="section-head"><Route size={18} /><h3>Directorios del sistema</h3></div>
         <div className="table-wrap">
-          <table className="table">
+          <div className="table-responsive"><table className="table">
             <thead>
               <tr>
                 <th>Ruta</th>
@@ -449,7 +449,7 @@ function renderRutas(data) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
         <div className="stats-grid" style={{ marginTop: '12px', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))' }}>
           <StatBox icon={FolderOpen} label="Archivos QR total" value={data?.archivos_qr?.total} color="#2563eb" />
@@ -479,7 +479,7 @@ function renderMonitoreo(data) {
         <div className="section-card">
           <div className="section-head"><Server size={18} /><h3>Cargas por periodo</h3></div>
           <div className="table-wrap">
-            <table className="table">
+            <div className="table-responsive"><table className="table">
               <thead>
                 <tr><th>Periodo</th><th>Registros</th></tr>
               </thead>
@@ -491,7 +491,7 @@ function renderMonitoreo(data) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </div>
       )}
@@ -500,7 +500,7 @@ function renderMonitoreo(data) {
         <div className="section-card">
           <div className="section-head"><Activity size={18} /><h3>Cargas recientes</h3></div>
           <div className="table-wrap">
-            <table className="table">
+            <div className="table-responsive"><table className="table">
               <thead>
                 <tr>
                   <th>Matrícula</th>
@@ -523,7 +523,7 @@ function renderMonitoreo(data) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </div>
       )}
@@ -548,7 +548,7 @@ function renderIntegridad(data) {
         <div className="section-card">
           <div className="section-head"><FolderOpen size={18} /><h3>Detalle por alumno</h3></div>
           <div className="table-wrap">
-            <table className="table">
+            <div className="table-responsive"><table className="table">
               <thead>
                 <tr>
                   <th>Matrícula</th>
@@ -567,7 +567,7 @@ function renderIntegridad(data) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </div>
       )}

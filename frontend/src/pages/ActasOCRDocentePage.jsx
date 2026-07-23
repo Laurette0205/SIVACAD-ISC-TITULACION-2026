@@ -251,7 +251,7 @@ function VistaPreviaOCR({ token }) {
           <SectionCard title="Alumnos detectados" subtitle={`${(detalle.detalles || []).length} registros`}>
             {(detalle.detalles || []).length === 0 ? <div className="empty">Sin alumnos extraidos.</div> : (
               <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+                <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
                   <thead><tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                     <th style={{ padding: '0.4rem' }}>#</th><th style={{ padding: '0.4rem' }}>Matricula</th>
                     <th style={{ padding: '0.4rem' }}>Nombre</th><th style={{ padding: '0.4rem' }}>Calif.</th>
@@ -266,7 +266,7 @@ function VistaPreviaOCR({ token }) {
                       <td style={{ padding: '0.4rem' }}>{d.validado ? <span className="status ok">Validado</span> : <span className="status warn">Pendiente</span>}</td>
                     </tr>
                   ))}</tbody>
-                </table>
+                </table></div>
               </div>
             )}
           </SectionCard>
@@ -342,7 +342,7 @@ function CorreccionDatos({ token }) {
       {detalle && (
         <SectionCard title={`Corregir — ${detalle.nombre_grupo || '—'} | ${detalle.nombre_materia || '—'}`} subtitle="Edita los campos necesarios y guarda">
           <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead><tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                 <th style={{ padding: '0.3rem' }}>#</th><th style={{ padding: '0.3rem' }}>Matricula</th>
                 <th style={{ padding: '0.3rem' }}>Nombre</th><th style={{ padding: '0.3rem' }}>Calif.</th>
@@ -361,7 +361,7 @@ function CorreccionDatos({ token }) {
                   </td>
                 </tr>
               ))}</tbody>
-            </table>
+            </table></div>
           </div>
           <div style={{ marginTop: '1rem' }}>
             <button type="button" className="btn accent" onClick={handleSave} disabled={saving}>

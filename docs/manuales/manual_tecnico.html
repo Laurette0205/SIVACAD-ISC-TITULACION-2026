@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual Técnico — SIVACAD</title>
+<style>
+  :root { --bg: #ffffff; --text: #1e293b; --accent: #2563eb; --border: #e2e8f0; --code-bg: #f1f5f9; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; padding: 2.5rem; max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 2rem; color: #0f172a; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 0.25rem; }
+  .subtitle { color: #64748b; margin-bottom: 2rem; font-size: 0.95rem; }
+  h2 { font-size: 1.5rem; color: #0f172a; margin: 2.5rem 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; page-break-before: always; }
+  h2:first-of-type { page-break-before: avoid; }
+  h3 { font-size: 1.15rem; color: #1e293b; margin: 1.5rem 0 0.5rem; }
+  h4 { font-size: 1rem; color: #334155; margin: 1rem 0 0.3rem; }
+  p { margin-bottom: 0.8rem; }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+  li { margin-bottom: 0.3rem; }
+  code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
+  pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 0.8rem 0; font-size: 0.85rem; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+  th { background: #1e3a5f; color: #fff; padding: 0.6rem; text-align: left; }
+  td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); }
+  tr:nth-child(even) { background: #f8fafc; }
+  .toc { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; margin: 2rem 0; }
+  .toc h2 { margin-top: 0; page-break-before: avoid; border-bottom: none; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .header-inst { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--accent); }
+  .header-inst h1 { border-bottom: none; margin-bottom: 0.2rem; }
+  .header-inst .sistema { font-size: 1.1rem; font-weight: 600; color: #0f172a; }
+  .header-inst .autoras { font-size: 0.9rem; color: #64748b; }
+  .header-inst .version { font-size: 0.8rem; color: #94a3b8; margin-top: 0.3rem; }
+  .footer-page { text-align: center; font-size: 0.75rem; color: #94a3b8; margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+  @media print {
+    @page { margin: 2cm 2.5cm 2.5cm 2.5cm; size: A4; }
+    body { padding: 0; font-size: 11pt; line-height: 1.5; color: #000; background: #fff; }
+    h1 { font-size: 18pt; }
+    h2 { font-size: 14pt; page-break-before: always; margin-top: 0; padding-top: 0; }
+    h2:first-of-type { page-break-before: avoid; }
+    h3 { font-size: 12pt; page-break-after: avoid; }
+    h4 { font-size: 11pt; page-break-after: avoid; }
+    p, li { font-size: 11pt; }
+    table { font-size: 9pt; page-break-inside: avoid; }
+    tr { page-break-inside: avoid; }
+    pre { font-size: 8pt; white-space: pre-wrap; word-break: break-word; page-break-inside: avoid; }
+    code { font-size: 8pt; }
+    .toc { page-break-after: always; }
+    .toc h2 { page-break-before: avoid; }
+    .header-inst { page-break-before: avoid; }
+    a { color: #000; text-decoration: none; }
+    .print-footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 8pt; color: #666; border-top: 0.5pt solid #ccc; padding: 4pt 0 2pt; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header-inst">
+  <h1>Manual Técnico</h1>
+  <div class="sistema">Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos (SIVACAD)</div>
+  <div class="autoras">Autoras: Bárcenas González Laura Casandra &amp; Morales Ibarra Sandivel</div>
+  <div class="autoras">TESI Ixtapaluca — Ingeniería en Sistemas Computacionales</div>
+  <div class="version">Versión 1.0 — Julio 2026</div>
+</div>
+
+<div class="toc">
+  <h2>Índice</h2>
+  <ol>
+    <li><a href="#s1">Introducción</a></li>
+    <li><a href="#s2">Arquitectura General</a></li>
+    <li><a href="#s3">Stack Tecnológico</a></li>
+    <li><a href="#s4">Estructura del Proyecto</a></li>
+    <li><a href="#s5">Frontend — React + Vite</a></li>
+    <li><a href="#s6">Backend — Node.js + Express</a></li>
+    <li><a href="#s7">Base de Datos — MySQL 8.0</a></li>
+    <li><a href="#s8">Servicios Externos</a></li>
+    <li><a href="#s9">Rutas y Endpoints</a></li>
+    <li><a href="#s10">Configuración y Variables de Entorno</a></li>
+    <li><a href="#s11">Relación Frontend-Backend</a></li>
+    <li><a href="#s12">Dependencias y Librerías</a></li>
+  </ol>
+</div>
+
+<h2 id="s1">1. Introducción</h2>
+<p>Este manual describe la arquitectura interna, el stack tecnológico y el funcionamiento técnico del Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos (SIVACAD). Está dirigido a desarrolladores, analistas técnicos y personal de soporte que requiera comprender, mantener o extender el sistema.</p>
+
+<h2 id="s2">2. Arquitectura General</h2>
+<p>SIVACAD sigue una arquitectura de tres capas (presentación, lógica de negocio, datos) más servicios externos:</p>
+<pre>┌──────────────┐     HTTP/JSON     ┌──────────────┐     SQL     ┌──────────────┐
+│  Frontend    │ ────────────────→ │   Backend    │ ──────────→ │    MySQL     │
+│  React/Vite  │ ←─────────────── │  Express.js  │ ←───────── │    8.0.0     │
+│  Puerto 5173 │                  │  Puerto 3000 │             │  Puerto 3306 │
+└──────────────┘                  └──────┬───────┘             └──────────────┘
+                                         │
+                    ┌────────────────────┼────────────────────┐
+                    │                    │                    │
+                    ▼                    ▼                    ▼
+            ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+            │  Gemini API  │    │  Flask ML    │    │  PHP CLI     │
+            │  (Google AI) │    │  Python      │    │  Dompdf/Php  │
+            │  OCR/Chat    │    │  Puerto 5001 │    │  Spreadsheet │
+            └──────────────┘    └──────────────┘    └──────────────┘
+                                         │
+                                    ┌──────────────┐
+                                    │  SMTP O365   │
+                                    │  Nodemailer  │
+                                    └──────────────┘</pre>
+
+<h3>Principios arquitectónicos</h3>
+<ul>
+  <li><strong>Modularidad:</strong> Cada módulo es independiente y se monta dinámicamente via <code>mountIfAvailable()</code>.</li>
+  <li><strong>Seguridad por capas:</strong> JWT + bcrypt + Helmet + CORS + rate limiting + consultas parametrizadas + auditoría SHA-256.</li>
+  <li><strong>Multi-lenguaje:</strong> JavaScript (frontend/backend), Python (ML), PHP (documentos).</li>
+  <li><strong>Responsive:</strong> CSS vanilla con 3 breakpoints, off-canvas drawer en móvil.</li>
+</ul>
+
+<h2 id="s3">3. Stack Tecnológico</h2>
+<table>
+  <tr><th>Capa</th><th>Tecnología</th><th>Versión</th><th>Propósito</th></tr>
+  <tr><td>Frontend</td><td>React</td><td>18.x</td><td>Interfaz de usuario SPA</td></tr>
+  <tr><td>Frontend</td><td>Vite</td><td>5.x</td><td>Bundler y dev server</td></tr>
+  <tr><td>Frontend</td><td>React Router</td><td>6.x</td><td>Enrutamiento del lado del cliente</td></tr>
+  <tr><td>Frontend</td><td>CSS vanilla</td><td>—</td><td>Estilos responsive (~2870 líneas)</td></tr>
+  <tr><td>Backend</td><td>Node.js</td><td>18+</td><td>Lógica de negocio</td></tr>
+  <tr><td>Backend</td><td>Express.js</td><td>4.x</td><td>Framework HTTP</td></tr>
+  <tr><td>Backend</td><td>MySQL2</td><td>—</td><td>Conexión a base de datos</td></tr>
+  <tr><td>Backend</td><td>JWT (jsonwebtoken)</td><td>—</td><td>Autenticación por tokens</td></tr>
+  <tr><td>Backend</td><td>bcrypt</td><td>—</td><td>Hash de contraseñas (12 rounds)</td></tr>
+  <tr><td>Backend</td><td>Helmet</td><td>—</td><td>Seguridad HTTP headers</td></tr>
+  <tr><td>Backend</td><td>Nodemailer</td><td>—</td><td>Envío de correos SMTP</td></tr>
+  <tr><td>ML</td><td>Python 3</td><td>3.10+</td><td>Predicción de deserción/bienestar</td></tr>
+  <tr><td>ML</td><td>Flask</td><td>—</td><td>API REST para modelos ML</td></tr>
+  <tr><td>ML</td><td>scikit-learn</td><td>—</td><td>Algoritmos de ML (Random Forest)</td></tr>
+  <tr><td>Documentos</td><td>PHP 8</td><td>8.x</td><td>Generación PDF/Excel vía Dompdf</td></tr>
+  <tr><td>Documentos</td><td>PDFKit</td><td>—</td><td>PDF alternativo desde Node.js</td></tr>
+  <tr><td>Documentos</td><td>ExcelJS</td><td>—</td><td>Excel desde Node.js</td></tr>
+  <tr><td>IA</td><td>Gemini API</td><td>—</td><td>OCR, chatbot, bienestar, asistente</td></tr>
+  <tr><td>BD</td><td>MySQL</td><td>8.0</td><td>BD relacional (67 tablas)</td></tr>
+  <tr><td>Otros</td><td>QRCode</td><td>—</td><td>Generación de códigos QR</td></tr>
+  <tr><td>Otros</td><td>Puppeteer</td><td>—</td><td>PDF avanzado desde HTML</td></tr>
+</table>
+
+<h2 id="s4">4. Estructura del Proyecto</h2>
+<pre>SIVACAD-ISC/
+├── backend/
+│   ├── src/
+│   │   ├── server.js              # Punto de entrada
+│   │   ├── app.js                 # Configuración Express
+│   │   ├── config/db.js           # Pool de conexiones MySQL2
+│   │   ├── middleware/
+│   │   │   ├── auth.js            # JWT + RBAC + dominio email
+│   │   │   ├── auditoria.js       # Log de operaciones
+│   │   │   └── upload.js          # Multer config
+│   │   ├── routes/
+│   │   │   ├── index.js           # mountIfAvailable() central
+│   │   │   ├── auth.js
+│   │   │   ├── alumnos.js
+│   │   │   ├── docentes.js
+│   │   │   ├── periodos.js
+│   │   │   ├── grupos.js
+│   │   │   ├── inscripciones.js
+│   │   │   ├── kardex.js
+│   │   │   ├── evaluaciones.js
+│   │   │   ├── actasOCR.js
+│   │   │   ├── tramites.js
+│   │   │   ├── chatbot.js
+│   │   │   ├── asistente.js
+│   │   │   ├── iaDesercion*.js    # 4 sub-routers
+│   │   │   ├── iaBienestar.js
+│   │   │   ├── bienestarAdmin.js
+│   │   │   ├── iaBecas.js
+│   │   │   ├── reportes.js
+│   │   │   ├── dashboard.js
+│   │   │   ├── usuarios.js
+│   │   │   └── otros.js
+│   │   ├── controllers/           # Lógica de negocio
+│   │   ├── services/              # mailer.js, jwt.js, mlBridge.js
+│   │   └── templates/             # Handlebars para PDF
+│   ├── ml/                        # Flask ML + modelos .pkl
+│   ├── php-kardex/                # PHP Dompdf/PhpSpreadsheet
+│   └── uploads/                   # Archivos subidos
+├── frontend/
+│   ├── src/
+│   │   ├── main.jsx
+│   │   ├── App.jsx
+│   │   ├── context/
+│   │   │   ├── AuthContext.jsx
+│   │   │   └── ThemeContext.jsx
+│   │   ├── services/api.js
+│   │   ├── components/            # 15+ reutilizables
+│   │   ├── pages/                 # 40+ páginas
+│   │   └── styles/global.css      # ~2870 líneas
+│   └── vite.config.js
+├── database/
+│   ├── sivacad_isc.sql
+│   └── migrations/
+├── docs/
+│   ├── diagrams/                  # Documentación técnica
+│   └── manuales/                  # 5 manuales del sistema
+└── README.md</pre>
+
+<h2 id="s5">5. Frontend — React + Vite</h2>
+
+<h3>5.1 Enrutamiento</h3>
+<p>Definido en <code>App.jsx</code> usando React Router v6 con rutas públicas (/login, /register, /forgot-password, /reset-password/:token, /terminos, /aviso-privacidad) y protegidas (/app/* envuelto en ProtectedRoute + AppShell).</p>
+
+<h3>5.2 Autenticación (AuthContext.jsx)</h3>
+<ul>
+  <li>Almacena token JWT y datos del usuario en React state + localStorage.</li>
+  <li>Provee funciones: <code>login()</code>, <code>logout()</code>, <code>isAuthenticated()</code>.</li>
+  <li>Al recibir 401, dispara evento <code>sivacad:auth-error</code> y limpia sesión.</li>
+</ul>
+
+<h3>5.3 Peticiones HTTP (api.js)</h3>
+<ul>
+  <li>Función central <code>request(path, { token, method, body })</code>.</li>
+  <li>Inyecta header <code>Authorization: Bearer &lt;token&gt;</code> automáticamente.</li>
+  <li>Timeout default de 15 segundos. Manejo centralizado de errores HTTP.</li>
+</ul>
+
+<h3>5.4 Componentes reutilizables</h3>
+<ul>
+  <li><strong>AppShell:</strong> Layout principal con sidebar colapsable y menú off-canvas en móvil.</li>
+  <li><strong>ProtectedRoute:</strong> Verifica sesión activa antes de renderizar.</li>
+  <li><strong>SectionCard, DataTable, Modal:</strong> Componentes de UI genéricos.</li>
+  <li><strong>LoadingSpinner, StatusBadge, MetricCard:</strong> Indicadores visuales.</li>
+</ul>
+
+<h3>5.5 Estilos (global.css)</h3>
+<ul>
+  <li>Aproximadamente 2870 líneas de CSS vanilla, sin frameworks.</li>
+  <li>Breakpoints: 1200px (escritorio), 820px (tablet), 720px (móvil).</li>
+  <li>Modo oscuro con variables CSS. Drawer off-canvas para móvil.</li>
+</ul>
+
+<h2 id="s6">6. Backend — Node.js + Express</h2>
+
+<h3>6.1 Punto de entrada (server.js)</h3>
+<pre>const app = require('./app');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));</pre>
+
+<h3>6.2 Configuración Express (app.js)</h3>
+<ul>
+  <li>Middleware global: <code>express.json()</code>, <code>helmet()</code>, <code>cors()</code> con lista blanca + regex LAN.</li>
+  <li>Montaje de rutas: <code>app.use('/api', routesIndex)</code>.</li>
+  <li>Manejo de errores 404 genérico. Rate limiting en rutas sensibles.</li>
+</ul>
+
+<h3>6.3 Sistema de montaje dinámico (routes/index.js)</h3>
+<pre>function mountIfAvailable(routePath, modulePath) {
+  try {
+    const mod = require(modulePath);
+    router.use(routePath, mod);
+  } catch (e) { /* Silently skip */ }
+}</pre>
+
+<h3>6.4 Middleware de autenticación</h3>
+<ul>
+  <li><strong>authenticateToken:</strong> Verifica JWT, extrae id_usuario, correo, rol.</li>
+  <li><strong>validateInstitutionalEmail:</strong> Valida dominio del correo.</li>
+  <li><strong>checkRole('admin', 'coordinador'):</strong> Autorización RBAC.</li>
+  <li><strong>auditLog:</strong> Registra operaciones en bitácora.</li>
+</ul>
+
+<h3>6.5 Seguridad</h3>
+<ul>
+  <li>Contraseñas hasheadas con bcrypt (12 rounds).</li>
+  <li>Tokens JWT firmados con HMAC-SHA256.</li>
+  <li>Consultas parametrizadas con mysql2 (previene inyección SQL).</li>
+  <li>Transacciones ACID con COMMIT/ROLLBACK.</li>
+  <li>Headers de seguridad via Helmet. CORS + rate limiting.</li>
+</ul>
+
+<h2 id="s7">7. Base de Datos — MySQL 8.0</h2>
+
+<h3>7.1 Esquema general</h3>
+<ul>
+  <li><strong>Motor:</strong> InnoDB (transaccional, integridad referencial).</li>
+  <li><strong>Charset:</strong> utf8mb4_unicode_ci.</li>
+  <li><strong>Total de tablas:</strong> 67.</li>
+  <li><strong>Convención:</strong> snake_case con prefijos modulares (kardex_*, evaluacion_*, ia_*).</li>
+</ul>
+
+<h3>7.2 Grupos de tablas</h3>
+<table>
+  <tr><th>Grupo</th><th>Tablas clave</th><th>Propósito</th></tr>
+  <tr><td>Núcleo</td><td>usuarios, roles, alumnos, docentes</td><td>Identidad y perfiles</td></tr>
+  <tr><td>Académico</td><td>carreras, periodos, grupos, materias</td><td>Estructura académica</td></tr>
+  <tr><td>Inscripciones</td><td>inscripciones, reinscripciones</td><td>Control escolar</td></tr>
+  <tr><td>Kardex</td><td>kardex_alumno, kardex_historial_academico</td><td>Historial académico</td></tr>
+  <tr><td>Evaluaciones</td><td>evaluacion_plantillas, evaluaciones, respuestas</td><td>Evaluación</td></tr>
+  <tr><td>OCR</td><td>actas_ocr_cargas, actas_ocr_datos</td><td>Procesamiento actas</td></tr>
+  <tr><td>Trámites</td><td>tramites, tramites_documentos</td><td>Gestión trámites</td></tr>
+  <tr><td>IA Deserción</td><td>ia_alertas_desercion, ia_seguimientos</td><td>Predicción deserción</td></tr>
+  <tr><td>IA Bienestar</td><td>8 tablas (sesiones, checkins, mensajes, alertas)</td><td>Bienestar estudiantil</td></tr>
+  <tr><td>IA Becas</td><td>becas_fuentes, becas_chunks</td><td>Catálogo becas</td></tr>
+  <tr><td>Auditoría</td><td>bitacora, auditoria_global, sesiones_activas</td><td>Trazabilidad</td></tr>
+</table>
+
+<h3>7.3 Conexión (config/db.js)</h3>
+<pre>const pool = mysql2.createPool({
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME || 'sivacad_isc',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});</pre>
+
+<h2 id="s8">8. Servicios Externos</h2>
+
+<h3>8.1 Gemini API (Google AI)</h3>
+<ul>
+  <li><strong>Uso:</strong> OCR de actas, chatbot, asistente, chat de bienestar.</li>
+  <li><strong>Autenticación:</strong> API Key en <code>GEMINI_API_KEY</code>.</li>
+  <li><strong>Modelo:</strong> gemini-2.0-flash.</li>
+</ul>
+
+<h3>8.2 Flask ML (Python)</h3>
+<ul>
+  <li><strong>Uso:</strong> Predicción de deserción (binaria y multiclase).</li>
+  <li><strong>Puerto:</strong> 5001. Comunicación vía HTTP POST.</li>
+  <li><strong>Modelos:</strong> Random Forest, XGBoost (archivos .pkl).</li>
+</ul>
+
+<h3>8.3 PHP CLI (Dompdf / PhpSpreadsheet)</h3>
+<ul>
+  <li><strong>Uso:</strong> Generación de PDF y Excel con formato institucional.</li>
+  <li><strong>Comunicación:</strong> Backend ejecuta PHP via <code>exec()</code>.</li>
+</ul>
+
+<h3>8.4 SMTP Office 365 (Nodemailer)</h3>
+<p>Envío de correos de recuperación de contraseña. Configuración por变量 de entorno.</p>
+
+<h3>8.5 Puppeteer</h3>
+<p>Generación alternativa de PDF desde HTML renderizado.</p>
+
+<h2 id="s9">9. Rutas y Endpoints</h2>
+<table>
+  <tr><th>Ruta</th><th>Módulo</th><th>Roles con acceso</th></tr>
+  <tr><td>/auth/*</td><td>Autenticación</td><td>Público</td></tr>
+  <tr><td>/dashboard/*</td><td>Dashboard</td><td>Todos</td></tr>
+  <tr><td>/alumnos/*</td><td>Alumnos</td><td>Admin, Coord</td></tr>
+  <tr><td>/docentes/*</td><td>Docentes</td><td>Admin, Coord</td></tr>
+  <tr><td>/periodos/*</td><td>Periodos</td><td>Admin, Coord</td></tr>
+  <tr><td>/grupos/*</td><td>Grupos</td><td>Admin, Coord</td></tr>
+  <tr><td>/inscripciones/*</td><td>Inscripciones</td><td>Todos (según acción)</td></tr>
+  <tr><td>/kardex/*</td><td>Kardex</td><td>Todos (según acción)</td></tr>
+  <tr><td>/evaluaciones/*</td><td>Evaluaciones</td><td>Todos (según acción)</td></tr>
+  <tr><td>/actas-ocr/*</td><td>Actas OCR</td><td>Admin, Coord</td></tr>
+  <tr><td>/tramites/*</td><td>Trámites</td><td>Todos (según acción)</td></tr>
+  <tr><td>/chatbot/*</td><td>Chatbot</td><td>Todos</td></tr>
+  <tr><td>/asistente/*</td><td>Asistente</td><td>Todos</td></tr>
+  <tr><td>/ia/desercion/*</td><td>IA Deserción</td><td>Todos (4 sub-routers)</td></tr>
+  <tr><td>/ia/bienestar/*</td><td>IA Bienestar</td><td>Alumno</td></tr>
+  <tr><td>/bienestar-admin/*</td><td>Bienestar Admin</td><td>Admin, Coord, Soporte</td></tr>
+  <tr><td>/ia/becas/*</td><td>IA Becas</td><td>Todos</td></tr>
+  <tr><td>/reportes/*</td><td>Reportes</td><td>Todos</td></tr>
+  <tr><td>/usuarios/*</td><td>Usuarios</td><td>Admin</td></tr>
+  <tr><td>/auditoria/*</td><td>Auditoría</td><td>Admin, Soporte</td></tr>
+</table>
+
+<h2 id="s10">10. Configuración y Variables de Entorno</h2>
+
+<h3>10.1 Backend (.env)</h3>
+<pre>PORT=3000
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=sivacad_isc
+JWT_SECRET=tu_secreto_jwt_aqui
+JWT_EXPIRES_IN=24h
+GEMINI_API_KEY=tu_api_key_gemini
+SMTP_HOST=smtp.office365.com
+SMTP_PORT=587
+SMTP_USER=correo@tesi.edu.mx
+SMTP_PASS=contraseña_correo
+FRONTEND_URL=http://localhost:5173
+FLASK_ML_URL=http://localhost:5001</pre>
+
+<h3>10.2 Frontend (.env)</h3>
+<pre>VITE_API_URL=http://localhost:3000/api</pre>
+
+<h2 id="s11">11. Relación Frontend-Backend</h2>
+
+<h3>11.1 Flujo de petición típico</h3>
+<ol>
+  <li>Usuario interactúa con componente React</li>
+  <li>Componente llama a api.js → request('/alumnos', { token })</li>
+  <li>api.js inyecta header Authorization: Bearer &lt;token&gt;</li>
+  <li>Petición HTTP a VITE_API_URL + '/alumnos'</li>
+  <li>Backend recibe en Express Router</li>
+  <li>Middleware auth.js verifica JWT y rol</li>
+  <li>Controlador ejecuta lógica de negocio + consulta MySQL</li>
+  <li>Backend responde JSON { ok: true, data: [...] }</li>
+  <li>api.js retorna response.data al componente</li>
+  <li>Componente actualiza estado y renderiza</li>
+</ol>
+
+<h3>11.2 Manejo de errores</h3>
+<table>
+  <tr><th>Código</th><th>Significado</th><th>Acción del frontend</th></tr>
+  <tr><td>200</td><td>Éxito</td><td>Procesa datos normalmente</td></tr>
+  <tr><td>201</td><td>Creado exitosamente</td><td>Notificación de éxito</td></tr>
+  <tr><td>400</td><td>Error de validación</td><td>Muestra mensaje del servidor</td></tr>
+  <tr><td>401</td><td>No autorizado</td><td>Limpia sesión, redirige a /login</td></tr>
+  <tr><td>403</td><td>Sin permisos</td><td>Muestra "Acceso denegado"</td></tr>
+  <tr><td>404</td><td>No encontrado</td><td>Muestra "No encontrado"</td></tr>
+  <tr><td>429</td><td>Demasiadas solicitudes</td><td>Muestra "Intente más tarde"</td></tr>
+  <tr><td>500</td><td>Error del servidor</td><td>Muestra "Error interno"</td></tr>
+</table>
+
+<h2 id="s12">12. Dependencias y Librerías</h2>
+
+<h3>12.1 Backend (package.json)</h3>
+<pre>{
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^7.1.4",
+    "nodemailer": "^6.9.7",
+    "multer": "^1.4.5-lts.1",
+    "qrcode": "^1.5.3",
+    "pdfkit": "^0.13.0",
+    "exceljs": "^4.4.0",
+    "@google/generative-ai": "^0.21.0",
+    "dotenv": "^16.3.1",
+    "morgan": "^1.10.0",
+    "handlebars": "^4.7.8",
+    "puppeteer": "^21.6.0"
+  }
+}</pre>
+
+<h3>12.2 Frontend (package.json)</h3>
+<pre>{
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.0",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.0",
+    "vite": "^5.0.0"
+  }
+}</pre>
+
+<h3>12.3 Python ML (requirements.txt)</h3>
+<pre>flask==3.0.0
+flask-cors==4.0.0
+scikit-learn==1.3.2
+pandas==2.1.4
+numpy==1.26.2
+joblib==1.3.2
+xgboost==2.0.1
+imbalanced-learn==0.11.0</pre>
+
+<div class="footer-page">Fin del Manual Técnico — SIVACAD v1.0 — TESI Ixtapaluca — ISC 2026</div>
+
+<div class="print-footer">SIVACAD &mdash; Manual Técnico &mdash; TESI Ixtapaluca &mdash; ISC 2026</div>
+</body>
+</html>

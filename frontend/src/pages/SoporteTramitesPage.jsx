@@ -346,7 +346,7 @@ export default function SoporteTramitesPage() {
 
           {data?.incidencias?.length > 0 ? (
             <div className="table-wrap">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr>
                     <th>#</th>
@@ -392,7 +392,7 @@ export default function SoporteTramitesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : !loading ? (
             <div className="empty">No hay incidencias registradas.</div>
@@ -431,7 +431,7 @@ export default function SoporteTramitesPage() {
 
           {data?.archivos?.length > 0 ? (
             <div className="table-wrap">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr>
                     <th>#</th>
@@ -458,7 +458,7 @@ export default function SoporteTramitesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : !loading ? (
             <div className="empty">No hay archivos registrados.</div>
@@ -524,7 +524,7 @@ export default function SoporteTramitesPage() {
 
           {data?.recuperaciones?.length > 0 ? (
             <div className="table-wrap">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr>
                     <th>#</th>
@@ -551,7 +551,7 @@ export default function SoporteTramitesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : !loading ? (
             <div className="empty">No hay recuperaciones registradas.</div>
@@ -588,7 +588,7 @@ export default function SoporteTramitesPage() {
                 <div className="section-card">
                   <div className="section-head"><FolderOpen size={18} /><h3>Detalle por documento</h3></div>
                   <div className="table-wrap">
-                    <table className="table">
+                    <div className="table-responsive"><table className="table">
                       <thead>
                         <tr>
                           <th>Folio</th>
@@ -611,7 +611,7 @@ export default function SoporteTramitesPage() {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
+                    </table></div>
                   </div>
                 </div>
               )}
@@ -633,7 +633,7 @@ export default function SoporteTramitesPage() {
 
           {data?.logs?.length > 0 ? (
             <div className="table-wrap">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead>
                   <tr>
                     <th>#</th>
@@ -660,7 +660,7 @@ export default function SoporteTramitesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           ) : !loading ? (
             <div className="empty">No hay registros en el historial técnico.</div>
@@ -697,7 +697,7 @@ export default function SoporteTramitesPage() {
           <div className="section-card">
             <div className="section-head"><ClipboardList size={18} /><h3>Trámites por tipo</h3></div>
             <div className="table-wrap">
-              <table className="table">
+              <div className="table-responsive"><table className="table">
                 <thead><tr><th>Tipo</th><th>Código</th><th>Total</th></tr></thead>
                 <tbody>
                   {data.tramites_por_tipo.map((t, i) => (
@@ -708,7 +708,7 @@ export default function SoporteTramitesPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           </div>
         )}
@@ -753,7 +753,7 @@ export default function SoporteTramitesPage() {
               <p>{compatibilidadResult.observaciones}</p>
               {compatibilidadResult.documentos?.length > 0 && (
                 <div className="table-wrap">
-                  <table className="table">
+                  <div className="table-responsive"><table className="table">
                     <thead><tr><th>Documento</th><th>Formato</th><th>Tamaño</th><th>Compatible</th></tr></thead>
                     <tbody>
                       {compatibilidadResult.documentos.map((d, i) => (
@@ -765,7 +765,7 @@ export default function SoporteTramitesPage() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                  </table></div>
                 </div>
               )}
             </div>

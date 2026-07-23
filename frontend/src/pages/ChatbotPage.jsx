@@ -323,7 +323,7 @@ function MetricasGlobales({ token, role }) {
 
       {metricas.top_usuarios && metricas.top_usuarios.length > 0 && (
         <SectionCard title="Usuarios mas activos" subtitle="Ultimos 7 dias">
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                 <th style={{ padding: '0.5rem' }}>ID Usuario</th>
@@ -340,7 +340,7 @@ function MetricasGlobales({ token, role }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </SectionCard>
       )}
     </div>
@@ -425,7 +425,7 @@ function AuditoriaPanel({ token }) {
         <>
           <div className="eyebrow" style={{ marginBottom: '0.5rem' }}>Total: {total} registros</div>
           <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+            <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                   <th style={{ padding: '0.4rem' }}>Fecha</th>
@@ -450,7 +450,7 @@ function AuditoriaPanel({ token }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </>
       )}
@@ -507,7 +507,7 @@ function ConfiguracionPanel({ token, user }) {
       )}
 
       <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
               <th style={{ padding: '0.5rem' }}>Clave</th>
@@ -556,7 +556,7 @@ function ConfiguracionPanel({ token, user }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </SectionCard>
   );
@@ -664,7 +664,7 @@ function IncidenciasPanel({ token, role }) {
         <div className="auth-note">No hay incidencias registradas.</div>
       ) : (
         <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+          <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                 <th style={{ padding: '0.4rem' }}>Fecha</th>
@@ -748,7 +748,7 @@ function IncidenciasPanel({ token, role }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
     </SectionCard>
@@ -823,7 +823,7 @@ function ConversacionesPanel({ token }) {
         <div className="auth-note">No hay conversaciones registradas.</div>
       ) : (
         <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+          <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                 <th style={{ padding: '0.4rem' }}>Fecha</th>
@@ -854,7 +854,7 @@ function ConversacionesPanel({ token }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </div>
       )}
     </SectionCard>
@@ -1155,7 +1155,7 @@ function SeguimientoPanel({ token }) {
           </div>
         ) : (
           <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+            <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                   <th style={{ padding: '0.4rem' }}>Matricula</th>
@@ -1185,7 +1185,7 @@ function SeguimientoPanel({ token }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         )}
       </SectionCard>
@@ -1441,7 +1441,7 @@ function SeguimientoAcademicoDocente({ token }) {
           <div className="auth-note">{filtro ? 'No se encontraron alumnos.' : 'No hay datos disponibles.'}</div>
         ) : (
           <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+            <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                   <th style={{ padding: '0.4rem' }}>Matricula</th>
@@ -1467,7 +1467,7 @@ function SeguimientoAcademicoDocente({ token }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         )}
       </SectionCard>
@@ -1644,7 +1644,7 @@ function KardexIndividualAlumno({ token }) {
           {kardex.materias && kardex.materias.length > 0 && (
             <SectionCard title="Materias cursadas" subtitle="Historial de materias y calificaciones">
               <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+                <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                       <th style={{ padding: '0.4rem' }}>Materia</th>
@@ -1667,7 +1667,7 @@ function KardexIndividualAlumno({ token }) {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table></div>
               </div>
             </SectionCard>
           )}
@@ -1846,7 +1846,7 @@ function EvaluacionesAlumno({ token }) {
       ) : evaluaciones.length > 0 ? (
         <SectionCard title="Resultados de evaluaciones" subtitle="Calificaciones del periodo">
           <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+            <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                   <th style={{ padding: '0.4rem' }}>Materia</th>
@@ -1873,7 +1873,7 @@ function EvaluacionesAlumno({ token }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </SectionCard>
       ) : (
@@ -2024,7 +2024,7 @@ function IncidenciasSoportePanel({ token }) {
       ) : rows.length > 0 ? (
         <SectionCard title="Incidencias registradas" subtitle="Lista de incidencias del sistema">
           <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+            <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                   <th style={{ padding: '0.4rem' }}>Fecha</th>
@@ -2053,7 +2053,7 @@ function IncidenciasSoportePanel({ token }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </SectionCard>
       ) : (
@@ -2099,7 +2099,7 @@ function RecuperacionAccesoSoporte({ token }) {
       ) : resets.length > 0 ? (
         <SectionCard title="Solicitudes de restablecimiento" subtitle="Solicitudes de recuperacion de contrasena">
           <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+            <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                   <th style={{ padding: '0.4rem' }}>ID Usuario</th>
@@ -2118,7 +2118,7 @@ function RecuperacionAccesoSoporte({ token }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </SectionCard>
       ) : (
@@ -2171,7 +2171,7 @@ function BitacoraSoportePanel({ token }) {
       ) : logs.length > 0 ? (
         <SectionCard title="Registros recientes" subtitle="Ultimos 20 eventos registrados">
           <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div className="table-responsive"><table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--line)', textAlign: 'left' }}>
                   <th style={{ padding: '0.4rem' }}>Fecha</th>
@@ -2196,7 +2196,7 @@ function BitacoraSoportePanel({ token }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </SectionCard>
       ) : (

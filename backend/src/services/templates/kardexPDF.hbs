@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <style>
-  @page { margin: 30px 40px; size: letter; }
+  @page { margin: 2.54cm; size: letter; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; font-size: 11px; line-height: 1.4; }
 
@@ -99,7 +99,7 @@
   {{#if logo_tecnm}}<img src="{{logo_tecnm}}" alt="TecNM">{{/if}}
   <div class="header-center">
     <h1>KARDEX DEL ALUMNO</h1>
-    <h2>SISTEMA INTEGRAL DE VALIDACIÓN Y CONTROL ACADÉMICO</h2>
+    <h2>Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos</h2>
     <small>SIVACAD — Tecnológico Nacional de México / TESI</small>
   </div>
   {{#if logo_tesi}}<img src="{{logo_tesi}}" alt="TESI">{{/if}}
@@ -157,6 +157,13 @@
   </div>
   {{/each}}
 </div>
+
+{{#if sello_sivacad}}
+<div style="text-align:center;margin:24px 0 6px;">
+  {{{sello_sivacad}}}
+  <div style="font-size:6.5px;color:#64748b;margin-top:2px;font-weight:600;">SELLO SIVACAD — Sello oficial del Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos</div>
+</div>
+{{/if}}
 
 <div class="nota">
   Si quieres visualizar o verificar qué materias acreditaste, estás en 2da oportunidad, si estás en

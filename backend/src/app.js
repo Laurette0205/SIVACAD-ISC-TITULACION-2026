@@ -21,10 +21,17 @@ const allowedOrigins = [
   'http://localhost:8080'
 ].filter(Boolean);
 
+const originRegexPatterns = [
+  /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:\d+$/,
+  /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+$/,
+  /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}:\d+$/
+];
+
 const corsOptions = {
   origin(origin, callback) {
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (originRegexPatterns.some(re => re.test(origin))) return callback(null, true);
     return callback(new Error(`Origen no permitido por CORS: ${origin}`), false);
   },
   credentials: true,

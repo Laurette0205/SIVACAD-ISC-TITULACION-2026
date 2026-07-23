@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual de Instalación y Despliegue — SIVACAD</title>
+<style>
+  :root { --bg: #ffffff; --text: #1e293b; --accent: #2563eb; --border: #e2e8f0; --code-bg: #f1f5f9; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; padding: 2.5rem; max-width: 1000px; margin: 0 auto; }
+  h1 { font-size: 2rem; color: #0f172a; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 0.25rem; }
+  .subtitle { color: #64748b; margin-bottom: 2rem; font-size: 0.95rem; }
+  h2 { font-size: 1.5rem; color: #0f172a; margin: 2.5rem 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; page-break-before: always; }
+  h2:first-of-type { page-break-before: avoid; }
+  h3 { font-size: 1.15rem; color: #1e293b; margin: 1.5rem 0 0.5rem; }
+  p { margin-bottom: 0.8rem; }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+  li { margin-bottom: 0.3rem; }
+  code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
+  pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 0.8rem 0; font-size: 0.85rem; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+  th { background: #1e3a5f; color: #fff; padding: 0.6rem; text-align: left; }
+  td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); }
+  tr:nth-child(even) { background: #f8fafc; }
+  .toc { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; margin: 2rem 0; }
+  .toc h2 { margin-top: 0; page-break-before: avoid; border-bottom: none; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .header-inst { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--accent); }
+  .header-inst h1 { border-bottom: none; margin-bottom: 0.2rem; }
+  .header-inst .sistema { font-size: 1.1rem; font-weight: 600; color: #0f172a; }
+  .header-inst .autoras { font-size: 0.9rem; color: #64748b; }
+  .header-inst .version { font-size: 0.8rem; color: #94a3b8; margin-top: 0.3rem; }
+  .footer-page { text-align: center; font-size: 0.75rem; color: #94a3b8; margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+  @media print {
+    @page { margin: 2cm 2.5cm; size: A4; @top-center { content: "SIVACAD — Manual de Instalación y Despliegue"; font-size: 8pt; color: #94a3b8; } @bottom-center { content: counter(page); font-size: 8pt; color: #94a3b8; } }
+    @page { margin: 2cm 2.5cm 2.5cm 2.5cm; size: A4; }
+    body { padding: 0; font-size: 11pt; line-height: 1.5; color: #000; background: #fff; }
+    h1 { font-size: 18pt; }
+    h2 { font-size: 14pt; page-break-before: always; margin-top: 0; padding-top: 0; }
+    h2:first-of-type { page-break-before: avoid; }
+    h3 { font-size: 12pt; page-break-after: avoid; }
+    h4 { font-size: 11pt; page-break-after: avoid; }
+    p, li { font-size: 11pt; }
+    table { font-size: 9pt; page-break-inside: avoid; }
+    tr { page-break-inside: avoid; }
+    pre { font-size: 8pt; white-space: pre-wrap; word-break: break-word; page-break-inside: avoid; }
+    code { font-size: 8pt; }
+    .toc { page-break-after: always; }
+    .toc h2 { page-break-before: avoid; }
+    .header-inst { page-break-before: avoid; }
+    a { color: #000; text-decoration: none; }
+    .print-footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 8pt; color: #666; border-top: 0.5pt solid #ccc; padding: 4pt 0 2pt; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header-inst">
+  <h1>Manual de Instalación y Despliegue</h1>
+  <div class="sistema">Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos (SIVACAD)</div>
+  <div class="autoras">Autoras: Bárcenas González Laura Casandra &amp; Morales Ibarra Sandivel</div>
+  <div class="autoras">TESI Ixtapaluca — Ingeniería en Sistemas Computacionales</div>
+  <div class="version">Versión 1.0 — Julio 2026</div>
+</div>
+
+<div class="toc">
+  <h2>Índice</h2>
+  <ol>
+    <li><a href="#s1">Introducción</a></li>
+    <li><a href="#s2">Requisitos del Sistema</a></li>
+    <li><a href="#s3">Estructura de Archivos</a></li>
+    <li><a href="#s4">Instalación de la Base de Datos</a></li>
+    <li><a href="#s5">Configuración del Backend</a></li>
+    <li><a href="#s6">Configuración del Frontend</a></li>
+    <li><a href="#s7">Módulo ML (Python/Flask)</a></li>
+    <li><a href="#s8">Módulo PHP</a></li>
+    <li><a href="#s9">Levantamiento de Servidores</a></li>
+    <li><a href="#s10">Primer Acceso y Pruebas</a></li>
+    <li><a href="#s11">Despliegue en Producción</a></li>
+    <li><a href="#s12">Solución de Problemas</a></li>
+  </ol>
+</div>
+
+<h2 id="s1">1. Introducción</h2>
+<p>Este manual describe paso a paso cómo instalar, configurar y poner en funcionamiento el Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos (SIVACAD). Está dirigido al personal técnico, desarrolladores y soporte responsables de la implementación.</p>
+
+<h2 id="s2">2. Requisitos del Sistema</h2>
+
+<h3>2.1 Hardware mínimo</h3>
+<table>
+  <tr><th>Componente</th><th>Desarrollo</th><th>Producción</th></tr>
+  <tr><td>CPU</td><td>2 núcleos</td><td>4 núcleos</td></tr>
+  <tr><td>RAM</td><td>4 GB</td><td>8 GB</td></tr>
+  <tr><td>Disco</td><td>20 GB SSD</td><td>50 GB SSD</td></tr>
+  <tr><td>Red</td><td>Conexión básica</td><td>100 Mbps</td></tr>
+</table>
+
+<h3>2.2 Software requerido</h3>
+<table>
+  <tr><th>Software</th><th>Versión</th><th>Propósito</th></tr>
+  <tr><td>Node.js</td><td>18+</td><td>Backend + Frontend</td></tr>
+  <tr><td>npm</td><td>9+</td><td>Gestor de paquetes</td></tr>
+  <tr><td>MySQL</td><td>8.0+</td><td>Base de datos</td></tr>
+  <tr><td>Python</td><td>3.10+</td><td>Módulo ML</td></tr>
+  <tr><td>PHP</td><td>8.0+</td><td>Documentos PDF/Excel</td></tr>
+  <tr><td>Composer</td><td>2.0+</td><td>Dependencias PHP</td></tr>
+  <tr><td>Git</td><td>2.30+</td><td>Control de versiones</td></tr>
+</table>
+
+<h3>2.3 Cuentas de servicio</h3>
+<ul>
+  <li><strong>Google Gemini API:</strong> API Key en https://ai.google.dev/</li>
+  <li><strong>SMTP Office 365:</strong> Cuenta de correo institucional</li>
+</ul>
+
+<h2 id="s3">3. Estructura de Archivos</h2>
+<pre>SIVACAD-ISC/
+├── backend/          # API REST (Node.js + Express)
+│   ├── src/          # Código fuente
+│   ├── ml/           # Python/Flask
+│   ├── php-kardex/   # PHP Dompdf/PhpSpreadsheet
+│   └── uploads/      # Archivos subidos
+├── frontend/         # React + Vite
+├── database/         # SQL + migraciones
+└── docs/             # Documentación</pre>
+
+<h2 id="s4">4. Instalación de la Base de Datos</h2>
+
+<h3>4.1 Crear la base de datos</h3>
+<pre>mysql -u root -p
+CREATE DATABASE sivacad_isc CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+EXIT;</pre>
+
+<h3>4.2 Importar el esquema</h3>
+<pre>mysql -u root -p sivacad_isc &lt; database/sivacad_isc.sql
+for file in database/migrations/*.sql; do
+  mysql -u root -p sivacad_isc &lt; "$file"
+done</pre>
+
+<h3>4.3 Verificar</h3>
+<pre>mysql -u root -p -e "USE sivacad_isc; SHOW TABLES;"</pre>
+<p>Deberían aparecer las 67 tablas del sistema.</p>
+
+<h2 id="s5">5. Configuración del Backend</h2>
+
+<h3>5.1 Instalar dependencias</h3>
+<pre>cd backend
+npm install</pre>
+
+<h3>5.2 Configurar .env</h3>
+<pre>cp .env.example .env</pre>
+<p>Edite el archivo <code>.env</code> con los valores correctos:</p>
+<pre>PORT=3000
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=tu_contraseña
+DB_NAME=sivacad_isc
+JWT_SECRET=generar_un_secreto_aleatorio_seguro
+JWT_EXPIRES_IN=24h
+GEMINI_API_KEY=tu_api_key_de_gemini
+SMTP_HOST=smtp.office365.com
+SMTP_PORT=587
+SMTP_USER=correo@tesi.edu.mx
+SMTP_PASS=contraseña
+FRONTEND_URL=http://localhost:5173
+FLASK_ML_URL=http://localhost:5001</pre>
+
+<h3>5.3 Verificar</h3>
+<pre>node -e "require('./src/app.js'); console.log('Configuración OK');"</pre>
+
+<h2 id="s6">6. Configuración del Frontend</h2>
+
+<h3>6.1 Instalar dependencias</h3>
+<pre>cd frontend
+npm install</pre>
+
+<h3>6.2 Configurar .env</h3>
+<pre>cp .env.example .env
+# Contenido:
+VITE_API_URL=http://localhost:3000/api</pre>
+
+<h3>6.3 Verificar compilación</h3>
+<pre>npm run build</pre>
+<p>Debe completarse sin errores (1754+ módulos).</p>
+
+<h2 id="s7">7. Configuración del Módulo ML</h2>
+
+<h3>7.1 Crear y activar entorno virtual</h3>
+<pre>cd backend/ml
+python -m venv venv
+# Windows: venv\Scripts\activate
+# Linux:   source venv/bin/activate</pre>
+
+<h3>7.2 Instalar dependencias</h3>
+<pre>pip install -r requirements.txt</pre>
+
+<h3>7.3 Verificar</h3>
+<pre>python app.py
+# Servidor Flask en http://localhost:5001</pre>
+
+<h2 id="s8">8. Configuración del Módulo PHP</h2>
+
+<h3>8.1 Instalar dependencias</h3>
+<pre>cd backend/php-kardex
+composer install</pre>
+
+<h3>8.2 Verificar PHP</h3>
+<pre>php -v
+# Debe ser PHP 8.0 o superior</pre>
+
+<h2 id="s9">9. Levantamiento de Servidores</h2>
+
+<h3>9.1 Iniciar backend</h3>
+<pre>cd backend
+npm run dev
+# http://localhost:3000</pre>
+
+<h3>9.2 Iniciar frontend</h3>
+<pre>cd frontend
+npm run dev
+# http://localhost:5173</pre>
+
+<h3>9.3 Iniciar Flask ML</h3>
+<pre>cd backend/ml
+venv\Scripts\activate  # Windows
+python app.py
+# http://localhost:5001</pre>
+
+<h3>9.4 Verificar servidores</h3>
+<pre>curl http://localhost:3000/api/dashboard
+curl http://localhost:5173
+curl http://localhost:5001/health</pre>
+
+<h2 id="s10">10. Primer Acceso y Pruebas</h2>
+
+<h3>10.1 Sembrar datos de prueba</h3>
+<pre>mysql -u root -p sivacad_isc &lt; database/seed_usuarios_iniciales.sql</pre>
+
+<h3>10.2 Credenciales por defecto</h3>
+<table>
+  <tr><th>Rol</th><th>Correo</th><th>Contraseña</th></tr>
+  <tr><td>Administrador</td><td>admin@tesi.edu.mx</td><td>Testing123!</td></tr>
+</table>
+
+<h3>10.3 Pruebas iniciales</h3>
+<table>
+  <tr><th>#</th><th>Prueba</th><th>Resultado esperado</th></tr>
+  <tr><td>1</td><td>Iniciar sesión como admin</td><td>Redirige al dashboard</td></tr>
+  <tr><td>2</td><td>Crear un nuevo periodo</td><td>Periodo visible en listado</td></tr>
+  <tr><td>3</td><td>Registrar un alumno</td><td>Alumno en el listado</td></tr>
+  <tr><td>4</td><td>Crear una inscripción</td><td>Inscripción exitosa</td></tr>
+  <tr><td>5</td><td>Consultar kardex</td><td>Historial visible</td></tr>
+  <tr><td>6</td><td>Generar PDF</td><td>PDF descargable</td></tr>
+  <tr><td>7</td><td>Probar chatbot</td><td>Respuesta Gemini</td></tr>
+  <tr><td>8</td><td>Cerrar sesión</td><td>Login screen</td></tr>
+</table>
+
+<h3>10.4 Probar desde móvil</h3>
+<ol>
+  <li>Conecte el móvil a la misma red WiFi que el servidor.</li>
+  <li>Obtenga la IP local: <code>ipconfig</code> (Windows).</li>
+  <li>Acceda desde el móvil: <code>http://IP:5173</code>.</li>
+  <li>El CORS acepta IPs LAN (192.168.x.x, 10.x.x.x, 172.16-31.x.x).</li>
+</ol>
+
+<h2 id="s11">11. Despliegue en Producción</h2>
+
+<h3>11.1 Compilar frontend</h3>
+<pre>cd frontend
+npm run build
+# Archivos estáticos en frontend/dist/</pre>
+
+<h3>11.2 Configurar Nginx</h3>
+<pre>server {
+    listen 80;
+    server_name sivacad.tesi.edu.mx;
+    root /var/www/sivacad/frontend/dist;
+    index index.html;
+
+    location /api/ {
+        proxy_pass http://localhost:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}</pre>
+
+<h3>11.3 Gestionar con PM2</h3>
+<pre>npm install -g pm2
+cd backend && pm2 start src/server.js --name sivacad-backend
+cd backend/ml && pm2 start app.py --interpreter python --name sivacad-ml
+pm2 save
+pm2 startup</pre>
+
+<h3>11.4 SSL con Certbot</h3>
+<pre>sudo certbot --nginx -d sivacad.tesi.edu.mx</pre>
+
+<h2 id="s12">12. Solución de Problemas Comunes</h2>
+
+<h3>Error: Conexión MySQL</h3>
+<p><strong>Causa:</strong> MySQL no corre o credenciales incorrectas.</p>
+<pre>sudo systemctl status mysql  # Linux
+net start MySQL              # Windows</pre>
+
+<h3>Error: Module not found</h3>
+<p><strong>Solución:</strong> Reinstalar dependencias:</p>
+<pre>cd backend && rm -rf node_modules && npm install</pre>
+
+<h3>Error: CORS desde móvil</h3>
+<p><strong>Causa:</strong> IP no está en lista blanca. Verifique rango LAN.</p>
+
+<h3>Error: Gemini API Key</h3>
+<p><strong>Solución:</strong> Configure <code>GEMINI_API_KEY</code> en <code>.env</code>.</p>
+
+<h3>Error: Puerto en uso</h3>
+<pre># Linux
+lsof -i :3000 && kill -9 PID
+# Windows
+netstat -ano | findstr :3000 && taskkill /PID PID /F</pre>
+
+<h3>Error: Build frontend falla</h3>
+<pre>cd frontend && rm -rf node_modules && npm install && npm run build</pre>
+
+<div class="footer-page">Fin del Manual de Instalación y Despliegue — SIVACAD v1.0 — TESI Ixtapaluca — ISC 2026</div>
+
+<div class="print-footer">SIVACAD &mdash; Manual de Instalación y Despliegue &mdash; TESI Ixtapaluca &mdash; ISC 2026</div>
+</body>
+</html>
