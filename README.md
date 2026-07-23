@@ -1,6 +1,6 @@
 # SIVACAD-ISC
 
-**Sistema Integral para la Administración y Control Académico**  
+**Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos**  
 Carrera de Ingeniería en Sistemas Computacionales  
 Tecnológico de Estudios Superiores de Ixtapaluca (TESI)
 
