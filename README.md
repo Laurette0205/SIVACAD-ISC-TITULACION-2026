@@ -11,7 +11,7 @@ Tecnológico de Estudios Superiores de Ixtapaluca (TESI)
 
 ## Propósito
 
-Proyecto de titulación para obtener el título de Ingeniería en Sistemas Computacionales.
+Proyecto de investigación para obtener el título de Ingeniería en Sistemas Computacionales.
 Sistema exclusivo para la carrera de Ingeniería en Sistemas Computacionales del TESI.
 
 ## Derechos de Autor
