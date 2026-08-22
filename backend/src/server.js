@@ -47,3 +47,27 @@ server.on('error', (error) => {
     process.exit(1);
   }
 });
+
+// ==============================
+// 🛑 GRACEFUL SHUTDOWN
+// ==============================
+const pool = require('./config/db');
+
+function gracefulShutdown(signal) {
+  console.log(`\n🛑 ${signal} recibido. Cerrando servidor...`);
+  server.close(async () => {
+    console.log('✅ Servidor HTTP cerrado.');
+    try {
+      await pool.end();
+      console.log('✅ Conexiones a BD cerradas.');
+    } catch (_) {}
+    process.exit(0);
+  });
+  setTimeout(() => {
+    console.error('⚠️ Forzando salida por timeout.');
+    process.exit(1);
+  }, 10000);
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

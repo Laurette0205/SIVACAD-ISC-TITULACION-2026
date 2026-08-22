@@ -245,6 +245,20 @@ exports.register = async (req, res) => {
       });
     }
 
+    if (contrasena.length < 8) {
+      return res.status(400).json({
+        ok: false,
+        message: 'La contraseña debe tener al menos 8 caracteres'
+      });
+    }
+
+    if (contrasena.length > 128) {
+      return res.status(400).json({
+        ok: false,
+        message: 'La contraseña no puede exceder 128 caracteres'
+      });
+    }
+
     const correoNormalizado = normalizeEmail(correo);
     const rolNormalizado = normalizeRole(rol);
 
@@ -453,9 +467,10 @@ exports.register = async (req, res) => {
     } catch (_) {}
 
     console.error('ERROR EN REGISTER:', error);
+    const isProd = process.env.NODE_ENV === 'production';
     return res.status(500).json({
       ok: false,
-      message: error.message || 'Error al registrar usuario'
+      message: isProd ? 'Error al registrar usuario' : (error.message || 'Error al registrar usuario')
     });
   } finally {
     conn.release();
@@ -734,9 +749,10 @@ exports.forgotPassword = async (req, res) => {
     } catch (_) {}
 
     console.error(error);
+    const isProd = process.env.NODE_ENV === 'production';
     return res.status(500).json({
       ok: false,
-      message: error.message || 'Error al procesar solicitud'
+      message: isProd ? 'Error al procesar solicitud' : (error.message || 'Error al procesar solicitud')
     });
   } finally {
     conn.release();

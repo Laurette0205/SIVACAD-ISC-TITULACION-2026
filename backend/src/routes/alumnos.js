@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const { auth } = require('../middleware/auth');
+const { auth, role } = require('../middleware/auth');
 
 router.get('/', auth, async (req, res) => {
   try {
@@ -89,7 +89,7 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, role('ADMINISTRADOR', 'COORDINADOR', 'SOPORTE'), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!id) {
@@ -153,7 +153,7 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, role('ADMINISTRADOR', 'COORDINADOR', 'SOPORTE'), async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!id) {

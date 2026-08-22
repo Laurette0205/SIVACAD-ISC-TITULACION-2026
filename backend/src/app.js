@@ -7,6 +7,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
+const compression = require('compression');
 
 const { rateLimiter, xssSanitizer, securityHeaders, ipBlockCheck } = require('./middleware/seguridad');
 
@@ -47,6 +48,7 @@ app.use(helmet({
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
+app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
@@ -94,9 +96,10 @@ app.use((req, res) => {
 // Manejo global de errores
 app.use((err, req, res, next) => {
   console.error('❌ Error global:', err);
-  res.status(err.status || 500).json({
+  const isProd = process.env.NODE_ENV === 'production';
+  return res.status(err.status || 500).json({
     ok: false,
-    message: err.message || 'Error interno del servidor'
+    message: isProd ? 'Error interno del servidor' : (err.message || 'Error interno del servidor')
   });
 });
 

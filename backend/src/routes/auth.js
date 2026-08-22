@@ -18,6 +18,17 @@ const forgotPasswordLimiter = rateLimit({
   }
 });
 
+const resetPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    ok: false,
+    message: 'Demasiados intentos de recuperación. Intenta de nuevo en 15 minutos.'
+  }
+});
+
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -90,6 +101,6 @@ router.post('/forgot-password', forgotPasswordLimiter, validateInstitutionalEmai
   Reset por token:
   no se valida correo aquí porque el frontend envía únicamente el token.
 */
-router.post('/reset-password/:token', authCtrl.resetPassword);
+router.post('/reset-password/:token', resetPasswordLimiter, authCtrl.resetPassword);
 
 module.exports = router;

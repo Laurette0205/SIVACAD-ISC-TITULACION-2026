@@ -18,6 +18,25 @@ const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${en
 
 const conversations = new Map();
 const MAX_HISTORY_ITEMS = 12;
+const MAX_CONVERSATIONS = 500;
+const CONVERSATION_TTL_MS = 60 * 60 * 1000;
+
+function cleanupConversations() {
+  const now = Date.now();
+  for (const [key, conv] of conversations) {
+    if (now - conv.lastAccess > CONVERSATION_TTL_MS) {
+      conversations.delete(key);
+    }
+  }
+  if (conversations.size > MAX_CONVERSATIONS) {
+    const entries = [...conversations.entries()]
+      .sort((a, b) => a[1].lastAccess - b[1].lastAccess);
+    const toDelete = entries.slice(0, entries.length - MAX_CONVERSATIONS);
+    for (const [key] of toDelete) {
+      conversations.delete(key);
+    }
+  }
+}
 
 const SYSTEM_PROMPT = `
 Eres el ChatBot institucional de SIVACAD, un sistema integral de gestion academica.
@@ -39,8 +58,6 @@ function authMiddleware(req, res, next) {
   let token = '';
   if (auth.startsWith('Bearer ')) {
     token = auth.slice(7).trim();
-  } else if (req.query?.token) {
-    token = String(req.query.token).trim();
   }
   if (!token) {
     return res.status(401).json({ ok: false, message: 'Token no disponible' });
@@ -71,8 +88,11 @@ function getConversationKey(req) {
 }
 
 function getConversation(key) {
-  if (!conversations.has(key)) conversations.set(key, []);
-  return conversations.get(key);
+  cleanupConversations();
+  if (!conversations.has(key)) conversations.set(key, { history: [], lastAccess: Date.now() });
+  const conv = conversations.get(key);
+  conv.lastAccess = Date.now();
+  return conv.history;
 }
 
 function trimHistory(history) {
@@ -203,13 +223,13 @@ async function generarRespuestaIA(req, mensaje, startTime) {
 
   if (!IS_GEMINI_VALID) {
     const nextHistory = trimHistory([...history, { role: 'user', text: texto }, { role: 'model', text: fallbackReply }]);
-    conversations.set(conversationKey, nextHistory);
+    conversations.set(conversationKey, { history: nextHistory, lastAccess: Date.now() });
     return { respuesta: fallbackReply, mode: 'FALLBACK', provider: 'local', warning: 'GEMINI_API_KEY no configurada' };
   }
 
   if (typeof fetch !== 'function') {
     const nextHistory = trimHistory([...history, { role: 'user', text: texto }, { role: 'model', text: fallbackReply }]);
-    conversations.set(conversationKey, nextHistory);
+    conversations.set(conversationKey, { history: nextHistory, lastAccess: Date.now() });
     return { respuesta: fallbackReply, mode: 'FALLBACK', provider: 'local', warning: 'Fetch no disponible en el entorno' };
   }
 
@@ -238,26 +258,26 @@ async function generarRespuestaIA(req, mensaje, startTime) {
     if (!response.ok) {
       const apiMessage = data?.error?.message || data?.message || 'Error al consultar Gemini';
       const nextHistory = trimHistory([...history, { role: 'user', text: texto }, { role: 'model', text: fallbackReply }]);
-      conversations.set(conversationKey, nextHistory);
+      conversations.set(conversationKey, { history: nextHistory, lastAccess: Date.now() });
       return { respuesta: fallbackReply, mode: 'FALLBACK', provider: 'local', warning: apiMessage };
     }
 
     const respuesta = extractResponseText(data);
     if (!respuesta) {
       const nextHistory = trimHistory([...history, { role: 'user', text: texto }, { role: 'model', text: fallbackReply }]);
-      conversations.set(conversationKey, nextHistory);
+      conversations.set(conversationKey, { history: nextHistory, lastAccess: Date.now() });
       return { respuesta: fallbackReply, mode: 'FALLBACK', provider: 'local', warning: 'Gemini no devolvio una respuesta valida' };
     }
 
     const nextHistory = trimHistory([...history, { role: 'user', text: texto }, { role: 'model', text: respuesta }]);
-    conversations.set(conversationKey, nextHistory);
+    conversations.set(conversationKey, { history: nextHistory, lastAccess: Date.now() });
 
     const elapsed = startTime ? Date.now() - startTime : null;
 
     return { respuesta, mode: 'GEMINI', provider: 'gemini', tiempo_ms: elapsed };
   } catch (error) {
     const nextHistory = trimHistory([...history, { role: 'user', text: texto }, { role: 'model', text: fallbackReply }]);
-    conversations.set(conversationKey, nextHistory);
+    conversations.set(conversationKey, { history: nextHistory, lastAccess: Date.now() });
     const isAbort = String(error?.name || '').toLowerCase() === 'aborterror';
     const warning = isAbort ? 'Tiempo de espera agotado al consultar Gemini' : error?.message || 'No fue posible consultar Gemini';
     return { respuesta: fallbackReply, mode: 'FALLBACK', provider: 'local', warning };
@@ -340,7 +360,8 @@ router.post('/mensaje', authMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error('Error en chatbot:', error);
-    return res.status(500).json({ ok: false, message: error?.message || 'No fue posible generar la respuesta del chatbot.' });
+    const isProd = process.env.NODE_ENV === 'production';
+    return res.status(500).json({ ok: false, message: isProd ? 'No fue posible generar la respuesta del chatbot.' : (error?.message || 'No fue posible generar la respuesta del chatbot.') });
   }
 });
 

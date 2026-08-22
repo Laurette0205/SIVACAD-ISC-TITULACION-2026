@@ -60,11 +60,30 @@ const docStorage = multer.diskStorage({
   }
 });
 
+function docFileFilter(req, file, cb) {
+  const allowed = [
+    'application/pdf',
+    'image/jpeg', 'image/png', 'image/webp',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ];
+  if (!allowed.includes(file.mimetype)) {
+    return cb(
+      new Error('Tipo de archivo no permitido. Solo se aceptan PDF, imágenes y documentos de Office.'),
+      false
+    );
+  }
+  cb(null, true);
+}
+
 exports.docUpload = multer({
   storage: docStorage,
   limits: {
     fileSize: 20 * 1024 * 1024
-  }
+  },
+  fileFilter: docFileFilter
 });
 
 exports.UPLOADS_ROOT = UPLOADS_ROOT;
