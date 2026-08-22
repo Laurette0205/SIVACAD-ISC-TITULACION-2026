@@ -506,6 +506,8 @@ exports.login = async (req, res) => {
     );
 
     if (!rows.length) {
+      const { logSuspiciousActivity } = require('../middleware/seguridad');
+      logSuspiciousActivity(req, 'LOGIN_FAILED_EMAIL', { correo: correoNormalizado });
       return res.status(401).json({
         ok: false,
         message: 'Credenciales incorrectas'
@@ -515,6 +517,8 @@ exports.login = async (req, res) => {
     const user = rows[0];
 
     if (normalizeText(user.estado).toLowerCase() !== 'activo') {
+      const { logSuspiciousActivity } = require('../middleware/seguridad');
+      logSuspiciousActivity(req, 'LOGIN_ATTEMPT_INACTIVE', { userId: user.id_usuario, correo: correoNormalizado });
       return res.status(403).json({
         ok: false,
         message: 'Usuario inactivo'
@@ -524,6 +528,8 @@ exports.login = async (req, res) => {
     const validPassword = await bcrypt.compare(pass, user.contrasena_hash);
 
     if (!validPassword) {
+      const { logSuspiciousActivity } = require('../middleware/seguridad');
+      logSuspiciousActivity(req, 'LOGIN_FAILED_PASSWORD', { userId: user.id_usuario, correo: correoNormalizado });
       return res.status(401).json({
         ok: false,
         message: 'Credenciales incorrectas'
@@ -539,6 +545,10 @@ exports.login = async (req, res) => {
 
     await tryUpdateLastAccess(user.id_usuario);
 
+    // Track device on successful login
+    const { trackDevice } = require('../middleware/seguridad');
+    const deviceInfo = await trackDevice(req, user.id_usuario);
+
     return res.json({
       ok: true,
       token,
@@ -552,7 +562,8 @@ exports.login = async (req, res) => {
         rol: user.nombre_rol,
         rol_nombre: user.nombre_rol,
         rol_id: user.id_rol
-      }
+      },
+      device: deviceInfo.isNew ? { isNew: true, message: 'Dispositivo nuevo detectado' } : undefined
     });
   } catch (error) {
     console.error(error);

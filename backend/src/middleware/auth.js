@@ -2,6 +2,7 @@
 // 📦 IMPORTACIÓN
 // ==============================
 const jwt = require('jsonwebtoken');
+const pool = require('../config/db');
 
 // ==============================
 // 🔐 MIDDLEWARE: AUTENTICACIÓN JWT
@@ -41,6 +42,46 @@ exports.auth = (req, res, next) => {
       ok: false,
       message
     });
+  }
+};
+
+// ==============================
+// 🔐 MIDDLEWARE: VERIFICACIÓN DE ROL CONTRA BD
+// ==============================
+// Opcional: verifica que el rol del token aún coincida con la BD
+// (protege contra cuentas cuyo rol cambió después de emitir el token)
+exports.verifyRoleAgainstDB = async (req, res, next) => {
+  if (!req.user?.id_usuario) return next();
+
+  try {
+    const [rows] = await pool.execute(
+      `SELECT u.id_rol, r.nombre_rol
+       FROM usuarios u
+       INNER JOIN roles r ON u.id_rol = r.id_rol
+       WHERE u.id_usuario = ? AND u.estado = 'Activo'
+       LIMIT 1`,
+      [req.user.id_usuario]
+    );
+
+    if (!rows.length) {
+      return res.status(401).json({ ok: false, message: 'Usuario inactivo o no encontrado' });
+    }
+
+    const dbRol = rows[0].nombre_rol;
+    const tokenRol = String(req.user.rol || '').trim();
+
+    if (dbRol.toLowerCase() !== tokenRol.toLowerCase()) {
+      return res.status(401).json({ ok: false, message: 'Rol de usuario inválido. Refresca la sesión.' });
+    }
+
+    // Actualizar datos frescos en req.user
+    req.user.rol_id = rows[0].id_rol;
+    req.user.rol = dbRol;
+
+    next();
+  } catch (_) {
+    // Si la verificación falla (tabla/columnas no existen), continuar sin bloquear
+    next();
   }
 };
 

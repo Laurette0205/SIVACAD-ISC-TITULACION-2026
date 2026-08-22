@@ -18,6 +18,28 @@ const forgotPasswordLimiter = rateLimit({
   }
 });
 
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    ok: false,
+    message: 'Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos.'
+  }
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    ok: false,
+    message: 'Demasiados registros desde esta IP. Intenta de nuevo en 1 hora.'
+  }
+});
+
 const ALLOWED_EMAIL_DOMAINS = String(
   process.env.ALLOWED_INSTITUTION_EMAIL_DOMAINS ||
     'tesi.edu.mx,ixtapaluca.tecnm.mx,ixtapaluca.tecnm.edu.mx,outlook.com,outlook.es'
@@ -59,8 +81,8 @@ function validateInstitutionalEmail(req, res, next) {
   return next();
 }
 
-router.post('/register', validateInstitutionalEmail, authCtrl.register);
-router.post('/login', validateInstitutionalEmail, authCtrl.login);
+router.post('/register', registerLimiter, validateInstitutionalEmail, authCtrl.register);
+router.post('/login', loginLimiter, validateInstitutionalEmail, authCtrl.login);
 router.get('/me', verifyToken, authCtrl.me);
 router.post('/forgot-password', forgotPasswordLimiter, validateInstitutionalEmail, authCtrl.forgotPassword);
 

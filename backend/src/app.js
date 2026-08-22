@@ -8,6 +8,8 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
 
+const { rateLimiter, xssSanitizer, securityHeaders, ipBlockCheck } = require('./middleware/seguridad');
+
 const app = express();
 
 app.set('trust proxy', 1);
@@ -48,6 +50,14 @@ app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
+
+// ==============================
+// SEGURIDAD GLOBAL
+// ==============================
+app.use(securityHeaders);
+app.use(ipBlockCheck);
+app.use(xssSanitizer);
+app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 200 })); // 200 req/15min global
 
 // Archivos públicos
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
