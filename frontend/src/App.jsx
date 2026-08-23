@@ -206,17 +206,18 @@ function AppRoutes() {
   }, [user, location.pathname]);
 
   return (
-    <Routes>
-      <Route path="/" element={<RootRedirect />} />
+    <Suspense fallback={<LoadingSpinner text="Cargando pagina..." />}>
+      <Routes>
+        <Route path="/" element={<RootRedirect />} />
 
-      <Route
-        path="/login"
-        element={
-          <PublicOnlyRoute>
-            <LoginPage />
-          </PublicOnlyRoute>
-        }
-      />
+        <Route
+          path="/login"
+          element={
+            <PublicOnlyRoute>
+              <LoginPage />
+            </PublicOnlyRoute>
+          }
+        />
 
       <Route
         path="/register"
@@ -962,6 +963,7 @@ function AppRoutes() {
 
       <Route path="*" element={<RootRedirect />} />
     </Routes>
+    </Suspense>
   );
 }
 
