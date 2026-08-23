@@ -10,21 +10,27 @@ exports.signToken = (payload) => {
     throw new Error('JWT_SECRET no esta definido en variables de entorno');
   }
 
-  return jwt.sign(payload, secret, { expiresIn });
+  return jwt.sign(payload, secret, { algorithm: 'HS256', expiresIn });
 };
 
 exports.signRefreshToken = (payload) => {
-  const secret = process.env.JWT_SECRET;
+  const secret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
 
   if (!secret) {
-    throw new Error('JWT_SECRET no esta definido en variables de entorno');
+    throw new Error('JWT_REFRESH_SECRET no esta definido en variables de entorno');
   }
 
-  return jwt.sign({ ...payload, type: 'refresh' }, secret, { expiresIn: '30d' });
+  return jwt.sign({ ...payload, type: 'refresh' }, secret, { algorithm: 'HS256', expiresIn: '30d' });
 };
 
 exports.verifyToken = (token) => {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error('JWT_SECRET no esta definido');
-  return jwt.verify(token, secret);
+  return jwt.verify(token, secret, { algorithms: ['HS256'] });
+};
+
+exports.verifyRefreshToken = (token) => {
+  const secret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_REFRESH_SECRET no esta definido');
+  return jwt.verify(token, secret, { algorithms: ['HS256'] });
 };

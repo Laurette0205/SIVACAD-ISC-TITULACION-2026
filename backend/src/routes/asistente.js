@@ -36,12 +36,12 @@ function authFromHeader(req, res, next) {
 
     req.token = token;
 
-    if (secret) {
-      const decoded = jwt.verify(token, secret);
-      req.user = decoded?.usuario || decoded?.user || decoded || null;
-    } else {
-      req.user = null;
+    if (!secret) {
+      return res.status(500).json({ ok: false, message: 'JWT_SECRET no configurado en el servidor' });
     }
+
+    const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
+    req.user = decoded?.usuario || decoded?.user || decoded || null;
 
     return next();
   } catch (error) {

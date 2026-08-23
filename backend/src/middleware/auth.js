@@ -26,8 +26,8 @@ exports.auth = (req, res, next) => {
     // Extraer token (Bearer TOKEN)
     const token = authHeader.split(' ')[1];
 
-    // Verificar token con clave secreta
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Verificar token con clave secreta y algoritmo explícito
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
 
     // Guardar datos del usuario en request
     req.user = decoded;
@@ -79,9 +79,9 @@ exports.verifyRoleAgainstDB = async (req, res, next) => {
     req.user.rol = dbRol;
 
     next();
-  } catch (_) {
-    // Si la verificación falla (tabla/columnas no existen), continuar sin bloquear
-    next();
+  } catch (err) {
+    // Si la verificación falla, denegar acceso por seguridad
+    return res.status(403).json({ ok: false, message: 'Error verificando permisos del usuario' });
   }
 };
 

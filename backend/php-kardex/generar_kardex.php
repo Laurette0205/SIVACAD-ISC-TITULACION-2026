@@ -31,6 +31,54 @@ use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\RoundBlockSizeMode;
 
 // ──────────────────────────────────────────────
+// AUTENTICACIÓN JWT
+// ──────────────────────────────────────────────
+function validateJwtToken(): array
+{
+    $secret = getenv('JWT_SECRET') ?: '978aa4c791daa0b555a7eb1927dfcf0c208289b157a95b63278ca3376251e823bad82c5f325d6f2ef4023269664938539be3f1d8128c7a593663ba36c357efd8';
+
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+    if (!str_starts_with($authHeader, 'Bearer ')) {
+        sendError(401, 'Token de autenticación requerido');
+    }
+
+    $token = substr($authHeader, 7);
+
+    // Decodificar JWT manualmente (sin dependencias externas)
+    $parts = explode('.', $token);
+    if (count($parts) !== 3) {
+        sendError(401, 'Token JWT inválido');
+    }
+
+    [$header64, $payload64, $signature64] = $parts;
+
+    // Verificar firma
+    $expectedSig = hash_hmac('sha256', "$header64.$payload64", $secret, true);
+    $expectedSigB64 = rtrim(strtr(base64_encode($expectedSig), '+/', '-_'), '=');
+    if (!hash_equals($expectedSigB64, $signature64)) {
+        sendError(401, 'Token JWT firma inválida');
+    }
+
+    // Decodificar payload
+    $payload = json_decode(base64_decode(strtr($payload64, '-_', '+/')), true);
+    if (!$payload) {
+        sendError(401, 'Token JWT payload inválido');
+    }
+
+    // Verificar expiración
+    if (isset($payload['exp']) && $payload['exp'] < time()) {
+        sendError(401, 'Token JWT expirado');
+    }
+
+    // Verificar tipo
+    if (isset($payload['type']) && $payload['type'] === 'refresh') {
+        sendError(401, 'Token de refresh no permitido para esta operación');
+    }
+
+    return $payload;
+}
+
+// ──────────────────────────────────────────────
 // CONFIGURACIÓN
 // ──────────────────────────────────────────────
 $DB_HOST = 'localhost';
@@ -530,6 +578,11 @@ function sendError(int $code, string $message): never
 // ──────────────────────────────────────────────
 
 try {
+    // 0. Validar autenticación JWT (solo en requests HTTP, no CLI)
+    if (PHP_SAPI !== 'cli') {
+        validateJwtToken();
+    }
+
     // 1. Validar parámetro id_alumno (GET, POST, o CLI argv)
     if (PHP_SAPI === 'cli') {
         $opts = getopt('', ['id::']);

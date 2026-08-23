@@ -31,9 +31,13 @@ async function fetchViaNode(token, id) {
 
 const PHP_BASE = import.meta.env.VITE_PHP_BASE_URL || '/SIVACAD-ISC/backend/php-kardex';
 
-async function fetchViaPhpDirect(id) {
+async function fetchViaPhpDirect(id, token) {
   const url = `${PHP_BASE}/generar_kardex.php?id_alumno=${encodeURIComponent(id)}&download=1`;
-  const res = await fetch(url, { method: 'GET' });
+  const headers = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  const res = await fetch(url, { method: 'GET', headers });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     let msg = `HTTP ${res.status}`;
@@ -82,7 +86,7 @@ export default function KardexButton({
       let blob;
 
       if (mode === 'php') {
-        blob = await fetchViaPhpDirect(idAlumno);
+        blob = await fetchViaPhpDirect(idAlumno, effectiveToken);
       } else {
         if (!effectiveToken) throw new Error('Token requerido para modo node');
         blob = await fetchViaNode(effectiveToken, idAlumno);

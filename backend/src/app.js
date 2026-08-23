@@ -10,6 +10,7 @@ const path = require('path');
 const compression = require('compression');
 
 const { rateLimiter, xssSanitizer, securityHeaders, ipBlockCheck } = require('./middleware/seguridad');
+const { auth } = require('./middleware/auth');
 const pool = require('./config/db');
 
 const app = express();
@@ -46,11 +47,11 @@ const corsOptions = {
 };
 
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginResourcePolicy: { policy: 'same-site' },
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
@@ -76,8 +77,8 @@ app.use(ipBlockCheck);
 app.use(xssSanitizer);
 app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 200 }));
 
-// Archivos estaticos con cache
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads'), {
+// Archivos estaticos con cache - requieren autenticacion
+app.use('/uploads', auth, express.static(path.join(__dirname, '..', 'uploads'), {
   maxAge: '1d',
   etag: true
 }));

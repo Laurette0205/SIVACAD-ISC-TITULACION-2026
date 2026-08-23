@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const pool = require('../config/db');
 const { sendPasswordResetEmail } = require('../services/mailer');
+const { signToken, signRefreshToken, verifyRefreshToken } = require('../services/jwt');
 
 // ==============================
 // UTILIDADES
@@ -444,11 +445,7 @@ exports.register = async (req, res) => {
       ok: true,
       message: 'Usuario registrado correctamente',
       token,
-      refreshToken: jwt.sign(
-        { id_usuario, type: 'refresh' },
-        process.env.JWT_SECRET,
-        { expiresIn: '30d' }
-      ),
+      refreshToken: signRefreshToken({ id_usuario }),
       usuario: {
         id_usuario,
         nombres: capitalizeName(nombres),
@@ -563,11 +560,7 @@ exports.login = async (req, res) => {
       rol_id: user.id_rol
     });
 
-    const refreshToken = jwt.sign(
-      { id_usuario: user.id_usuario, type: 'refresh' },
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' }
-    );
+    const refreshToken = signRefreshToken({ id_usuario: user.id_usuario });
 
     await tryUpdateLastAccess(user.id_usuario);
 
@@ -874,7 +867,7 @@ exports.refresh = async (req, res) => {
 
     let decoded;
     try {
-      decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+      decoded = verifyRefreshToken(refreshToken);
     } catch (_) {
       return res.status(401).json({
         ok: false,
@@ -921,11 +914,7 @@ exports.refresh = async (req, res) => {
       rol_id: user.id_rol
     });
 
-    const newRefreshToken = jwt.sign(
-      { id_usuario: user.id_usuario, type: 'refresh' },
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' }
-    );
+    const newRefreshToken = signRefreshToken({ id_usuario: user.id_usuario });
 
     return res.json({
       ok: true,
