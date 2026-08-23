@@ -122,6 +122,33 @@ function buildRegisterPayload(data) {
   };
 }
 
+function normalizeUser(data) {
+  if (!data) return null;
+  const roleName = normalizeRoleName(data.rol_nombre || data.rol || data.role || '');
+  const roleId = Number(data.rol_id || data.id_rol || 0);
+  if (!roleName && !roleId) return null;
+  return {
+    id_usuario: Number(data.id_usuario || data.id || 0),
+    id_alumno: data.id_alumno ? Number(data.id_alumno) : undefined,
+    id_docente: data.id_docente ? Number(data.id_docente) : undefined,
+    nombres: String(data.nombres || data.nombre || '').trim(),
+    apellido_paterno: String(data.apellido_paterno || '').trim(),
+    apellido_materno: String(data.apellido_materno || '').trim(),
+    nombre_completo: String(data.nombre_completo || '').trim() || undefined,
+    correo: normalizeEmail(data.correo || ''),
+    rol: roleName,
+    rol_nombre: roleName,
+    rol_id: roleId,
+    matricula: String(data.matricula || '').trim(),
+    curp: String(data.curp || '').trim(),
+    numero_empleado: String(data.numero_empleado || '').trim(),
+    especialidad: String(data.especialidad || '').trim(),
+    semestre_actual: Number(data.semestre_actual || 1),
+    id_carrera: Number(data.id_carrera || 1),
+    id_plan: Number(data.id_plan || 1)
+  };
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = React.useState(() =>
     normalizeUser(safeParseJSON(localStorage.getItem(STORAGE_USER), null))
