@@ -1,11 +1,10 @@
-'use strict';
-
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const router = express.Router();
 
 const authCtrl = require('../controllers/auth');
 const { auth: verifyToken } = require('../middleware/auth');
+const { validateRegister, validateLogin } = require('../middleware/validate');
 
 const forgotPasswordLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -14,7 +13,7 @@ const forgotPasswordLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     ok: false,
-    message: 'Has superado el límite de solicitudes. Intenta de nuevo en 15 minutos.'
+    message: 'Has superado el limite de solicitudes. Intenta de nuevo en 15 minutos.'
   }
 });
 
@@ -25,7 +24,7 @@ const resetPasswordLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     ok: false,
-    message: 'Demasiados intentos de recuperación. Intenta de nuevo en 15 minutos.'
+    message: 'Demasiados intentos de recuperacion. Intenta de nuevo en 15 minutos.'
   }
 });
 
@@ -36,7 +35,7 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     ok: false,
-    message: 'Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos.'
+    message: 'Demasiados intentos de inicio de sesion. Intenta de nuevo en 15 minutos.'
   }
 });
 
@@ -92,14 +91,14 @@ function validateInstitutionalEmail(req, res, next) {
   return next();
 }
 
-router.post('/register', registerLimiter, validateInstitutionalEmail, authCtrl.register);
-router.post('/login', loginLimiter, validateInstitutionalEmail, authCtrl.login);
+router.post('/register', registerLimiter, validateInstitutionalEmail, validateRegister, authCtrl.register);
+router.post('/login', loginLimiter, validateInstitutionalEmail, validateLogin, authCtrl.login);
 router.get('/me', verifyToken, authCtrl.me);
 router.post('/forgot-password', forgotPasswordLimiter, validateInstitutionalEmail, authCtrl.forgotPassword);
 
 /*
   Reset por token:
-  no se valida correo aquí porque el frontend envía únicamente el token.
+  no se valida correo aqui porque el frontend envia unicamente el token.
 */
 router.post('/reset-password/:token', resetPasswordLimiter, authCtrl.resetPassword);
 

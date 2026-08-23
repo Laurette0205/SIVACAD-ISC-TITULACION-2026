@@ -10,6 +10,7 @@ const path = require('path');
 const compression = require('compression');
 
 const { rateLimiter, xssSanitizer, securityHeaders, ipBlockCheck } = require('./middleware/seguridad');
+const pool = require('./config/db');
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.set('trust proxy', 1);
 
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
+  process.env.FRONTEND_URL_PROD,
   'http://localhost:3000',
   'http://localhost:5173',
   'http://localhost:5174',
@@ -24,11 +26,11 @@ const allowedOrigins = [
   'http://localhost:8080'
 ].filter(Boolean);
 
-const originRegexPatterns = [
+const originRegexPatterns = process.env.CORS_ALLOW_PRIVATE_IPS !== 'false' ? [
   /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:\d+$/,
   /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+$/,
   /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}:\d+$/
-];
+] : [];
 
 const corsOptions = {
   origin(origin, callback) {
@@ -39,11 +41,24 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400
 };
 
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", process.env.GEMINI_API_URL || "https://generativelanguage.googleapis.com"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"]
+    }
+  }
 }));
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
@@ -59,10 +74,13 @@ app.use(morgan('dev'));
 app.use(securityHeaders);
 app.use(ipBlockCheck);
 app.use(xssSanitizer);
-app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 200 })); // 200 req/15min global
+app.use(rateLimiter({ windowMs: 15 * 60 * 1000, max: 200 }));
 
-// Archivos públicos
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+// Archivos estaticos con cache
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads'), {
+  maxAge: '1d',
+  etag: true
+}));
 
 // Rutas base
 app.get('/', (req, res) => {
@@ -72,16 +90,48 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/api/health', (req, res) => {
-  res.json({
+// Health check profundo
+app.get('/api/health', async (req, res) => {
+  const health = {
     ok: true,
     status: 'up',
     service: 'sivacad-api',
-    timestamp: new Date().toISOString()
-  });
+    timestamp: new Date().toISOString(),
+    checks: {}
+  };
+
+  // Database check
+  try {
+    const start = Date.now();
+    await pool.execute('SELECT 1');
+    health.checks.database = { status: 'ok', latency: Date.now() - start };
+  } catch (err) {
+    health.checks.database = { status: 'error', message: err.message };
+    health.ok = false;
+    health.status = 'degraded';
+  }
+
+  // Memory usage
+  const mem = process.memoryUsage();
+  health.checks.memory = {
+    rss: Math.round(mem.rss / 1024 / 1024) + 'MB',
+    heap: Math.round(mem.heapUsed / 1024 / 1024) + 'MB',
+    heapTotal: Math.round(mem.heapTotal / 1024 / 1024) + 'MB'
+  };
+
+  // Gemini API
+  if (process.env.GEMINI_API_KEY) {
+    health.checks.gemini = { status: 'configured' };
+  }
+
+  // Uptime
+  health.uptime = Math.round(process.uptime()) + 's';
+
+  const statusCode = health.ok ? 200 : 503;
+  return res.status(statusCode).json(health);
 });
 
-// Único punto de montaje de rutas
+// Unico punto de montaje de rutas
 const routesIndex = require('./routes');
 app.use('/api', routesIndex);
 
@@ -95,7 +145,7 @@ app.use((req, res) => {
 
 // Manejo global de errores
 app.use((err, req, res, next) => {
-  console.error('❌ Error global:', err);
+  console.error('Error global:', err);
   const isProd = process.env.NODE_ENV === 'production';
   return res.status(err.status || 500).json({
     ok: false,

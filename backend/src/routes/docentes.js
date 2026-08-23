@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const { auth, role } = require('../middleware/auth');
+const { validateDocenteUpdate } = require('../middleware/validate');
 
 router.get('/', auth, async (req, res) => {
   try {
@@ -44,7 +45,7 @@ router.get('/:id', auth, async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!id) {
-      return res.status(400).json({ ok: false, message: 'ID inválido' });
+      return res.status(400).json({ ok: false, message: 'ID invalido' });
     }
 
     const [rows] = await pool.execute(`
@@ -81,11 +82,11 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
-router.put('/:id', auth, role('ADMINISTRADOR', 'COORDINADOR', 'SOPORTE'), async (req, res) => {
+router.put('/:id', auth, role('ADMINISTRADOR', 'COORDINADOR', 'SOPORTE'), validateDocenteUpdate, async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!id) {
-      return res.status(400).json({ ok: false, message: 'ID inválido' });
+      return res.status(400).json({ ok: false, message: 'ID invalido' });
     }
 
     const { nombres, apellido_paterno, apellido_materno, clave_docente, numero_empleado, especialidad, estatus, correo_institucional, estado } = req.body;
@@ -132,13 +133,14 @@ router.put('/:id', auth, role('ADMINISTRADOR', 'COORDINADOR', 'SOPORTE'), async 
 });
 
 router.delete('/:id', auth, role('ADMINISTRADOR', 'COORDINADOR', 'SOPORTE'), async (req, res) => {
+  const conn = await pool.getConnection();
   try {
     const id = Number(req.params.id);
     if (!id) {
-      return res.status(400).json({ ok: false, message: 'ID inválido' });
+      return res.status(400).json({ ok: false, message: 'ID invalido' });
     }
 
-    const [existing] = await pool.execute(
+    const [existing] = await conn.execute(
       `SELECT d.id_docente, d.id_usuario FROM docentes d WHERE d.id_docente = ? LIMIT 1`,
       [id]
     );
@@ -148,13 +150,18 @@ router.delete('/:id', auth, role('ADMINISTRADOR', 'COORDINADOR', 'SOPORTE'), asy
 
     const id_usuario = existing[0].id_usuario;
 
-    await pool.execute(`DELETE FROM docentes WHERE id_docente = ?`, [id]);
-    await pool.execute(`DELETE FROM usuarios WHERE id_usuario = ?`, [id_usuario]);
+    await conn.beginTransaction();
+    await conn.execute(`DELETE FROM docentes WHERE id_docente = ?`, [id]);
+    await conn.execute(`DELETE FROM usuarios WHERE id_usuario = ?`, [id_usuario]);
+    await conn.commit();
 
     return res.json({ ok: true, message: 'Docente eliminado correctamente' });
   } catch (error) {
+    try { await conn.rollback(); } catch (_) {}
     console.error('Error al eliminar docente:', error);
     return res.status(500).json({ ok: false, message: 'Error al eliminar docente' });
+  } finally {
+    conn.release();
   }
 });
 
