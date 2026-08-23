@@ -1,3 +1,5 @@
+'use strict';
+
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const router = express.Router();
@@ -50,6 +52,17 @@ const registerLimiter = rateLimit({
   }
 });
 
+const refreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    ok: false,
+    message: 'Demasiadas solicitudes de refresh. Intenta de nuevo en 15 minutos.'
+  }
+});
+
 const ALLOWED_EMAIL_DOMAINS = String(
   process.env.ALLOWED_INSTITUTION_EMAIL_DOMAINS ||
     'tesi.edu.mx,ixtapaluca.tecnm.mx,ixtapaluca.tecnm.edu.mx,outlook.com,outlook.es'
@@ -94,6 +107,7 @@ function validateInstitutionalEmail(req, res, next) {
 router.post('/register', registerLimiter, validateInstitutionalEmail, validateRegister, authCtrl.register);
 router.post('/login', loginLimiter, validateInstitutionalEmail, validateLogin, authCtrl.login);
 router.get('/me', verifyToken, authCtrl.me);
+router.post('/refresh', refreshLimiter, authCtrl.refresh);
 router.post('/forgot-password', forgotPasswordLimiter, validateInstitutionalEmail, authCtrl.forgotPassword);
 
 /*

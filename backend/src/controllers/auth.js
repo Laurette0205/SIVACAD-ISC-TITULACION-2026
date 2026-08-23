@@ -444,6 +444,11 @@ exports.register = async (req, res) => {
       ok: true,
       message: 'Usuario registrado correctamente',
       token,
+      refreshToken: jwt.sign(
+        { id_usuario, type: 'refresh' },
+        process.env.JWT_SECRET,
+        { expiresIn: '30d' }
+      ),
       usuario: {
         id_usuario,
         nombres: capitalizeName(nombres),
@@ -558,6 +563,12 @@ exports.login = async (req, res) => {
       rol_id: user.id_rol
     });
 
+    const refreshToken = jwt.sign(
+      { id_usuario: user.id_usuario, type: 'refresh' },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
     await tryUpdateLastAccess(user.id_usuario);
 
     // Track device on successful login
@@ -567,6 +578,7 @@ exports.login = async (req, res) => {
     return res.json({
       ok: true,
       token,
+      refreshToken,
       usuario: {
         id_usuario: user.id_usuario,
         nombres: user.nombres,
@@ -844,5 +856,87 @@ exports.resetPassword = async (req, res) => {
     });
   } finally {
     conn.release();
+  }
+};
+// ==============================
+// REFRESH TOKEN
+// ==============================
+exports.refresh = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Refresh token requerido'
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+    } catch (_) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Refresh token invalido o expirado'
+      });
+    }
+
+    if (decoded.type !== 'refresh') {
+      return res.status(401).json({
+        ok: false,
+        message: 'Token de tipo invalido'
+      });
+    }
+
+    const [rows] = await pool.execute(
+      `SELECT u.id_usuario, u.id_rol, u.estado, r.nombre_rol
+       FROM usuarios u
+       INNER JOIN roles r ON u.id_rol = r.id_rol
+       WHERE u.id_usuario = ?
+       LIMIT 1`,
+      [decoded.id_usuario]
+    );
+
+    if (!rows.length) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    const user = rows[0];
+
+    if (normalizeText(user.estado).toLowerCase() !== 'activo') {
+      return res.status(401).json({
+        ok: false,
+        message: 'Usuario inactivo'
+      });
+    }
+
+    const newToken = generateToken({
+      id_usuario: user.id_usuario,
+      correo: null,
+      rol: user.nombre_rol,
+      rol_id: user.id_rol
+    });
+
+    const newRefreshToken = jwt.sign(
+      { id_usuario: user.id_usuario, type: 'refresh' },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    return res.json({
+      ok: true,
+      token: newToken,
+      refreshToken: newRefreshToken
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al refrescar token'
+    });
   }
 };

@@ -287,6 +287,12 @@ const api = {
   me: (token) =>
     request('/auth/me', { token }),
 
+  refreshToken: (refreshToken) =>
+    request('/auth/refresh', {
+      method: 'POST',
+      body: { refreshToken }
+    }),
+
   forgotPassword: (body) =>
     request('/auth/forgot-password', {
       method: 'POST',
