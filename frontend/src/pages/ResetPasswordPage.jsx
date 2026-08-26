@@ -9,12 +9,19 @@ import {
   ShieldCheck,
   MailCheck,
   Sparkles,
-  LockKeyhole
+  LockKeyhole,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import {
   playSuccessSound,
   playErrorSound
 } from '../utils/soundManager';
+import {
+  getPasswordChecks,
+  validatePassword,
+  getPasswordStrength
+} from '../security/passwordPolicy';
 
 import SoundToggleButton from '../components/SoundToggleButton';
 import '../styles/global.css';
@@ -32,6 +39,17 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = React.useState(false);
   const [message, setMessage] = React.useState('');
   const [error, setError] = React.useState('');
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+
+  const passwordChecks = React.useMemo(
+    () => getPasswordChecks(form.contrasena),
+    [form.contrasena]
+  );
+  const passwordStrength = React.useMemo(
+    () => getPasswordStrength(form.contrasena),
+    [form.contrasena]
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,8 +64,9 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (!form.contrasena || form.contrasena.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres.');
+    const pwValidation = validatePassword(form.contrasena);
+    if (!pwValidation.valid) {
+      setError(pwValidation.errors[0]);
       await playErrorSound();
       setLoading(false);
       return;
@@ -158,33 +177,148 @@ export default function ResetPasswordPage() {
         <form onSubmit={handleSubmit} className="form-stack">
           <label className="field">
             <span>Nueva contraseña</span>
-            <input
-              type="password"
-              value={form.contrasena}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, contrasena: e.target.value }))
-              }
-              placeholder="••••••••"
-              autoComplete="new-password"
-              required
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={form.contrasena}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, contrasena: e.target.value }))
+                }
+                placeholder="••••••••"
+                autoComplete="new-password"
+                required
+                style={{ paddingRight: '3rem' }}
+              />
+              <button
+                type="button"
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                onClick={() => setShowPassword((prev) => !prev)}
+                style={{
+                  position: 'absolute',
+                  right: '0.85rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  border: 'none',
+                  background: 'transparent',
+                  padding: 0,
+                  boxShadow: 'none',
+                  color: 'var(--muted)',
+                  display: 'grid',
+                  placeItems: 'center'
+                }}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {form.contrasena && (
+              <div style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginBottom: '0.35rem'
+                }}>
+                  <div style={{
+                    flex: 1,
+                    height: '4px',
+                    background: 'var(--border)',
+                    borderRadius: '2px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      width: `${passwordStrength.score}%`,
+                      height: '100%',
+                      background: passwordStrength.level === 'high'
+                        ? '#16a34a'
+                        : passwordStrength.level === 'medium'
+                          ? '#f59e0b'
+                          : '#ef4444',
+                      borderRadius: '2px',
+                      transition: 'width 0.3s, background 0.3s'
+                    }} />
+                  </div>
+                  <span style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: passwordStrength.level === 'high'
+                      ? '#16a34a'
+                      : passwordStrength.level === 'medium'
+                        ? '#f59e0b'
+                        : '#ef4444'
+                  }}>
+                    {passwordStrength.label}
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.15rem 0.75rem' }}>
+                  {[
+                    { ok: passwordChecks.length, label: '12–20 caracteres' },
+                    { ok: passwordChecks.uppercase, label: 'Mayúscula' },
+                    { ok: passwordChecks.lowercase, label: 'Minúscula' },
+                    { ok: passwordChecks.number, label: 'Número' },
+                    { ok: passwordChecks.symbol, label: 'Símbolo' }
+                  ].map((r) => (
+                    <span key={r.label} style={{
+                      color: r.ok ? '#16a34a' : 'var(--muted)',
+                      fontWeight: r.ok ? 600 : 400
+                    }}>
+                      {r.ok ? '✓' : '○'} {r.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </label>
 
           <label className="field">
             <span>Confirmar contraseña</span>
-            <input
-              type="password"
-              value={form.confirmar_contrasena}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  confirmar_contrasena: e.target.value
-                }))
-              }
-              placeholder="••••••••"
-              autoComplete="new-password"
-              required
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={form.confirmar_contrasena}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    confirmar_contrasena: e.target.value
+                  }))
+                }
+                placeholder="••••••••"
+                autoComplete="new-password"
+                required
+                style={{ paddingRight: '3rem' }}
+              />
+              <button
+                type="button"
+                aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                title={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                style={{
+                  position: 'absolute',
+                  right: '0.85rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  border: 'none',
+                  background: 'transparent',
+                  padding: 0,
+                  boxShadow: 'none',
+                  color: 'var(--muted)',
+                  display: 'grid',
+                  placeItems: 'center'
+                }}
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+            {form.confirmar_contrasena && form.contrasena !== form.confirmar_contrasena && (
+              <span style={{ fontSize: '0.75rem', color: '#ef4444', marginTop: '0.25rem', display: 'block' }}>
+                Las contraseñas no coinciden.
+              </span>
+            )}
+            {form.confirmar_contrasena && form.contrasena === form.confirmar_contrasena && form.contrasena && (
+              <span style={{ fontSize: '0.75rem', color: '#16a34a', marginTop: '0.25rem', display: 'block' }}>
+                ✓ Las contraseñas coinciden.
+              </span>
+            )}
           </label>
 
           {error && <div className="alert error">{error}</div>}

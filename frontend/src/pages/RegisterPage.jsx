@@ -19,6 +19,12 @@ import {
   playSuccessSound,
   playErrorSound
 } from '../utils/soundManager';
+import {
+  getPasswordChecks,
+  validatePassword,
+  getPasswordStrength,
+  PASSWORD_MESSAGES
+} from '../security/passwordPolicy';
 
 import SoundToggleButton from '../components/SoundToggleButton';
 import '../styles/global.css';
@@ -124,6 +130,15 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
+  const passwordChecks = React.useMemo(
+    () => getPasswordChecks(form.contrasena),
+    [form.contrasena]
+  );
+  const passwordStrength = React.useMemo(
+    () => getPasswordStrength(form.contrasena),
+    [form.contrasena]
+  );
+
   const selectedRole = ROLE_OPTIONS.find((item) => item.value === role);
 
   const switchRole = (nextRole) => {
@@ -174,6 +189,11 @@ export default function RegisterPage() {
       return 'Las contraseñas no coinciden.';
     }
 
+    const pwValidation = validatePassword(form.contrasena);
+    if (!pwValidation.valid) {
+      return pwValidation.errors[0];
+    }
+
     if (!form.apellido_paterno.trim()) return 'El apellido paterno es obligatorio.';
     if (!form.apellido_materno.trim()) return 'El apellido materno es obligatorio.';
     if (!form.nombres.trim()) return 'Los nombres son obligatorios.';
@@ -184,7 +204,6 @@ export default function RegisterPage() {
     }
 
     if (!form.contrasena.trim()) return 'La contraseña es obligatoria.';
-    if (form.contrasena.length < 8) return 'La contraseña debe tener al menos 8 caracteres.';
 
     if (role === 'alumno') {
       if (!form.matricula.trim()) return 'La matrícula es obligatoria para alumnos.';
@@ -246,7 +265,6 @@ export default function RegisterPage() {
             .trim(),
         correo: form.correo.trim().toLowerCase(),
         contrasena: form.contrasena,
-        password: form.contrasena,
         confirmar_contrasena: form.confirmar_contrasena,
         rol: role,
         matricula: form.matricula.trim(),
@@ -285,8 +303,8 @@ export default function RegisterPage() {
 
   const roleDescription =
     role === 'alumno'
-      ? 'Orden de captura: Apellido Paterno, Apellido Materno, Nombre(s), Correo, Contraseña, Confirmar Contraseña, Matrícula, CURP y Semestre actual.'
-      : 'Orden de captura: Apellido Paterno, Apellido Materno, Nombre(s), Correo, Contraseña, Confirmar Contraseña, Número de Empleado, CURP y Especialidad.';
+      ? 'Orden de captura: Apellido Paterno, Apellido Materno, Nombre(s), Correo, Contraseña (12–20 caracteres con mayúscula, minúscula, número y símbolo), Confirmar Contraseña, Matrícula, CURP y Semestre actual.'
+      : 'Orden de captura: Apellido Paterno, Apellido Materno, Nombre(s), Correo, Contraseña (12–20 caracteres con mayúscula, minúscula, número y símbolo), Confirmar Contraseña, Número de Empleado, CURP y Especialidad.';
 
   return (
     <div className="page narrow">
@@ -449,6 +467,63 @@ export default function RegisterPage() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+            {form.contrasena && (
+              <div style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginBottom: '0.35rem'
+                }}>
+                  <div style={{
+                    flex: 1,
+                    height: '4px',
+                    background: 'var(--border)',
+                    borderRadius: '2px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      width: `${passwordStrength.score}%`,
+                      height: '100%',
+                      background: passwordStrength.level === 'high'
+                        ? '#16a34a'
+                        : passwordStrength.level === 'medium'
+                          ? '#f59e0b'
+                          : '#ef4444',
+                      borderRadius: '2px',
+                      transition: 'width 0.3s, background 0.3s'
+                    }} />
+                  </div>
+                  <span style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: passwordStrength.level === 'high'
+                      ? '#16a34a'
+                      : passwordStrength.level === 'medium'
+                        ? '#f59e0b'
+                        : '#ef4444'
+                  }}>
+                    {passwordStrength.label}
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.15rem 0.75rem' }}>
+                  {[
+                    { ok: passwordChecks.length, label: '12–20 caracteres' },
+                    { ok: passwordChecks.uppercase, label: 'Mayúscula' },
+                    { ok: passwordChecks.lowercase, label: 'Minúscula' },
+                    { ok: passwordChecks.number, label: 'Número' },
+                    { ok: passwordChecks.symbol, label: 'Símbolo' }
+                  ].map((r) => (
+                    <span key={r.label} style={{
+                      color: r.ok ? '#16a34a' : 'var(--muted)',
+                      fontWeight: r.ok ? 600 : 400
+                    }}>
+                      {r.ok ? '✓' : '○'} {r.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </label>
 
           <label className="field">
@@ -485,6 +560,16 @@ export default function RegisterPage() {
                 {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+            {form.confirmar_contrasena && form.contrasena !== form.confirmar_contrasena && (
+              <span style={{ fontSize: '0.75rem', color: '#ef4444', marginTop: '0.25rem', display: 'block' }}>
+                Las contraseñas no coinciden.
+              </span>
+            )}
+            {form.confirmar_contrasena && form.contrasena === form.confirmar_contrasena && form.contrasena && (
+              <span style={{ fontSize: '0.75rem', color: '#16a34a', marginTop: '0.25rem', display: 'block' }}>
+                ✓ Las contraseñas coinciden.
+              </span>
+            )}
           </label>
 
           {role === 'alumno' ? (

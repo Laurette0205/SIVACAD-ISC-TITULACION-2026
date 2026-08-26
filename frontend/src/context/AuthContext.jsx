@@ -98,7 +98,7 @@ function buildLoginPayload(credentialsOrCorreo, contrasenaMaybe) {
 
   return {
     correo: String(credentialsOrCorreo || '').trim(),
-    contrasena: String(contrasenaMaybe || '').trim()
+    contrasena: String(contrasenaMaybe || '')
   };
 }
 
@@ -110,7 +110,7 @@ function buildRegisterPayload(data) {
     apellido_paterno: String(data.apellido_paterno || '').trim(),
     apellido_materno: String(data.apellido_materno || '').trim(),
     correo: normalizeEmail(data.correo),
-    contrasena: String(data.contrasena || '').trim(),
+    contrasena: String(data.contrasena || ''),
     rol: String(data.rol || 'alumno').trim().toLowerCase(),
     matricula: String(data.matricula || '').trim() || undefined,
     curp: String(data.curp || '').trim() || undefined,
@@ -375,12 +375,12 @@ export function AuthProvider({ children }) {
 
   const resetPassword = async (tokenValue, contrasena, confirmarContrasena) => {
     const resetToken = String(tokenValue || '').trim();
-    const password = String(contrasena || '').trim();
-    const confirmPassword = String(confirmarContrasena || contrasena || '').trim();
+    const password = String(contrasena || '');
+    const confirmPassword = String(confirmarContrasena || contrasena || '');
 
     if (!resetToken) throw new Error('Token de recuperacion requerido');
     if (!password) throw new Error('La contrasena es obligatoria');
-    if (password.length < 8) throw new Error('La contrasena debe tener al menos 8 caracteres');
+    if (password.length < 12) throw new Error('La contrasena debe tener al menos 12 caracteres');
     if (password !== confirmPassword) throw new Error('Las contrasenas no coinciden');
 
     return api.resetPassword(resetToken, password);

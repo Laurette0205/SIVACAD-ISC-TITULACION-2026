@@ -19,7 +19,7 @@ exports.validateRegister = [
   body('apellido_paterno').trim().isLength({ min: 1, max: 50 }).withMessage('Apellido paterno requerido (máx. 50 caracteres)'),
   body('apellido_materno').trim().isLength({ min: 1, max: 50 }).withMessage('Apellido materno requerido (máx. 50 caracteres)'),
   body('correo').isEmail().normalizeEmail().withMessage('Correo electrónico inválido'),
-  body('contrasena').isLength({ min: 8, max: 128 }).withMessage('Contraseña debe tener entre 8 y 128 caracteres'),
+  body('contrasena').isLength({ min: 12, max: 20 }).withMessage('Contraseña debe tener entre 12 y 20 caracteres'),
   body('rol').optional().trim().isLength({ min: 1, max: 30 }).withMessage('Rol inválido'),
   body('curp').optional().trim().isLength({ min: 18, max: 18 }).withMessage('CURP debe tener 18 caracteres'),
   body('matricula').optional().trim().isLength({ min: 1, max: 20 }).withMessage('Matrícula inválida'),
@@ -63,6 +63,6 @@ exports.validateDocenteUpdate = [
 ];
 
 exports.validatePasswordReset = [
-  body('contrasena').isLength({ min: 8, max: 128 }).withMessage('Contraseña debe tener entre 8 y 128 caracteres'),
+  body('contrasena').isLength({ min: 12, max: 20 }).withMessage('Contraseña debe tener entre 12 y 20 caracteres'),
   handleErrors
 ];

@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const pool = require('../config/db');
 const { sendPasswordResetEmail } = require('../services/mailer');
 const { signToken, signRefreshToken, verifyRefreshToken } = require('../services/jwt');
+const { validatePassword } = require('../security/passwordPolicy');
 
 // ==============================
 // UTILIDADES
@@ -246,17 +247,11 @@ exports.register = async (req, res) => {
       });
     }
 
-    if (contrasena.length < 8) {
+    const passwordValidation = validatePassword(contrasena);
+    if (!passwordValidation.valid) {
       return res.status(400).json({
         ok: false,
-        message: 'La contraseña debe tener al menos 8 caracteres'
-      });
-    }
-
-    if (contrasena.length > 128) {
-      return res.status(400).json({
-        ok: false,
-        message: 'La contraseña no puede exceder 128 caracteres'
+        message: passwordValidation.message
       });
     }
 
@@ -485,7 +480,7 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { correo, contrasena, password } = req.body;
-    const pass = String(contrasena || password || '').trim();
+    const pass = String(contrasena || password || '');
 
     if (!correo || !pass) {
       return res.status(400).json({
@@ -788,10 +783,11 @@ exports.resetPassword = async (req, res) => {
       });
     }
 
-    if (String(contrasena).length < 8) {
+    const passwordValidationReset = validatePassword(contrasena);
+    if (!passwordValidationReset.valid) {
       return res.status(400).json({
         ok: false,
-        message: 'La contraseña debe tener al menos 8 caracteres'
+        message: passwordValidationReset.message
       });
     }
 
