@@ -260,11 +260,30 @@ curl http://localhost:5001/health</pre>
 
 <h3>10.4 Probar desde móvil</h3>
 <ol>
-  <li>Conecte el móvil a la misma red WiFi que el servidor.</li>
-  <li>Obtenga la IP local: <code>ipconfig</code> (Windows).</li>
-  <li>Acceda desde el móvil: <code>http://IP:5173</code>.</li>
+  <li>Ejecute <code>start-lan.bat</code> en la raíz del proyecto (muestra la IP automáticamente).</li>
+  <li>Conecte el dispositivo a la misma red WiFi que el servidor.</li>
+  <li>Acceda desde el navegador: <code>http://IP:5173</code>.</li>
+  <li>Verifique que el login funcione correctamente.</li>
   <li>El CORS acepta IPs LAN (192.168.x.x, 10.x.x.x, 172.16-31.x.x).</li>
 </ol>
+
+<h3>10.5 Instalar como aplicación (PWA)</h3>
+<ol>
+  <li><strong>Chrome Android:</strong> toque el menú (⋮) → "Agregar a pantalla de inicio".</li>
+  <li><strong>Safari iPhone:</strong> toque el botón de compartir (⬆) → "Agregar a pantalla de inicio".</li>
+  <li>La app se abrirá en modo standalone (sin barra de direcciones).</li>
+</ol>
+
+<h3>10.6 Dispositivos compatibles</h3>
+<table>
+  <tr><th>Dispositivo</th><th>Sistema</th><th>Navegador</th><th>Notas</th></tr>
+  <tr><td>iPhone</td><td>iOS 15+</td><td>Safari</td><td>PWA completa, safe-area</td></tr>
+  <tr><td>iPad</td><td>iPadOS 15+</td><td>Safari</td><td>Layout responsive</td></tr>
+  <tr><td>Samsung Galaxy</td><td>Android 12+</td><td>Chrome</td><td>PWA completa</td></tr>
+  <tr><td>Tablet Android</td><td>Android 10+</td><td>Chrome</td><td>PWA completa</td></tr>
+  <tr><td>MacBook</td><td>macOS</td><td>Chrome/Safari</td><td>Acceso web</td></tr>
+  <tr><td>Laptop Windows</td><td>Windows 10+</td><td>Chrome/Edge</td><td>Acceso web</td></tr>
+</table>
 
 <h2 id="s11">11. Despliegue en Producción</h2>
 

@@ -361,10 +361,29 @@ mysql -u root -p sivacad_isc < database/seed_usuarios_iniciales.sql
 
 ### 10.4 Probar acceso desde dispositivo móvil
 
-1. Conecte su dispositivo móvil a la misma red WiFi que el servidor.
-2. Obtenga la IP local del servidor: `ipconfig` (Windows) o `ifconfig` (Linux/Mac).
-3. Acceda desde el móvil: `http://<IP_DEL_SERVIDOR>:5173`.
-4. El CORS del backend acepta IPs LAN (192.168.x.x, 10.x.x.x, 172.16-31.x.x).
+1. Ejecute `start-lan.bat` en la raíz del proyecto (muestra la IP automáticamente).
+2. Conecte su dispositivo móvil o tableta a la **misma red WiFi** que el servidor.
+3. Abra el navegador del dispositivo y acceda a `http://<IP_DEL_SERVIDOR>:5173`.
+4. Verifique que el login funcione correctamente.
+5. El CORS del backend acepta IPs LAN (192.168.x.x, 10.x.x.x, 172.16-31.x.x).
+
+### 10.5 Instalar como aplicación (PWA)
+
+1. En **Chrome Android**: toque el menú (⋮) → "Agregar a pantalla de inicio".
+2. En **Safari iPhone**: toque el botón de compartir (⬆) → "Agregar a pantalla de inicio".
+3. La app se abrirá en modo standalone (sin barra de direcciones del navegador).
+4. Para dispositivos **iOS/iPad**: La función "Agregar a pantalla de inicio" está en el menú de compartir de Safari.
+
+### 10.6 Dispositivos compatibles
+
+| Dispositivo | Sistema | Navegador | Notas |
+|-------------|---------|-----------|-------|
+| iPhone | iOS 15+ | Safari | PWA completa, safe-area support |
+| iPad | iPadOS 15+ | Safari | Layout responsive optimizado |
+| Samsung Galaxy | Android 12+ | Chrome | PWA completa |
+| Tablet Android | Android 10+ | Chrome | PWA completa |
+| MacBook | macOS | Chrome/Safari | Acceso web normal |
+| Laptop Windows | Windows 10+ | Chrome/Edge | Acceso web normal |
 
 ---
 

@@ -1,0 +1,20 @@
+{
+  "name": "SIVACAD | Ingeniería en Sistemas Computacionales | TESI",
+  "short_name": "SIVACAD",
+  "description": "Sistema institucional de valoración y calificación del desempeño de docentes y alumnos.",
+  "lang": "es-MX",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f5f7fb",
+  "theme_color": "#003d99",
+  "icons": [
+    {
+      "src": "/icons/icon-master.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

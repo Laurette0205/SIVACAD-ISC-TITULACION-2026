@@ -1,4 +1,8 @@
-const BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api').replace(/\/+$/, '');
+const envBase = import.meta.env.VITE_API_BASE_URL;
+const BASE = (envBase && !envBase.includes('localhost')
+  ? envBase
+  : `${window.location.protocol}//${window.location.hostname}:3000/api`
+).replace(/\/+$/, '');
 
 const ALLOWED_IA_ROLES = new Set(['ADMINISTRADOR', 'COORDINADOR']);
 const ALLOWED_IA_DOCENTE_ROLES = new Set(['ADMINISTRADOR', 'COORDINADOR', 'DOCENTE']);

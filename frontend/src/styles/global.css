@@ -95,6 +95,7 @@ body {
   background-attachment: fixed;
   position: relative;
   overflow-x: hidden;
+  overscroll-behavior-y: contain;
 }
 
 body::before {
@@ -129,6 +130,25 @@ body::after {
 #root {
   position: relative;
   z-index: 1;
+}
+
+/* =========================================================
+   OPTIMIZACIONES MÓVILES
+   ========================================================= */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn, .nav-item, a, button, [role="button"] {
+  touch-action: manipulation;
+}
+
+.auth-footer {
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+.topbar {
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 a {
@@ -2016,6 +2036,25 @@ button {
   100% {
     transform: scale(1.03) translate3d(0, -6px, 0);
     opacity: 1;
+  }
+}
+
+/* =========================================================
+   LANDSCAPE MÓVIL
+   ========================================================= */
+@media (max-height: 500px) and (orientation: landscape) {
+  .page.narrow {
+    padding: 0.5rem;
+  }
+  .auth-card {
+    padding: 1rem;
+  }
+  .hero-panel {
+    display: none;
+  }
+  .auth-footer {
+    padding: 0.5rem;
+    font-size: 0.7rem;
   }
 }
 
