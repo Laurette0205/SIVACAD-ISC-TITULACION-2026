@@ -269,13 +269,13 @@ export default function LoginPage() {
         </form>
       </div>
 
-      <div style={{ textAlign: 'center', padding: '0.75rem', fontSize: '0.75rem', color: 'var(--muted)', borderTop: '1px solid var(--border)' }}>
+      <div className="auth-footer">
         © 2026 Bárcenas G. Laura C. &amp; Morales I. Sandivel &mdash;
         Ingeniería en Sistemas Computacionales — TESI &mdash;
         Actualizado: Julio 2026 &mdash;
-        <a href="/terminos" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--link)' }}>Términos</a>
+        <a href="/terminos" target="_blank" rel="noopener noreferrer">Términos</a>
         &middot;
-        <a href="/aviso-privacidad" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--link)' }}>Aviso de Privacidad</a>
+        <a href="/aviso-privacidad" target="_blank" rel="noopener noreferrer">Aviso de Privacidad</a>
       </div>
     </div>
   );

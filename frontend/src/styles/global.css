@@ -2328,6 +2328,43 @@ body {
 .dark .section-card .password-toggle:hover {
   background: rgba(255, 255, 255, 0.08);
 }
+
+/* =========================================================
+   FOOTER DE AUTENTICACIÓN (Login / Register)
+   ========================================================= */
+.auth-footer {
+  text-align: center;
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(15, 23, 42, 0.60);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 0 0 28px 28px;
+}
+.auth-footer a {
+  color: #93c5fd;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+.auth-footer a:hover {
+  color: #bfdbfe;
+  text-decoration: underline;
+}
+.dark .auth-footer {
+  background: rgba(2, 6, 23, 0.70);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.dark .auth-footer a {
+  color: #60a5fa;
+}
+.dark .auth-footer a:hover {
+  color: #93c5fd;
+}
+
 .status.error {
   background: rgba(244, 63, 94, 0.12);
   border: 1px solid rgba(244, 63, 94, 0.24);
