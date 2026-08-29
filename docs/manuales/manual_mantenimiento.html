@@ -163,7 +163,8 @@ AND fecha_fin < NOW() - INTERVAL 30 DAY;</pre>
 
 <h3>5.1 Usuario olvidó su contraseña</h3>
 <p>Usar <strong>¿Olvidaste tu contraseña?</strong> en el login. Si SMTP no funciona, usar modo desarrollo o restablecer en BD:</p>
-<pre>-- Generar hash bcrypt con: node -e "console.log(require('bcryptjs').hashSync('NuevaPass', 12))"
+<pre>-- Generar hash bcrypt con: node -e "console.log(require('bcryptjs').hashSync('NuevaPass123!', 12))"
+-- La contraseña debe cumplir: 12-20 caracteres, mayúscula, minúscula, número, símbolo
 UPDATE usuarios SET contrasena_hash = 'HASH_AQUI'
 WHERE correo_institucional = 'usuario@tesi.edu.mx';
 
@@ -189,6 +190,7 @@ WHERE correo_institucional = 'usuario@tesi.edu.mx';</pre>
   <tr><td>PDF/Excel no se genera</td><td>PHP no instalado o faltan dependencias</td><td>php -v, composer install</td></tr>
   <tr><td>No conecta a BD</td><td>MySQL caído o credenciales incorrectas</td><td>Verificar mysql service y .env DB_*</td></tr>
   <tr><td>Build frontend falla</td><td>Dependencias corruptas</td><td>rm -rf node_modules && npm install</td></tr>
+  <tr><td>Contraseña rechazada</td><td>No cumple política de seguridad</td><td>12-20 caracteres, mayúscula, minúscula, número y símbolo. Verificar con <code>node -e "console.log(require('./src/security/passwordPolicy').getPasswordPolicy())"</code></td></tr>
 </table>
 
 <h2 id="s7">7. Verificación de Exportaciones</h2>
@@ -303,8 +305,8 @@ cd frontend && npm audit</pre>
 <pre>-- Si no hay admin accesible:
 UPDATE usuarios SET estado = 'Activo' WHERE id_rol = 1 LIMIT 1;
 
--- Si no hay admins, crear uno (requiere hash bcrypt):
--- node -e "console.log(require('bcryptjs').hashSync('Admin123!', 12))"
+-- Si no hay admins, crear uno (requiere hash bcrypt, contraseña cumple política: 12-20 caracteres, mayúscula, minúscula, número, símbolo):
+-- node -e "console.log(require('bcryptjs').hashSync('AdminSeguro123!', 12))"
 INSERT INTO usuarios (nombres, apellidos, correo_institucional,
   contrasena_hash, estado, id_rol)
 VALUES ('Admin', 'Recuperado', 'admin@tesi.edu.mx',

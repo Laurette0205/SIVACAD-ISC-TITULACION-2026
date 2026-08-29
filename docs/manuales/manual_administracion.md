@@ -50,7 +50,7 @@ El administrador tiene el nivel más alto de privilegios en el sistema y es resp
 2. Complete los campos obligatorios:
    - Nombres y apellidos
    - Correo institucional (debe ser @tesi.edu.mx o @ixtapaluca.tecnm.mx)
-   - Contraseña (mínimo 8 caracteres)
+   - Contraseña (debe cumplir la política: 12-20 caracteres, mayúscula, minúscula, número, símbolo)
    - Rol (Administrador, Coordinador, Docente, Alumno, Soporte)
    - Datos adicionales según el rol (matrícula, número de empleado, carrera)
 3. Haga clic en **Guardar**.
@@ -349,6 +349,7 @@ El dashboard del administrador muestra:
 ### 11.1 Seguridad
 
 - Cambie la contraseña por defecto del administrador inmediatamente después de la instalación.
+- Las contraseñas deben cumplir la política: **12-20 caracteres**, mayúscula, minúscula, número y símbolo.
 - No comparta cuentas de administrador.
 - Revise la bitácora de auditoría periódicamente.
 - Mantenga actualizadas las dependencias del proyecto.

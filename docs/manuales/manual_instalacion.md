@@ -90,6 +90,8 @@ SIVACAD-ISC/
 │   ├── php-kardex/   # Módulo PHP (Dompdf/PhpSpreadsheet)
 │   └── uploads/      # Archivos subidos (actas OCR, fotos)
 ├── frontend/         # Cliente SPA (React + Vite)
+├── shared/           # Código compartido entre capas
+│   └── security/     # Política centralizada de contraseñas
 ├── database/         # Esquemas SQL y migraciones
 └── docs/             # Documentación y manuales
 ```
@@ -341,6 +343,8 @@ mysql -u root -p sivacad_isc < database/seed_usuarios_iniciales.sql
 2. Inicie sesión con las credenciales por defecto:
    - **Correo:** `admin@tesi.edu.mx`
    - **Contraseña:** `Testing123!`
+
+> **Nota sobre contraseñas:** La política de contraseñas requiere 12-20 caracteres con mayúscula, minúscula, número y símbolo. La contraseña por defecto cumple con estos requisitos. Al crear nuevos usuarios, asegúrese de que sus contraseñas cumplan la política.
 
 ### 10.3 Pruebas iniciales recomendadas
 

@@ -21,7 +21,8 @@
 9. [Rutas y Endpoints](#9-rutas-y-endpoints)
 10. [Configuración y Variables de Entorno](#10-configuración-y-variables-de-entorno)
 11. [Relación Frontend-Backend](#11-relación-frontend-backend)
-12. [Dependencias y Librerías](#12-dependencias-y-librerías)
+12. [Política Centralizada de Contraseñas](#12-política-centralizada-de-contraseñas)
+13. [Dependencias y Librerías](#13-dependencias-y-librerías)
 
 ---
 
@@ -191,9 +192,10 @@ Definido en `App.jsx` usando React Router v6:
 ### 5.2 Autenticación (AuthContext.jsx)
 
 - Almacena `token` JWT y datos del `user` en React state + localStorage.
-- Provee funciones: `login()`, `logout()`, `isAuthenticated()`.
+- Provee funciones: `login()`, `logout()`, `isAuthenticated()`, `validarContrasena()`.
 - Al iniciar sesión, redirige según el rol del usuario.
 - Al recibir 401, dispara evento `sivacad:auth-error` y limpia sesión.
+- `validarContrasena()` valida contra la política centralizada definida en `shared/security/password-policy.json`.
 
 ### 5.3 Peticiones HTTP (api.js)
 
@@ -268,6 +270,7 @@ Esto permite habilitar/deshabilitar módulos agregando o quitando archivos.
 - Headers de seguridad via Helmet.
 - CORS con origen único + regex para IPs LAN.
 - Rate limiting por ruta.
+- **Política centralizada de contraseñas:** Reglas definidas en `shared/security/password-policy.json` (12-20 caracteres, mayúscula, minúscula, número, símbolo). Validada tanto en frontend como backend.
 
 ---
 
@@ -450,9 +453,57 @@ VITE_API_URL=http://localhost:3000/api
 
 ---
 
-## 12. Dependencias y Librerías
+## 12. Política Centralizada de Contraseñas
 
-### 12.1 Backend (package.json)
+### 12.1 Arquitectura
+
+Desde la versión 1.1, SIVACAD implementa una política de contraseñas centralizada. La fuente de verdad es un archivo JSON compartido que define las reglas de validación:
+
+```
+shared/security/password-policy.json
+```
+
+Tanto el backend como el frontend leen esta configuración para garantizar consistencia en todos los puntos de entrada.
+
+### 12.2 Configuración
+
+```json
+{
+  "minLength": 12,
+  "maxLength": 20,
+  "requireUppercase": true,
+  "requireLowercase": true,
+  "requireNumber": true,
+  "requireSymbol": true
+}
+```
+
+### 12.3 Archivos de implementación
+
+| Archivo | Capa | Función |
+|---------|------|---------|
+| `shared/security/password-policy.json` | Compartido | Fuente única de verdad |
+| `backend/src/security/passwordPolicy.js` | Backend | `getPasswordPolicy()`, `validatePassword()` |
+| `frontend/src/security/passwordPolicy.js` | Frontend | `getPasswordPolicy()`, `validatePassword()`, `getPasswordRequirementsText()` |
+| `backend/src/controllers/auth.js` | Backend | Validación en registro y reset-password |
+| `backend/src/middleware/validate.js` | Backend | Middleware de validación |
+| `frontend/src/pages/RegisterPage.jsx` | Frontend | Validación en tiempo real en registro |
+| `frontend/src/pages/ResetPasswordPage.jsx` | Frontend | Validación en restablecimiento |
+| `frontend/src/context/AuthContext.jsx` | Frontend | `validarContrasena()` global |
+
+### 12.4 Flujo de validación
+
+1. El usuario escribe una contraseña en el formulario de Registro o Reset.
+2. El frontend valida en tiempo real con `validatePassword()` y muestra requisitos cumplidos/pendientes.
+3. Al enviar, el backend re-valida con `validatePassword()`.
+4. Si es válida: `bcrypt.hash(contrasena, 12)` → almacenar en BD.
+5. Si no es válida: retorna error 400 con mensaje descriptivo.
+
+---
+
+## 13. Dependencias y Librerías
+
+### 13.1 Backend (package.json)
 
 ```json
 {
@@ -478,7 +529,7 @@ VITE_API_URL=http://localhost:3000/api
 }
 ```
 
-### 12.2 Frontend (package.json)
+### 13.2 Frontend (package.json)
 
 ```json
 {
@@ -498,7 +549,7 @@ VITE_API_URL=http://localhost:3000/api
 }
 ```
 
-### 12.3 Python ML (requirements.txt)
+### 13.3 Python ML (requirements.txt)
 
 ```
 flask==3.0.0

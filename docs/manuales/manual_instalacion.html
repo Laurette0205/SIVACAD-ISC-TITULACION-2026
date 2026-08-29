@@ -121,6 +121,8 @@
 │   ├── php-kardex/   # PHP Dompdf/PhpSpreadsheet
 │   └── uploads/      # Archivos subidos
 ├── frontend/         # React + Vite
+├── shared/           # Código compartido
+│   └── security/     # Política de contraseñas
 ├── database/         # SQL + migraciones
 └── docs/             # Documentación</pre>
 
@@ -241,6 +243,7 @@ curl http://localhost:5001/health</pre>
   <tr><th>Rol</th><th>Correo</th><th>Contraseña</th></tr>
   <tr><td>Administrador</td><td>admin@tesi.edu.mx</td><td>Testing123!</td></tr>
 </table>
+<p><strong>Nota:</strong> La política de contraseñas requiere 12-20 caracteres con mayúscula, minúscula, número y símbolo. La contraseña por defecto cumple estos requisitos.</p>
 
 <h3>10.3 Pruebas iniciales</h3>
 <table>

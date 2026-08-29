@@ -54,7 +54,7 @@
 <h1>Diagramas y Documentación Técnica Completa del Sistema SIVACAD</h1>
 <p class="subtitle">Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos — TESI Ixtapaluca - ISC<br>
 <strong>Autoras:</strong> Bárcenas González Laura Casandra &amp; Morales Ibarra Sandivel &middot; Ingeniería en Sistemas Computacionales &middot; 2026<br>
-<strong>Total de diagramas:</strong> 40 secciones &middot; <strong>Última actualización:</strong> 23 de julio de 2026</p>
+<strong>Total de diagramas:</strong> 41 secciones &middot; <strong>Última actualización:</strong> 28 de julio de 2026</p>
 
 <div class="toc">
   <h2>Índice General</h2>
@@ -99,6 +99,7 @@
     <li><a href="#s38">Responsive Móvil — 6 Fases de Corrección</a></li>
     <li><a href="#s39">Normatividad ISO y Regulatoria para TESI / ISC</a></li>
     <li><a href="#s40">Manuales del Sistema (5 manuales)</a></li>
+    <li><a href="#s41">Política Centralizada de Contraseñas</a></li>
   </ol>
 </div>
 
@@ -276,7 +277,7 @@ sequenceDiagram
     participant DB as MySQL
     U->>F: Click en enlace (token en URL)
     F-->>U: Formulario: nueva contraseña
-    U->>F: Ingresa contraseña (>=8 chars)
+    U->>F: Ingresa contraseña (12-20 caracteres, policy)
     F->>B: POST /api/auth/reset-password/:token { contrasena }
     B->>DB: SELECT pr.*, u.estado FROM password_resets pr JOIN usuarios u WHERE pr.token=? AND pr.used=0 AND pr.expires_at>NOW()
     DB-->>B: resetRow válido o null
@@ -825,6 +826,7 @@ flowchart TB
     <div class="tl-item"><div class="tl-date">23 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Fase R5 — Refinamientos Visuales</strong><br>.chat-form apilado vertical, .quick-grid 2 columnas, .stat-card y .section-card con padding/border-radius reducidos a ≤720px.<span class="tag tag-fix">Responsive</span></div></div>
     <div class="tl-item"><div class="tl-date">23 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Fase R6 — CORS para LAN Móvil</strong><br>backend/src/app.js: originRegexPatterns con 3 regex para IPs LAN (192.168.x.x, 10.x.x.x, 172.16-31.x.x).<span class="tag tag-fix">Responsive</span></div></div>
     <div class="tl-item"><div class="tl-date">23 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Documentación técnica v3</strong><br>Actualización a 40 secciones: Responsive Móvil (6 fases) + ISO/Normatividad TESI/ISC + 5 Manuales.<span class="tag tag-arch">Arquitectura</span></div></div>
+    <div class="tl-item"><div class="tl-date">28 Jul 2026</div><div class="tl-dot"></div><div class="tl-content"><strong>Política Centralizada de Contraseñas</strong><br>shared/security/password-policy.json como fuente única. Backend y frontend sincronizados. Registro y reset con validación de 12-20 caracteres: mayúscula, minúscula, número y símbolo.<span class="tag tag-feat">Seguridad</span><span class="tag tag-arch">Arquitectura</span></div></div>
   </div>
 </div>
 <div class="section" id="s23">
@@ -1459,6 +1461,79 @@ flowchart TB
     </table>
   </div>
   <div class="endpoints"><strong>Total manuales:</strong> 5 &middot; <strong>Formato:</strong> HTML + Markdown &middot; <strong>Ubicaci&oacute;n:</strong> <code>docs/manuales/</code> &middot; <strong>Cobertura:</strong> 100% del sistema (uso, t&eacute;cnico, admin, instalaci&oacute;n, soporte)</div>
+</div>
+
+<div class="section" id="s41">
+  <h2>41. Política Centralizada de Contraseñas</h2>
+  <div class="meta">shared/security/password-policy.json · backend/src/security/passwordPolicy.js · frontend/src/security/passwordPolicy.js</div>
+  <div class="desc">Desde el 28 de julio de 2026, SIVACAD implementa una política de contraseñas centralizada y consistente. La fuente de verdad es un archivo JSON compartido (<code>shared/security/password-policy.json</code>) que define las reglas de validación. Tanto el backend como el frontend leen esta configuración para garantizar que las contraseñas cumplan con los requisitos de seguridad en todos los puntos de entrada: registro, restablecimiento de contraseña y edición de usuario.</div>
+  <div class="diagram-wrapper">
+    <pre class="mermaid">
+flowchart TB
+    subgraph SHARED["shared/security/"]
+        JSON["password-policy.json<br/>Fuente única de verdad"]
+    end
+    subgraph BACKEND["Backend"]
+        BP["passwordPolicy.js<br/>getPasswordPolicy()<br/>validatePassword()"]
+        AUTH["auth.js<br/>POST /register<br/>POST /reset-password"]
+        VALIDATE["validate.js<br/>Middleware de validación"]
+    end
+    subgraph FRONTEND["Frontend"]
+        FP["passwordPolicy.js<br/>getPasswordPolicy()<br/>validatePassword()<br/>getPasswordRequirementsText()"]
+        REG["RegisterPage.jsx<br/>Formulario de registro"]
+        RESET["ResetPasswordPage.jsx<br/>Restablecer contraseña"]
+        CTX["AuthContext.jsx<br/>validarContrasena()"]
+    end
+    JSON -->|"require()"| BP
+    JSON -->|"fetch() + cache"| FP
+    BP --> AUTH
+    BP --> VALIDATE
+    FP --> REG
+    FP --> RESET
+    FP --> CTX
+    AUTH -->|"INSERT usuarios"| DB[("MySQL")]
+    AUTH -->|"Hash bcrypt 12 rounds"| DB
+    style JSON fill:#fef3c7,stroke:#d97706
+    style BP fill:#dbeafe,stroke:#2563eb
+    style FP fill:#dcfce7,stroke:#16a34a
+    </pre>
+  </div>
+  <div style="margin-top:1.5rem;">
+    <h3>Configuración de la Política</h3>
+    <table>
+      <tr><th>Parámetro</th><th>Valor</th><th>Descripción</th></tr>
+      <tr><td><code>minLength</code></td><td>12</td><td>Mínimo de caracteres requeridos</td></tr>
+      <tr><td><code>maxLength</code></td><td>20</td><td>Máximo de caracteres permitidos</td></tr>
+      <tr><td><code>requireUppercase</code></td><td>true</td><td>Al menos 1 letra mayúscula (A-Z)</td></tr>
+      <tr><td><code>requireLowercase</code></td><td>true</td><td>Al menos 1 letra minúscula (a-z)</td></tr>
+      <tr><td><code>requireNumber</code></td><td>true</td><td>Al menos 1 dígito (0-9)</td></tr>
+      <tr><td><code>requireSymbol</code></td><td>true</td><td>Al menos 1 símbolo (!@#$%^&amp;*...)</td></tr>
+    </table>
+  </div>
+  <div style="margin-top:1.5rem;">
+    <h3>Archivos Involucrados</h3>
+    <table>
+      <tr><th>Archivo</th><th>Capa</th><th>Función</th></tr>
+      <tr><td><code>shared/security/password-policy.json</code></td><td>Compartido</td><td>Fuente única de verdad — define las reglas</td></tr>
+      <tr><td><code>backend/src/security/passwordPolicy.js</code></td><td>Backend</td><td><code>getPasswordPolicy()</code>, <code>validatePassword()</code></td></tr>
+      <tr><td><code>frontend/src/security/passwordPolicy.js</code></td><td>Frontend</td><td><code>getPasswordPolicy()</code>, <code>validatePassword()</code>, <code>getPasswordRequirementsText()</code></td></tr>
+      <tr><td><code>backend/src/controllers/auth.js</code></td><td>Backend</td><td>Valida en registro y reset-password</td></tr>
+      <tr><td><code>backend/src/middleware/validate.js</code></td><td>Backend</td><td>Middleware de validación de contraseña</td></tr>
+      <tr><td><code>frontend/src/pages/RegisterPage.jsx</code></td><td>Frontend</td><td>Validación en tiempo real en formulario de registro</td></tr>
+      <tr><td><code>frontend/src/pages/ResetPasswordPage.jsx</code></td><td>Frontend</td><td>Validación en formulario de restablecimiento</td></tr>
+      <tr><td><code>frontend/src/context/AuthContext.jsx</code></td><td>Frontend</td><td>Función <code>validarContrasena()</code> global</td></tr>
+    </table>
+  </div>
+  <div style="margin-top:1.5rem;">
+    <h3>Flujo de Validación</h3>
+    <div style="background:#1e293b;color:#e2e8f0;padding:1rem;border-radius:8px;font-family:monospace;font-size:0.85rem;overflow-x:auto;white-space:pre;">1. Usuario escribe contraseña en Registro o Reset
+2. Frontend valida en tiempo real con validatePassword()
+3. Muestra requisitos cumplidos/pendientes (✓/✗)
+4. Al enviar, Backend re-valida con validatePassword()
+5. Si es válida, bcrypt.hash(contrasena, 12) → store
+6. Si no es válida, retorna 400 con mensaje de error</div>
+  </div>
+  <div class="endpoints"><strong>Política:</strong> 12-20 caracteres + mayúscula + minúscula + número + símbolo · <strong>Fuente:</strong> <code>shared/security/password-policy.json</code> · <strong>Autoridad:</strong> Backend · <strong>Normalización:</strong> Sin trim/case</div>
 </div>
 
 <script>

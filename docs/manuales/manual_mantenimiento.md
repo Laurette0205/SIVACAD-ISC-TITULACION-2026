@@ -212,10 +212,14 @@ El usuario debe usar la opción **¿Olvidaste tu contraseña?** en la pantalla d
 
 **Opción 2:** Restablecer directamente en BD:
 ```sql
--- Generar hash de nueva contraseña (ejemplo: "NuevaPass123!")
+-- Generar hash de nueva contraseña que cumpla la política:
+-- 12-20 caracteres, mayúscula, minúscula, número, símbolo
+-- Ejemplo: "NuevaPass123!"
 -- El hash debe generarse con bcrypt, no directamente en SQL
 -- Use el script reset_password.js
 ```
+
+> **Importante:** La nueva contraseña debe cumplir la política centralizada: 12-20 caracteres, mayúscula, minúscula, número y símbolo.
 
 ### 5.2 Token JWT expirado
 
@@ -335,6 +339,25 @@ python app.py
    mysql -u root -p -e "SELECT 1"
    ```
 4. Verifique que la base de datos `sivacad_isc` exista.
+
+### 6.8 Error de validación de contraseña
+
+**Síntoma:** El usuario recibe "La contraseña no cumple con la política de seguridad" al registrarse o restablecer contraseña.
+
+**Causa:** La contraseña no cumple con los requisitos: 12-20 caracteres, mayúscula, minúscula, número y símbolo.
+
+**Solución:** Asegúrese de que la contraseña cumpla todos los requisitos:
+- Mínimo 12 caracteres, máximo 20
+- Al menos 1 mayúscula (A-Z)
+- Al menos 1 minúscula (a-z)
+- Al menos 1 número (0-9)
+- Al menos 1 símbolo (!@#$%^&* o similar)
+
+**Verificar política activa:**
+```bash
+# Desde el backend
+node -e "console.log(require('./src/security/passwordPolicy').getPasswordPolicy())"
+```
 
 ---
 
@@ -552,8 +575,8 @@ SELECT id_usuario, nombres, correo_institucional, estado FROM usuarios WHERE id_
 UPDATE usuarios SET estado = 'Activo' WHERE id_rol = 1 LIMIT 1;
 
 -- 4. Si no hay administradores, crear uno directamente
--- (requiere generar hash bcrypt primero)
--- Use el script reset_password.js o node -e "console.log(require('bcryptjs').hashSync('NuevaPass123!', 12))"
+-- (requiere generar hash bcrypt primero, contraseña debe cumplir política: 12-20 caracteres, mayúscula, minúscula, número, símbolo)
+-- Use: node -e "console.log(require('bcryptjs').hashSync('AdminSeguro123!', 12))"
 INSERT INTO usuarios (nombres, apellidos, correo_institucional, contrasena_hash, estado, id_rol)
 VALUES ('Admin', 'Recuperado', 'admin@tesi.edu.mx', '$2a$12$...hash_aqui...', 'Activo', 1);
 ```

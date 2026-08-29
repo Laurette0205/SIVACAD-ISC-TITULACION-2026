@@ -270,6 +270,7 @@ app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));</pre>
   <li>Consultas parametrizadas con mysql2 (previene inyección SQL).</li>
   <li>Transacciones ACID con COMMIT/ROLLBACK.</li>
   <li>Headers de seguridad via Helmet. CORS + rate limiting.</li>
+  <li><strong>Política centralizada de contraseñas:</strong> Reglas en <code>shared/security/password-policy.json</code> (12-20 caracteres, mayúscula, minúscula, número, símbolo).</li>
 </ul>
 
 <h2 id="s7">7. Base de Datos — MySQL 8.0</h2>
@@ -412,7 +413,41 @@ FLASK_ML_URL=http://localhost:5001</pre>
   <tr><td>500</td><td>Error del servidor</td><td>Muestra "Error interno"</td></tr>
 </table>
 
-<h2 id="s12">12. Dependencias y Librerías</h2>
+<h2 id="s12">12. Política Centralizada de Contraseñas</h2>
+
+<h3>12.1 Arquitectura</h3>
+<p>La fuente de verdad es <code>shared/security/password-policy.json</code>. Tanto backend como frontend leen esta configuración para garantizar consistencia.</p>
+
+<h3>12.2 Configuración</h3>
+<pre>{
+  "minLength": 12,
+  "maxLength": 20,
+  "requireUppercase": true,
+  "requireLowercase": true,
+  "requireNumber": true,
+  "requireSymbol": true
+}</pre>
+
+<h3>12.3 Archivos de implementación</h3>
+<table>
+  <tr><th>Archivo</th><th>Capa</th><th>Función</th></tr>
+  <tr><td><code>shared/security/password-policy.json</code></td><td>Compartido</td><td>Fuente única de verdad</td></tr>
+  <tr><td><code>backend/src/security/passwordPolicy.js</code></td><td>Backend</td><td>getPasswordPolicy(), validatePassword()</td></tr>
+  <tr><td><code>frontend/src/security/passwordPolicy.js</code></td><td>Frontend</td><td>getPasswordPolicy(), validatePassword()</td></tr>
+  <tr><td><code>backend/src/controllers/auth.js</code></td><td>Backend</td><td>Validación en registro y reset</td></tr>
+  <tr><td><code>frontend/src/pages/RegisterPage.jsx</code></td><td>Frontend</td><td>Validación en tiempo real</td></tr>
+</table>
+
+<h3>12.4 Flujo de validación</h3>
+<ol>
+  <li>Usuario escribe contraseña en Registro o Reset.</li>
+  <li>Frontend valida en tiempo real con <code>validatePassword()</code>.</li>
+  <li>Al enviar, Backend re-valida con <code>validatePassword()</code>.</li>
+  <li>Si es válida: <code>bcrypt.hash(contrasena, 12)</code> → almacenar.</li>
+  <li>Si no es válida: retorna error 400.</li>
+</ol>
+
+<h2 id="s13">13. Dependencias y Librerías</h2>
 
 <h3>12.1 Backend (package.json)</h3>
 <pre>{

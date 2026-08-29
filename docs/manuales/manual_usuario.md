@@ -63,16 +63,22 @@ Entorno producción: https://sivacad.tesi.edu.mx (ejemplo)
 1. En la pantalla de login, haga clic en **¿Olvidaste tu contraseña?**
 2. Ingrese su correo institucional.
 3. Recibirá un enlace de restablecimiento en su bandeja de entrada.
-4. Siga el enlace y establezca una nueva contraseña (mínimo 8 caracteres).
+4. Siga el enlace y establezca una nueva contraseña que cumpla con los requisitos de seguridad:
+   - **Mínimo 12 caracteres, máximo 20 caracteres**
+   - Al menos **1 letra mayúscula** (A-Z)
+   - Al menos **1 letra minúscula** (a-z)
+   - Al menos **1 número** (0-9)
+   - Al menos **1 símbolo** (!@#$%^&* o similar)
 
 ### 3.3 Registro de nuevo usuario
 
 1. En la pantalla de login, haga clic en **Registrarse**.
 2. Complete el formulario con: nombres, apellidos, correo institucional, contraseña y seleccione su rol.
-3. Si es alumno, proporcione matrícula, CURP y carrera.
-4. Si es docente, proporcione número de empleado y especialidad.
-5. Acepte los términos y condiciones.
-6. Haga clic en **Registrar**.
+3. La contraseña debe cumplir con la política de seguridad: **12-20 caracteres**, mayúscula, minúscula, número y símbolo.
+4. Si es alumno, proporcione matrícula, CURP y carrera.
+5. Si es docente, proporcione número de empleado y especialidad.
+6. Acepte los términos y condiciones.
+7. Haga clic en **Registrar**.
 
 ---
 
