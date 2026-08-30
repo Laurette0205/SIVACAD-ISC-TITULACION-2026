@@ -264,6 +264,15 @@ button {
   box-shadow: none;
 }
 
+.btn.full {
+  width: 100%;
+}
+
+.btn.danger {
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+  color: #fff;
+}
+
 .btn:hover {
   transform: translateY(-2px);
   filter: brightness(1.02);
@@ -329,6 +338,7 @@ button {
 .row {
   display: flex;
   align-items: center;
+  min-width: 0;
 }
 
 .gap {
@@ -648,11 +658,13 @@ button {
   gap: 1rem;
   overflow-y: auto;
   padding-right: 0.15rem;
+  min-width: 0;
 }
 
 .nav-section {
   display: grid;
   gap: 0.55rem;
+  min-width: 0;
 }
 
 .nav-section-title {
@@ -666,6 +678,7 @@ button {
 .nav-section-items {
   display: grid;
   gap: 0.55rem;
+  min-width: 0;
 }
 
 .nav-item {
@@ -784,6 +797,7 @@ button {
 .auth-layout > * {
   position: relative;
   z-index: 1;
+  min-width: 0;
 }
 
 .hero-panel {
@@ -975,11 +989,14 @@ button {
   letter-spacing: 0.26em;
   color: var(--muted);
   margin-bottom: 0.25rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .form-stack {
   display: grid;
   gap: 1rem;
+  min-width: 0;
 }
 
 .field {
@@ -1379,7 +1396,6 @@ button {
 .stat-info {
   display: grid;
   gap: 0.55rem;
-  min-width: 0;
   flex: 1;
   min-width: 0;
 }
@@ -1488,6 +1504,19 @@ button {
   overflow-wrap: anywhere;
 }
 
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.section-actions .btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .quick-grid {
   display: grid;
   gap: 0.9rem;
@@ -1564,6 +1593,7 @@ button {
 .status-list {
   display: grid;
   gap: 1rem;
+  min-width: 0;
 }
 
 .status {
@@ -1601,6 +1631,7 @@ button {
 .list {
   display: grid;
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .list-item {
@@ -2900,13 +2931,13 @@ body {
 }
 
 /* Contenedor responsivo para tablas con scroll horizontal */
-.table-responsive {
+.table-responsive,
+.table-wrapper,
+.table-wrap {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   min-width: 0;
-  margin: 0 -0.5rem;
-  padding: 0 0.5rem;
 }
 
 .kardex-card {
