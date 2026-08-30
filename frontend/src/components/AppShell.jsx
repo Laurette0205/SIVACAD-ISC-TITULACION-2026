@@ -332,6 +332,15 @@ export function AppShell() {
     }
   }, []);
 
+  React.useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileMenuOpen]);
+
   const roleName = getUserRoleName(user);
   const roleLabel = ROLE_LABELS[roleName] || 'Usuario';
   const homeLabel = ROLE_HOME_LABEL[roleName] || 'Portal institucional';
@@ -465,7 +474,7 @@ export function AppShell() {
       <div className="main">
         <header className="topbar">
           <div>
-            <div className="eyebrow">SIVACAD • ISC</div>
+            <div className="eyebrow">SIVACAD ISC</div>
             <h1>Portal institucional</h1>
           </div>
 
@@ -476,7 +485,7 @@ export function AppShell() {
               onClick={() => setMobileMenuOpen((prev) => !prev)}
               aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
             >
-              {mobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
+              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
 
             <SoundToggleButton />
@@ -485,9 +494,10 @@ export function AppShell() {
               type="button"
               className="btn secondary"
               onClick={toggleTheme}
+              aria-label={theme === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
             >
               {theme === 'dark' ? <SunMedium size={16} /> : <Moon size={16} />}
-              {theme === 'dark' ? 'Claro' : 'Oscuro'}
+              <span className="btn-label-desktop">{theme === 'dark' ? 'Claro' : 'Oscuro'}</span>
             </button>
 
             <button
@@ -496,7 +506,7 @@ export function AppShell() {
               onClick={logout}
             >
               <LogOut size={16} />
-              Salir
+              <span className="btn-label-desktop">Salir</span>
             </button>
           </div>
         </header>

@@ -92,7 +92,7 @@ function ChatPanel({ token, role }) {
         </button>
       }
     >
-      <div className="chat-box" style={{ minHeight: '420px', maxHeight: '480px', overflowY: 'auto' }}>
+      <div className="chat-box">
         {messages.map((msg, index) => (
           <div key={index} className={`bubble ${msg.role === 'user' ? 'user' : 'bot'}`}
             style={msg.mode === 'warn' ? { opacity: 0.7, fontSize: '0.85rem' } : {}}>
@@ -101,19 +101,20 @@ function ChatPanel({ token, role }) {
         ))}
         <div ref={endRef} />
       </div>
-      <form className="chat-form" onSubmit={handleSend} style={{ marginTop: '0.75rem' }}>
+      <form className="chat-form" onSubmit={handleSend}>
         <input
           type="text" value={texto} onChange={(e) => setTexto(e.target.value)}
           placeholder={role === 'ADMINISTRADOR' || role === 'COORDINADOR'
-            ? 'Consulta el estado general, incidencias, accesos, flujos del sistema...'
+            ? 'Consulta el estado general...'
             : role === 'DOCENTE'
-            ? 'Ej: Cuantos alumnos hay en el grupo 1101? ...'
+            ? 'Ej: Cuantos alumnos en el grupo 1101?'
             : role === 'SOPORTE'
-            ? 'Ej: Cuantas incidencias abiertas hay?, diagnosticar falla en login, errores del backend...'
+            ? 'Ej: Incidencias abiertas...'
             : role === 'ALUMNO'
-            ? 'Ej: Que docente imparte Programacion Orientada a Objetos?, requisitos de inscripcion?, procedimiento de titulacion?...'
-            : 'Escribe tu pregunta sobre SIVACAD...'}
+            ? 'Ej: Que docente imparte POO?'
+            : 'Escribe tu pregunta...'}
           disabled={loading}
+          autoComplete="off"
         />
         <button className="btn accent" type="submit" disabled={loading || !texto.trim()}>
           {loading ? <Loader2 className="animate-spin" size={18} /> : <SendHorizonal size={18} />}
