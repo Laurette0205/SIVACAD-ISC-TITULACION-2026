@@ -81,6 +81,8 @@ body,
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body {
@@ -95,7 +97,7 @@ body {
   background-attachment: fixed;
   position: relative;
   overflow-x: hidden;
-  overscroll-behavior-y: contain;
+  overflow-y: auto;
 }
 
 body::before {
@@ -130,6 +132,8 @@ body::after {
 #root {
   position: relative;
   z-index: 1;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
 }
 
 /* =========================================================
@@ -398,7 +402,7 @@ button {
   position: relative;
   z-index: 1;
   isolation: isolate;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .shell::before {
@@ -672,6 +676,7 @@ button {
   overflow-y: auto;
   padding-right: 0.15rem;
   min-width: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .nav-section {
@@ -780,7 +785,7 @@ button {
   display: grid;
   grid-template-columns: 1.12fr 0.88fr;
   position: relative;
-  overflow: hidden;
+  overflow: clip;
   isolation: isolate;
 }
 
@@ -816,7 +821,7 @@ button {
 
 .hero-panel {
   position: relative;
-  overflow: hidden;
+  overflow: clip;
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -924,7 +929,7 @@ button {
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   box-shadow: 0 18px 45px rgba(2, 6, 23, 0.14);
-  overflow: hidden;
+  overflow: clip;
   min-width: 0;
   animation: floatCard 7s ease-in-out infinite;
   overflow-wrap: anywhere;
@@ -1057,7 +1062,7 @@ button {
   display: grid;
   place-items: center;
   position: relative;
-  overflow: hidden;
+  overflow: clip;
   min-width: 0;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -1092,7 +1097,7 @@ button {
 .page.narrow > .section-card {
   width: min(1180px, 100%);
   position: relative;
-  overflow: hidden;
+  overflow: clip;
   border-radius: 30px;
   padding: clamp(1.2rem, 3vw, 2rem);
   min-width: 0;
@@ -1278,7 +1283,7 @@ button {
 
 .hero-banner {
   position: relative;
-  overflow: hidden;
+  overflow: clip;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -1381,7 +1386,7 @@ button {
 
 .stat-card {
   position: relative;
-  overflow: hidden;
+  overflow: clip;
   min-height: 150px;
   min-width: 0;
   display: flex;
@@ -1472,7 +1477,7 @@ button {
 
 .section-card {
   position: relative;
-  overflow: hidden;
+  overflow: clip;
   border-radius: 30px;
   padding: 1.4rem;
   min-width: 0;
@@ -1764,6 +1769,8 @@ button {
   min-width: 0;
   overflow-wrap: anywhere;
   word-break: break-word;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.62));
 }
@@ -1812,6 +1819,8 @@ button {
   overflow-y: auto;
   min-width: 0;
   padding: 2rem 1rem;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   background: rgba(2, 6, 23, 0.56);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
@@ -1829,6 +1838,7 @@ button {
   min-width: 0;
   overflow-wrap: anywhere;
   word-break: break-word;
+  -webkit-overflow-scrolling: touch;
 }
 
 .dark .modal-card {
@@ -2234,6 +2244,7 @@ button {
     border-bottom: none;
     padding: 1rem;
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .sidebar.mobile-open {
@@ -2394,7 +2405,7 @@ button {
   }
 
   .content {
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   .shell {
@@ -2427,6 +2438,8 @@ button {
     border-radius: 20px 20px 0 0;
     max-height: 85dvh;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
 }
 
@@ -2988,6 +3001,7 @@ body {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
   min-width: 0;
 }
 
@@ -3032,7 +3046,7 @@ body {
   width: 140px;
   height: 160px;
   border-radius: 18px;
-  overflow: hidden;
+  overflow: clip;
   border: 1px solid var(--line);
   background: var(--panel);
   display: grid;
@@ -3145,6 +3159,7 @@ body {
   padding: 0 0 0.5rem;
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 }
 
 .eval-tab {
@@ -3217,6 +3232,8 @@ body {
   min-width: 0;
   overflow-wrap: anywhere;
   word-break: break-word;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .kardex-preview {
@@ -3380,6 +3397,7 @@ body {
 .preview-table-wrapper {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
   min-width: 0;
 }
 
@@ -3556,6 +3574,10 @@ textarea {
   .chat-form {
     padding-bottom: env(safe-area-inset-bottom);
   }
+
+  .modal-backdrop {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
 /* Scroll horizontal suave para tablas */
@@ -3613,12 +3635,7 @@ select {
   padding-right: 2.5rem;
 }
 
-/* Evitar overflow horizontal en todo el documento */
-html {
-  overflow-x: hidden;
-}
-
-/* Smooth scroll paraiOS */
+/* Smooth scroll para iOS */
 @supports (-webkit-touch-callout: none) {
   body {
     -webkit-overflow-scrolling: touch;
@@ -3826,6 +3843,8 @@ table th, table td {
   min-width: 0;
   overflow-wrap: anywhere;
   word-break: break-word;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .preview-modal-content {
