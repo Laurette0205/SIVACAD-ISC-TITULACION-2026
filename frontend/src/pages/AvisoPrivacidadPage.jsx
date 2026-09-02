@@ -20,7 +20,7 @@ export default function AvisoPrivacidadPage() {
                             Última actualización: Julio 2026
                         </p>
                     </div>
-                    <button className="btn secondary" type="button" onClick={() => navigate(-1)}>
+                    <button className="btn secondary" type="button" onClick={() => navigate('/')}>
                         <ArrowLeft size={16} /> Volver
                     </button>
                 </div>
@@ -37,7 +37,7 @@ export default function AvisoPrivacidadPage() {
                     <h3>1. Responsables del Tratamiento de Datos</h3>
                     <p>
                         <strong>Bárcenas González Laura Casandra</strong> y
-                        <strong>Morales Ibarra Sandivel</strong>, egresadas de la carrera de
+                        <strong> Morales Ibarra Sandivel</strong>, egresadas de la carrera de
                         Ingeniería en Sistemas Computacionales del Tecnológico de Estudios
                         Superiores de Ixtapaluca (TESI), son las responsables del tratamiento
                         de sus datos personales.

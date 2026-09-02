@@ -20,7 +20,7 @@ export default function TerminosPage() {
                             Última actualización: Julio 2026
                         </p>
                     </div>
-                    <button className="btn secondary" type="button" onClick={() => navigate(-1)}>
+                    <button className="btn secondary" type="button" onClick={() => navigate('/')}>
                         <ArrowLeft size={16} /> Volver
                     </button>
                 </div>
@@ -35,8 +35,8 @@ export default function TerminosPage() {
                 <div style={{ lineHeight: 1.8, fontSize: '0.95rem' }}>
                     <h3>1. Identificación de las Autoras</h3>
                     <p>
-                        El sistema SIVACAD-ISC (Sistema Integral para la Administración y Control
-                        Académico de la carrera de Ingeniería en Sistemas Computacionales) fue
+                        El sistema SIVACAD-ISC (Sistema de Valoración y Calificación del
+                        Desempeño de Docentes y Alumnos de la carrera de Ingeniería en Sistemas Computacionales) fue
                         desarrollado por:
                     </p>
                     <ul>
@@ -44,11 +44,11 @@ export default function TerminosPage() {
                         <li><strong>Morales Ibarra Sandivel</strong></li>
                     </ul>
                     <p>
-                        Egresadas de la carrera de <strong>Ingeniería en Sistemas Computacionales</strong> del
-                        <strong>Tecnológico de Estudios Superiores de Ixtapaluca (TESI)</strong>.
+                        Egresadas de la carrera de <strong> Ingeniería en Sistemas Computacionales </strong> del
+                        <strong> Tecnológico de Estudios Superiores de Ixtapaluca (TESI) </strong>.
                     </p>
                     <p>
-                        Este sistema fue creado como <strong>proyecto de titulación</strong> y es
+                        Este sistema fue creado como <strong> Proyecto de Titulación </strong> y es
                         de uso exclusivo para la carrera de Ingeniería en Sistemas Computacionales
                         del TESI.
                     </p>
@@ -73,7 +73,7 @@ export default function TerminosPage() {
 
                     <h3>3. Licencia de Uso</h3>
                     <p>
-                        Este trabajo está licenciado bajo <strong>Creative Commons
+                        Este trabajo está licenciado bajo <strong> Creative Commons
                         Atribución-NoComercial-SinDerivadas 4.0 Internacional (CC BY-NC-ND 4.0)</strong>.
                     </p>
                     <p>
@@ -91,9 +91,9 @@ export default function TerminosPage() {
 
                     <h3>5. Jurisdicción</h3>
                     <p>
-                        Este documento se rige por las leyes de los <strong>Estados Unidos Mexicanos</strong>
+                        Este documento se rige por las leyes de los <strong> Estados Unidos Mexicanos </strong>
                         y cualquier controversia será competencia de los tribunales del
-                        <strong>Estado de México</strong>.
+                        <strong> Estado de México</strong>.
                     </p>
                 </div>
             </section>
