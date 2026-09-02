@@ -1577,7 +1577,7 @@ function PanelPersonalAlumno({ token, user, onNavigateTab }) {
 
       <SectionCard title="Informacion de contacto" subtitle="Instancias a las que puede acudir">
         <div className="auth-note">
-          <strong>Control Escolar:</strong> Instalaciones del TESI, edificio G, planta baja. Horario: 9:00 a 15:00 y 16:00 a 18:00 hrs.<br />
+          <strong>Control Escolar:</strong> Instalaciones del TESI, edificio G, planta baja. Horario: 9:00 a 14:00 y 15:00 a 17:45 hrs.<br />
           <strong>Plataforma oficial:</strong> <a href="https://sigaa.tesi.org.mx/index.php" target="_blank" rel="noopener noreferrer">https://sigaa.tesi.org.mx/index.php</a><br />
           <strong>Coordinacion de carrera:</strong> Acudir a la oficina de la División de Ingenieria en Sistemas Computacionales.
         </div>
@@ -1788,10 +1788,10 @@ function ReinscripcionesAlumno({ token }) {
       <SectionCard title="Pasos para la reinscripcion" subtitle="Siga estos pasos para realizar su reinscripcion">
         <ol style={{ margin: '0.5rem 0', paddingLeft: '1.5rem', lineHeight: 2.2 }}>
           <li>Verifique su kardex academico y asegurese de no tener adeudos de materias.</li>
-          <li>Genere y pague su orden de reinscripcion en caja del TESI.</li>
+          <li>Genere y pague su orden de reinscripcion en cualquier banco o establecimiento que aparezca en su formato de pago.</li>
           <li>Acuda a Control Escolar con su comprobante de pago y documentos.</li>
-          <li>Seleccione las materias a cursar en el nuevo periodo.</li>
-          <li>Confirme su inscripcion y verifique sus horarios.</li>
+          <li>Ingrese a la División de Sistemas e indíquele al secretario que requiere autorización para la tira de materias a cursar en el nuevo periodo.</li>
+          <li>Confirme su reinscripcion y verifique sus horarios.</li>
           <li>Consulte la plataforma SIGAA para ver su carga academica final.</li>
         </ol>
       </SectionCard>
