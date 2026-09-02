@@ -273,9 +273,9 @@ export default function LoginPage() {
         © 2026 Bárcenas G. Laura C. &amp; Morales I. Sandivel &mdash;
         Ingeniería en Sistemas Computacionales — TESI &mdash;
         Actualizado: Julio 2026 &mdash;
-        <a href="/terminos" target="_blank" rel="noopener noreferrer"> Términos </a>
+        <a href="/terminos"> Términos </a>
         &middot;
-        <a href="/aviso-privacidad" target="_blank" rel="noopener noreferrer"> Aviso de Privacidad </a>
+        <a href="/aviso-privacidad"> Aviso de Privacidad </a>
       </div>
     </div>
   );
