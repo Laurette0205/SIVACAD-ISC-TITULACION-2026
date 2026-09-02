@@ -294,7 +294,7 @@ export default function AlumnoReinscripcionesPage() {
                     const active = stepStatus[step.key];
                     return (
                       <div key={step.key} style={{
-                        flex: 1, minWidth: 100, textAlign: 'center', padding: '0.75rem 0.5rem',
+                        flex: 1, flexBasis: 0, minWidth: 0, textAlign: 'center', padding: '0.75rem 0.5rem',
                         borderRadius: 8,
                         background: active ? '#d1fae5' : '#f3f4f6',
                         border: active ? '1px solid #10b981' : '1px solid #e5e7eb'
