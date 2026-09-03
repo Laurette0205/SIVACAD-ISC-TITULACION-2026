@@ -903,7 +903,7 @@ CREATE TABLE IF NOT EXISTS evaluacion_auditoria (
       FOREIGN KEY (id_evaluacion) REFERENCES evaluaciones(id_evaluacion)
       ON DELETE SET NULL
       ON UPDATE CASCADE,
-    CONSTRAINT fk_auditoria_usuario
+    CONSTRAINT fk_evalaud_usuario
       FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
       ON DELETE CASCADE
       ON UPDATE CASCADE
@@ -932,32 +932,25 @@ CREATE TABLE IF NOT EXISTS evaluacion_exportaciones (
 
 -- =========================================================
 -- MIGRACIÓN: AGREGAR COLUMNAS FALTANTES A evaluaciones
+-- (ejecutar solo si la BD ya existe sin estas columnas)
 -- =========================================================
-ALTER TABLE evaluaciones
-  ADD COLUMN IF NOT EXISTS cerrado_por INT NULL AFTER ponderacion_total,
-  ADD COLUMN IF NOT EXISTS cerrado_en DATETIME NULL AFTER cerrado_por,
-  ADD COLUMN IF NOT EXISTS cerrado_observaciones TEXT NULL AFTER cerrado_en,
-  ADD COLUMN IF NOT EXISTS actualizado_por INT NULL AFTER cerrado_observaciones,
-  ADD KEY IF NOT EXISTS idx_eval_cerrado_por (cerrado_por),
-  ADD KEY IF NOT EXISTS idx_eval_actualizado_por (actualizado_por),
-  ADD CONSTRAINT IF NOT EXISTS fk_eval_cerrado_por
-    FOREIGN KEY (cerrado_por) REFERENCES usuarios(id_usuario)
-    ON DELETE SET NULL ON UPDATE CASCADE,
-  ADD CONSTRAINT IF NOT EXISTS fk_eval_actualizado_por
-    FOREIGN KEY (actualizado_por) REFERENCES usuarios(id_usuario)
-    ON DELETE SET NULL ON UPDATE CASCADE;
+-- ALTER TABLE evaluaciones
+--   ADD COLUMN IF NOT EXISTS cerrado_por INT NULL AFTER ponderacion_total,
+--   ADD COLUMN IF NOT EXISTS cerrado_en DATETIME NULL AFTER cerrado_por,
+--   ADD COLUMN IF NOT EXISTS cerrado_observaciones TEXT NULL AFTER cerrado_en,
+--   ADD COLUMN IF NOT EXISTS actualizado_por INT NULL AFTER cerrado_observaciones,
+--   ADD KEY IF NOT EXISTS idx_eval_cerrado_por (cerrado_por),
+--   ADD KEY IF NOT EXISTS idx_eval_actualizado_por (actualizado_por);
 
 -- =========================================================
 -- MIGRACIÓN: AGREGAR COLUMNAS FALTANTES A evaluacion_resultados
+-- (ejecutar solo si la BD ya existe sin estas columnas)
 -- =========================================================
-ALTER TABLE evaluacion_resultados
-  ADD COLUMN IF NOT EXISTS validado_por INT NULL AFTER observacion_general,
-  ADD COLUMN IF NOT EXISTS validado_en DATETIME NULL AFTER validado_por,
-  ADD COLUMN IF NOT EXISTS estado_validacion ENUM('NO_VALIDADO','VALIDADO','RECHAZADO') DEFAULT 'NO_VALIDADO' AFTER validado_en,
-  ADD KEY IF NOT EXISTS idx_resultado_validado_por (validado_por),
-  ADD CONSTRAINT IF NOT EXISTS fk_resultado_validado_por
-    FOREIGN KEY (validado_por) REFERENCES usuarios(id_usuario)
-    ON DELETE SET NULL ON UPDATE CASCADE;
+-- ALTER TABLE evaluacion_resultados
+--   ADD COLUMN IF NOT EXISTS validado_por INT NULL AFTER observacion_general,
+--   ADD COLUMN IF NOT EXISTS validado_en DATETIME NULL AFTER validado_por,
+--   ADD COLUMN IF NOT EXISTS estado_validacion ENUM('NO_VALIDADO','VALIDADO','RECHAZADO') DEFAULT 'NO_VALIDADO' AFTER validado_en,
+--   ADD KEY IF NOT EXISTS idx_resultado_validado_por (validado_por);
 
 -- =========================================================
 -- 31. EVALUACIÓN - ALERTAS DE AVANCE
