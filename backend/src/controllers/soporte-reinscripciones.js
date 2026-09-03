@@ -114,8 +114,8 @@ exports.getIncidencias = async (req, res) => {
 
     const [rows] = await conn.execute(`
       SELECT i.*,
-        CONCAT(u.nombre, ' ', u.apellido_paterno) AS reportado_por_nombre,
-        CONCAT(ua.nombre, ' ', ua.apellido_paterno) AS asignado_a_nombre
+        CONCAT(u.nombres, ' ', u.apellido_paterno) AS reportado_por_nombre,
+        CONCAT(ua.nombres, ' ', ua.apellido_paterno) AS asignado_a_nombre
       FROM soporte_reinscripciones_incidencias i
       LEFT JOIN usuarios u ON u.id_usuario = i.reportado_por
       LEFT JOIN usuarios ua ON ua.id_usuario = i.asignado_a
@@ -227,7 +227,7 @@ exports.getMonitoreo = async (req, res) => {
 
     const [rows] = await conn.execute(`
       SELECT m.*, p.nombre_periodo,
-        CONCAT(u.nombre, ' ', u.apellido_paterno) AS ejecutado_por_nombre
+        CONCAT(u.nombres, ' ', u.apellido_paterno) AS ejecutado_por_nombre
       FROM soporte_reinscripciones_monitoreo m
       LEFT JOIN periodos p ON p.id_periodo = m.id_periodo
       LEFT JOIN usuarios u ON u.id_usuario = m.ejecutado_por
@@ -329,7 +329,7 @@ exports.getErroresProceso = async (req, res) => {
     if (tipo) { where.push('l.tipo = ?'); params.push(tipo); }
 
     const [rows] = await conn.execute(`
-      SELECT l.*, CONCAT(u.nombre, ' ', u.apellido_paterno) AS usuario_nombre
+      SELECT l.*, CONCAT(u.nombres, ' ', u.apellido_paterno) AS usuario_nombre
       FROM soporte_reinscripciones_logs l
       LEFT JOIN usuarios u ON u.id_usuario = l.usuario_id
       WHERE ${where.join(' AND ')}
@@ -367,7 +367,7 @@ exports.getLogs = async (req, res) => {
     if (hasta) { where.push('l.creado_en <= ?'); params.push(hasta); }
 
     const [rows] = await conn.execute(`
-      SELECT l.*, CONCAT(u.nombre, ' ', u.apellido_paterno) AS usuario_nombre
+      SELECT l.*, CONCAT(u.nombres, ' ', u.apellido_paterno) AS usuario_nombre
       FROM soporte_reinscripciones_logs l
       LEFT JOIN usuarios u ON u.id_usuario = l.usuario_id
       WHERE ${where.join(' AND ')}

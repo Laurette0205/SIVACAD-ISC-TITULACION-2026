@@ -385,10 +385,10 @@ const revisarTrayectoria = async (req, res) => {
     );
     const [kardex] = await db.query(
       `SELECT k.*, m.nombre_materia, m.clave_materia, m.creditos
-       FROM kardex k
+       FROM kardex_historial_academico k
        JOIN materias m ON m.id_materia = k.id_materia
        WHERE k.id_alumno = ?
-       ORDER BY k.periodo_cursado DESC, m.nombre_materia`, [idAlumno]
+       ORDER BY k.id_periodo DESC, m.nombre_materia`, [idAlumno]
     );
     const [alumno] = await db.query(
       `SELECT a.id_alumno, a.matricula, a.nombres, a.apellido_paterno, a.apellido_materno,
