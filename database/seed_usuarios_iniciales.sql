@@ -12,19 +12,19 @@ START TRANSACTION;
 INSERT IGNORE INTO usuarios
   (nombres, apellido_paterno, apellido_materno, correo_institucional, contrasena_hash, estado, id_rol)
 VALUES
-  ('Admin', 'Sistema', 'TESI', 'admin@tesi.edu.mx',
+  ('Carlos', 'Mendoza', 'Vega', 'admin@tesi.edu.mx',
    '$2a$12$MfW/QOZpsCdc59k/5cJ6E.HgA6yUHcvGjW/28mVR6hce5mi9eVAQC',
    'Activo', 1),
-  ('Coordi', 'Nador', 'Academico', 'coordinador@tesi.edu.mx',
+  ('Maria Elena', 'Garcia', 'Lopez', 'coordinador@tesi.edu.mx',
    '$2a$12$MfW/QOZpsCdc59k/5cJ6E.HgA6yUHcvGjW/28mVR6hce5mi9eVAQC',
    'Activo', 2),
-  ('Docente', 'Plantel', 'Base', 'docente@tesi.edu.mx',
+  ('Pedro', 'Hernandez', 'Ruiz', 'docente@tesi.edu.mx',
    '$2a$12$MfW/QOZpsCdc59k/5cJ6E.HgA6yUHcvGjW/28mVR6hce5mi9eVAQC',
    'Activo', 3),
-  ('Alumno', 'Prueba', 'ISC', 'alumno@tesi.edu.mx',
+  ('Laura', 'Sanchez', 'Diaz', 'alumno@tesi.edu.mx',
    '$2a$12$MfW/QOZpsCdc59k/5cJ6E.HgA6yUHcvGjW/28mVR6hce5mi9eVAQC',
    'Activo', 4),
-  ('Soporte', 'Tecnico', 'SIVACAD', 'soporte@tesi.edu.mx',
+  ('Roberto', 'Torres', 'Flores', 'soporte@tesi.edu.mx',
    '$2a$12$MfW/QOZpsCdc59k/5cJ6E.HgA6yUHcvGjW/28mVR6hce5mi9eVAQC',
    'Activo', 5);
 
