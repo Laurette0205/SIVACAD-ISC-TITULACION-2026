@@ -910,6 +910,56 @@ CREATE TABLE IF NOT EXISTS evaluacion_auditoria (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =========================================================
+-- 29b. EVALUACIÓN - PREGUNTAS
+-- =========================================================
+CREATE TABLE IF NOT EXISTS evaluacion_preguntas (
+    id_pregunta BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_evaluacion BIGINT NOT NULL,
+    id_pregunta_plantilla BIGINT NULL,
+    criterio VARCHAR(180) NOT NULL,
+    descripcion TEXT NULL,
+    peso DECIMAL(6,2) DEFAULT 0,
+    tipo_respuesta ENUM('NUMERICA','TEXTO','SELECT','SI_NO') DEFAULT 'NUMERICA',
+    orden_pregunta INT DEFAULT 1,
+    activo TINYINT(1) NOT NULL DEFAULT 1,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_evaluacion_orden (id_evaluacion, orden_pregunta),
+    KEY idx_evaluacion_preguntas_eval (id_evaluacion),
+    KEY idx_evaluacion_preguntas_plantilla (id_pregunta_plantilla),
+    CONSTRAINT fk_evaluacion_preguntas_eval
+      FOREIGN KEY (id_evaluacion) REFERENCES evaluaciones(id_evaluacion)
+      ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_evaluacion_preguntas_plantilla
+      FOREIGN KEY (id_pregunta_plantilla) REFERENCES evaluacion_plantilla_preguntas(id_pregunta)
+      ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =========================================================
+-- 29c. INSCRIPCIONES - AUDITORÍA
+-- =========================================================
+CREATE TABLE IF NOT EXISTS inscripciones_auditoria (
+    id_auditoria BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_inscripcion BIGINT NOT NULL,
+    accion VARCHAR(60) NOT NULL,
+    detalle TEXT NULL,
+    estado_anterior VARCHAR(50) NULL,
+    estado_nuevo VARCHAR(50) NULL,
+    id_usuario INT NULL,
+    ip VARCHAR(45) NULL,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_ia_inscripcion (id_inscripcion),
+    KEY idx_ia_usuario (id_usuario),
+    KEY idx_ia_accion (accion),
+    KEY idx_ia_creado (creado_en),
+    CONSTRAINT fk_ia_inscripcion
+      FOREIGN KEY (id_inscripcion) REFERENCES inscripciones(id_inscripcion)
+      ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_ia_usuario
+      FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+      ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =========================================================
 -- 30. EVALUACIÓN - EXPORTACIONES
 -- =========================================================
 CREATE TABLE IF NOT EXISTS evaluacion_exportaciones (
