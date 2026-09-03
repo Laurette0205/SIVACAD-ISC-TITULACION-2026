@@ -10,7 +10,11 @@ function isDocenteRole(user) {
 
 async function resolveDocenteId(conn, idUsuario) {
   const [rows] = await conn.execute(
-    'SELECT id_docente, clave_docente, CONCAT(nombres, " ", apellido_paterno, " ", apellido_materno) AS nombre_completo FROM docentes WHERE id_usuario = ? LIMIT 1',
+    `SELECT d.id_docente, d.clave_docente,
+            CONCAT(u.nombres, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS nombre_completo
+     FROM docentes d
+     INNER JOIN usuarios u ON u.id_usuario = d.id_usuario
+     WHERE d.id_usuario = ? LIMIT 1`,
     [idUsuario]
   );
   return rows.length ? rows[0] : null;
