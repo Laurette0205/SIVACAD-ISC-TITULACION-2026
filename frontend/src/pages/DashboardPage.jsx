@@ -25,56 +25,64 @@ const STAT_CARDS = [
     icon: Users,
     label: 'Alumnos',
     hint: 'Control académico ISC',
-    route: '/app/usuarios'
+    route: '/app/usuarios',
+    color: '#6366f1'
   },
   {
     key: 'docentes',
     icon: GraduationCap,
     label: 'Docentes',
     hint: 'Asignación institucional',
-    route: '/app/usuarios'
+    route: '/app/usuarios',
+    color: '#3b82f6'
   },
   {
     key: 'evaluaciones',
     icon: BookOpen,
     label: 'Evaluaciones',
     hint: 'Activas en el periodo',
-    route: null
+    route: null,
+    color: '#10b981'
   },
   {
     key: 'alertas_pendientes',
     icon: AlertTriangle,
     label: 'Alertas pendientes',
     hint: 'Seguimiento institucional',
-    route: '/app/ia'
+    route: '/app/ia',
+    color: '#f59e0b'
   },
   {
     key: 'riesgo_bajo',
     icon: CheckCircle2,
     label: 'Riesgo bajo',
     hint: 'Alumnos estables',
-    route: '/app/ia'
+    route: '/app/ia',
+    color: '#10b981'
   },
   {
     key: 'riesgo_medio',
     icon: Sparkles,
     label: 'Riesgo medio',
     hint: 'Seguimiento preventivo',
-    route: '/app/ia'
+    route: '/app/ia',
+    color: '#f59e0b'
   },
   {
     key: 'riesgo_alto',
     icon: AlertTriangle,
     label: 'Riesgo alto',
     hint: 'Atención prioritaria',
-    route: '/app/ia'
+    route: '/app/ia',
+    color: '#ef4444'
   },
   {
     key: 'riesgo_critico',
     icon: AlertTriangle,
     label: 'Riesgo crítico',
     hint: 'Intervención urgente',
-    route: '/app/ia'
+    route: '/app/ia',
+    color: '#dc2626'
   }
 ];
 
@@ -207,7 +215,7 @@ export default function DashboardPage() {
 
       {error && <div className="alert error">{error}</div>}
 
-      <div className="stats-grid">
+      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.75rem' }}>
         {stats.map((stat) => (
           <StatCard
             key={stat.label}
@@ -215,6 +223,7 @@ export default function DashboardPage() {
             label={stat.label}
             value={stat.value}
             hint={stat.hint}
+            color={stat.color}
             onClick={() => navigate(stat.route)}
           />
         ))}
