@@ -208,14 +208,14 @@ export default function AdminReinscripcionesPage() {
     return (
       <div className="stack">
         <SectionCard title="Métricas globales" subtitle="Resumen general del proceso de reinscripción">
-          <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))' }}>
-            <StatCard icon={ClipboardList} label="Total reinscripciones" value={totales?.total || 0} />
-            <StatCard icon={CheckCircle2} label="Validadas" value={totales?.validadas || 0} hint={`${totales?.total ? ((totales.validadas / totales.total) * 100).toFixed(1) : 0}%`} />
-            <StatCard icon={XCircle} label="Rechazadas" value={totales?.rechazadas || 0} />
-            <StatCard icon={Activity} label="Activas" value={totales?.activas || 0} />
-            <StatCard icon={AlertTriangle} label="Pendientes" value={totales?.pendientes || 0} />
-            <StatCard icon={Shield} label="Canceladas" value={totales?.canceladas || 0} />
-            <StatCard icon={Users} label="Alumnos reinscritos" value={alumnosReinscritos || 0} />
+          <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.75rem' }}>
+            <StatCard icon={ClipboardList} label="Total reinscripciones" value={totales?.total || 0} color="#6366f1" />
+            <StatCard icon={CheckCircle2} label="Validadas" value={totales?.validadas || 0} hint={`${totales?.total ? ((totales.validadas / totales.total) * 100).toFixed(1) : 0}%`} color="#10b981" />
+            <StatCard icon={XCircle} label="Rechazadas" value={totales?.rechazadas || 0} color="#ef4444" />
+            <StatCard icon={Activity} label="Activas" value={totales?.activas || 0} color="#3b82f6" />
+            <StatCard icon={AlertTriangle} label="Pendientes" value={totales?.pendientes || 0} color="#f59e0b" />
+            <StatCard icon={Shield} label="Canceladas" value={totales?.canceladas || 0} color="#6b7280" />
+            <StatCard icon={Users} label="Alumnos reinscritos" value={alumnosReinscritos || 0} color="#8b5cf6" />
           </div>
         </SectionCard>
 
@@ -284,11 +284,11 @@ export default function AdminReinscripcionesPage() {
 
         {historial?.totalGeneral && (
           <SectionCard title="Historial institucional" subtitle="Datos acumulados históricos">
-            <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
-              <StatCard icon={FileText} label="Total histórico" value={historial.totalGeneral.total || 0} />
-              <StatCard icon={Users} label="Alumnos distintos" value={historial.totalGeneral.alumnos_distintos || 0} />
-              <StatCard icon={Calendar} label="Periodos con reinscripciones" value={historial.totalGeneral.periodos_con_reinscripciones || 0} />
-              <StatCard icon={History} label="Primera reinscripción" value={formatDate(historial.totalGeneral.primera_reinscripcion)} />
+            <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.75rem' }}>
+              <StatCard icon={FileText} label="Total histórico" value={historial.totalGeneral.total || 0} color="#6366f1" />
+              <StatCard icon={Users} label="Alumnos distintos" value={historial.totalGeneral.alumnos_distintos || 0} color="#3b82f6" />
+              <StatCard icon={Calendar} label="Periodos con reinscripciones" value={historial.totalGeneral.periodos_con_reinscripciones || 0} color="#14b8a6" />
+              <StatCard icon={History} label="Primera reinscripción" value={formatDate(historial.totalGeneral.primera_reinscripcion)} color="#ec4899" />
             </div>
 
             {historial?.porPeriodo?.length > 0 && (
@@ -423,11 +423,11 @@ export default function AdminReinscripcionesPage() {
     return (
       <div className="stack">
         <SectionCard title="Incidencias" subtitle="Problemas detectados en el proceso de reinscripción">
-          <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))' }}>
-            <StatCard icon={AlertTriangle} label="Sin grupo" value={resumen?.sin_grupo || 0} />
-            <StatCard icon={XCircle} label="Rechazadas (30d)" value={resumen?.rechazadas_recientes || 0} />
-            <StatCard icon={Shield} label="Sin registro" value={resumen?.sin_registro_reinscripcion || 0} />
-            <StatCard icon={AlertTriangle} label="Duplicadas" value={resumen?.duplicadas || 0} />
+          <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.75rem' }}>
+            <StatCard icon={AlertTriangle} label="Sin grupo" value={resumen?.sin_grupo || 0} color="#f59e0b" />
+            <StatCard icon={XCircle} label="Rechazadas (30d)" value={resumen?.rechazadas_recientes || 0} color="#ef4444" />
+            <StatCard icon={Shield} label="Sin registro" value={resumen?.sin_registro_reinscripcion || 0} color="#6b7280" />
+            <StatCard icon={AlertTriangle} label="Duplicadas" value={resumen?.duplicadas || 0} color="#8b5cf6" />
           </div>
         </SectionCard>
 
