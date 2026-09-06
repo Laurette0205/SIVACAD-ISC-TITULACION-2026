@@ -85,15 +85,15 @@ function TypeBadge({ type }) {
 
 function MetricCard({ icon: Icon, label, value, hint, color }) {
   return (
-    <div className="stat-card" style={{ borderLeft: `3px solid ${color || 'var(--primary)'}` }}>
-      <div className="stat-card-header">
-        <div className="stat-icon" style={{ color: color || 'var(--primary)' }}>
-          <Icon size={20} />
-        </div>
-        <div className="stat-value">{value ?? '—'}</div>
+    <div className="stat-card" style={{ borderLeft: `4px solid ${color || 'var(--primary)'}` }}>
+      <div className="stat-icon" style={{ background: color || 'var(--primary)' }}>
+        <Icon size={22} />
       </div>
-      <div className="stat-label">{label}</div>
-      {hint && <div className="stat-hint">{hint}</div>}
+      <div className="stat-info">
+        <div className="stat-label">{label}</div>
+        <div className="stat-value">{value ?? '—'}</div>
+        {hint && <div className="stat-hint">{hint}</div>}
+      </div>
     </div>
   );
 }
@@ -246,7 +246,7 @@ export default function AdminInscripcionesPage() {
       { icon: XCircle, label: 'Rechazadas', value: t.rechazadas, hint: 'No autorizadas', color: '#ef4444' },
       { icon: Ban, label: 'Canceladas', value: t.canceladas, hint: 'Movimientos cancelados', color: '#6b7280' },
       { icon: BookOpen, label: 'Primera vez', value: t.primera_vez, hint: 'Nuevos ingresos', color: '#8b5cf6' },
-      { icon: RefreshCw, label: 'Reinscripciones', value: t.reinscripciones, hint: 'Continuan estudios', color: '#ec4899' },
+      { icon: RefreshCw, label: 'Reinscripciones', value: t.reinscripciones, hint: 'Contin\u00faan estudios', color: '#ec4899' },
       { icon: Calendar, label: 'Periodos activos', value: metrics?.periodosActivos?.length || 0, hint: 'Ciclos vigentes', color: '#14b8a6' }
     ];
 
