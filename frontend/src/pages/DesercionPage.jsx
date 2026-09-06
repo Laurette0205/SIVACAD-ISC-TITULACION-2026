@@ -11,7 +11,7 @@ import {
   Users, Activity, TrendingDown, Eye
 } from 'lucide-react';
 
-const LEVEL_COLORS = { Bajo: '#22c55e', Medio: '#eab308', Alto: '#f97316', 'Cr\u00edtico': '#ef4444' };
+const LEVEL_COLORS = { Bajo: 'var(--success, #22c55e)', Medio: 'var(--warning, #eab308)', Alto: 'var(--color-warning, #f97316)', 'Crítico': 'var(--error, #ef4444)' };
 
 function toNum(v, f) { var n = Number(v); return Number.isFinite(n) ? n : (f || 0); }
 
@@ -68,98 +68,98 @@ export default function DesercionPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-3">
-          <button onClick={function() { navigate(-1); }} className="btn btn-ghost btn-sm">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <button onClick={function() { navigate(-1); }} className="btn ghost" style={{ padding: '0.35rem' }}>
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <ShieldAlert className="text-indigo-600" size={28} />
-              IA de Deserci\u00f3n Acad\u00e9mica
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+              <ShieldAlert size={28} style={{ color: 'var(--accent)' }} />
+              IA de Deserción Académica
             </h1>
-            <p className="text-sm text-gray-500">
-              Reporte estrat\u00e9gico de riesgo de deserci\u00f3n &middot; Periodo: {r.periodo_activo || 'Cargando...'}
+            <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '0.25rem' }}>
+              Reporte estratégico de riesgo de deserción · Periodo: {r.periodo_activo || 'Cargando...'}
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <button onClick={fetchData} disabled={loading} className="btn btn-outline btn-sm flex items-center gap-1.5">
-            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button onClick={fetchData} disabled={loading} className="btn outline" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <RefreshCw size={15} className={loading ? 'spin' : ''} />
             Actualizar
           </button>
-          <button onClick={function() { setShowPreview(!showPreview); }} disabled={!data} className="btn btn-outline btn-sm flex items-center gap-1.5">
+          <button onClick={function() { setShowPreview(!showPreview); }} disabled={!data} className="btn outline" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <Eye size={15} />
             {showPreview ? 'Ocultar' : 'Vista Previa'}
           </button>
-          <button onClick={handleExportPDF} disabled={exportingPDF || !data} className="btn btn-primary btn-sm flex items-center gap-1.5">
-            {exportingPDF ? <Loader2 size={15} className="animate-spin" /> : <FileText size={15} />}
+          <button onClick={handleExportPDF} disabled={exportingPDF || !data} className="btn accent" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            {exportingPDF ? <Loader2 size={15} className="spin" /> : <FileText size={15} />}
             {exportingPDF ? 'Generando...' : 'PDF'}
           </button>
-          <button onClick={handleExportExcel} disabled={exportingExcel || !data} className="btn btn-success btn-sm flex items-center gap-1.5" style={{background:'#16a34a',color:'#fff'}}>
-            {exportingExcel ? <Loader2 size={15} className="animate-spin" /> : <FileSpreadsheet size={15} />}
+          <button onClick={handleExportExcel} disabled={exportingExcel || !data} className="btn accent" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--success)', color: '#fff' }}>
+            {exportingExcel ? <Loader2 size={15} className="spin" /> : <FileSpreadsheet size={15} />}
             {exportingExcel ? 'Generando...' : 'Excel'}
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="alert alert-error shadow-lg">
+        <div className="alert danger">
           <AlertTriangle size={20} />
           <span>{error}</span>
-          <button onClick={fetchData} className="btn btn-sm">Reintentar</button>
+          <button onClick={fetchData} className="btn outline" style={{ fontSize: '0.85rem' }}>Reintentar</button>
         </div>
       )}
 
       {loading && !data && (
-        <div className="flex justify-center items-center py-20">
-          <Loader2 size={40} className="animate-spin text-indigo-600" />
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '5rem 0' }}>
+          <Loader2 size={40} className="spin" style={{ color: 'var(--accent)' }} />
         </div>
       )}
 
       {!loading && data && !showPreview && (
         <>
           <SectionCard title="Resumen Ejecutivo" icon={Activity}>
-            <p className="text-gray-600 text-sm leading-relaxed mb-4">
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.6, marginBottom: '1rem' }}>
               El sistema SIVACAD tiene registrados <strong>{toNum(r.alumnos)}</strong> alumnos,{' '}
               <strong>{toNum(r.docentes)}</strong> docentes y <strong>{toNum(r.grupos)}</strong> grupos.
-              Se han generado <strong>{toNum(r.alertas_total)}</strong> alertas de deserci\u00f3n:{' '}
-              <strong className="text-amber-600">{toNum(r.alertas_pendientes)}</strong> pendientes y{' '}
-              <strong className="text-green-600">{toNum(r.alertas_atendidas)}</strong> atendidas
+              Se han generado <strong>{toNum(r.alertas_total)}</strong> alertas de deserción:{' '}
+              <strong style={{ color: 'var(--warning)' }}>{toNum(r.alertas_pendientes)}</strong> pendientes y{' '}
+              <strong style={{ color: 'var(--success)' }}>{toNum(r.alertas_atendidas)}</strong> atendidas
               (tasa: <strong>{toNum(r.tasa_atencion)}%</strong>).
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.75rem' }}>
               <StatCard label="Alertas Totales" value={toNum(r.alertas_total)} color="indigo" />
               <StatCard label="Pendientes" value={toNum(r.alertas_pendientes)} color="amber" />
               <StatCard label="Atendidas" value={toNum(r.alertas_atendidas)} color="green" />
-              <StatCard label="Tasa Atenci\u00f3n" value={toNum(r.tasa_atencion) + '%'} color={toNum(r.tasa_atencion) >= 50 ? 'green' : 'red'} />
+              <StatCard label="Tasa Atención" value={toNum(r.tasa_atencion) + '%'} color={toNum(r.tasa_atencion) >= 50 ? 'green' : 'red'} />
               <StatCard label="Alumnos" value={toNum(r.alumnos)} color="blue" />
               <StatCard label="Grupos" value={toNum(r.grupos)} color="purple" />
             </div>
           </SectionCard>
 
-          <SectionCard title="Distribuci\u00f3n de Riesgo" icon={TrendingDown}>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          <SectionCard title="Distribución de Riesgo" icon={TrendingDown}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
               {dist.map(function(d) {
                 return (
-                  <div key={d.nivel} className="text-center p-3 rounded-lg border" style={{borderColor: LEVEL_COLORS[d.nivel] + '40'}}>
-                    <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">{d.nivel}</div>
-                    <div className="text-2xl font-bold" style={{color: LEVEL_COLORS[d.nivel]}}>{toNum(d.total)}</div>
-                    <div className="text-xs text-gray-400">{totalDist > 0 ? (toNum(d.total) / totalDist * 100).toFixed(1) : 0}%</div>
+                  <div key={d.nivel} style={{ textAlign: 'center', padding: '0.75rem', borderRadius: '8px', border: `1px solid ${LEVEL_COLORS[d.nivel]}40` }}>
+                    <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '0.25rem' }}>{d.nivel}</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: LEVEL_COLORS[d.nivel] }}>{toNum(d.total)}</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>{totalDist > 0 ? (toNum(d.total) / totalDist * 100).toFixed(1) : 0}%</div>
                   </div>
                 );
               })}
             </div>
-            <div className="space-y-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {dist.map(function(d) {
                 var pct = totalDist > 0 ? (toNum(d.total) / totalDist * 100) : 0;
                 return (
-                  <div key={d.nivel} className="flex items-center gap-2">
-                    <div className="w-16 text-xs font-medium text-right" style={{color: LEVEL_COLORS[d.nivel]}}>{d.nivel}</div>
-                    <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all" style={{width: pct + '%', background: LEVEL_COLORS[d.nivel], minWidth: pct > 0 ? '4px' : '0'}}></div>
+                  <div key={d.nivel} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ width: '4rem', fontSize: '0.7rem', fontWeight: 500, textAlign: 'right', color: LEVEL_COLORS[d.nivel] }}>{d.nivel}</div>
+                    <div style={{ flex: 1, height: '1rem', background: 'var(--bg-secondary)', borderRadius: '999px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', borderRadius: '999px', transition: 'all 0.3s', width: pct + '%', background: LEVEL_COLORS[d.nivel], minWidth: pct > 0 ? '4px' : '0' }}></div>
                     </div>
-                    <div className="w-10 text-xs font-bold text-right">{toNum(d.total)}</div>
+                    <div style={{ width: '2.5rem', fontSize: '0.7rem', fontWeight: 700, textAlign: 'right' }}>{toNum(d.total)}</div>
                   </div>
                 );
               })}
@@ -167,12 +167,12 @@ export default function DesercionPage() {
           </SectionCard>
 
           {data.parciales && data.parciales.length > 0 && (
-            <SectionCard title="An\u00e1lisis por Parciales" icon={Activity}>
-              <div className="overflow-x-auto">
-                <div className="table-responsive"><table className="table table-zebra w-full text-sm">
+            <SectionCard title="Análisis por Parciales" icon={Activity}>
+              <div style={{ overflowX: 'auto' }}>
+                <table className="table table-striped">
                   <thead>
-                    <tr className="bg-indigo-600 text-white">
-                      <th className="text-left">Parcial</th><th>Promedio</th><th>Riesgos</th><th>Reprob.</th><th>Activos</th><th>Desert.</th><th>Tasa</th>
+                    <tr>
+                      <th style={{ textAlign: 'left' }}>Parcial</th><th>Promedio</th><th>Riesgos</th><th>Reprob.</th><th>Activos</th><th>Desert.</th><th>Tasa</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -180,13 +180,13 @@ export default function DesercionPage() {
                       return (
                         <tr key={p.numero_parcial}>
                           <td>Parcial {p.numero_parcial}</td>
-                          <td className="text-center">{toNum(p.promedio_general)}</td>
-                          <td className="text-center">{toNum(p.total_riesgos)}</td>
-                          <td className="text-center">{toNum(p.total_reprobadas)}</td>
-                          <td className="text-center">{toNum(p.total_activos)}</td>
-                          <td className="text-center">{toNum(p.total_desertores)}</td>
-                          <td className="text-center">
-                            <span className="badge badge-sm" style={{background: LEVEL_COLORS[p.nivel_riesgo] || '#64748b', color: '#fff'}}>
+                          <td style={{ textAlign: 'center' }}>{toNum(p.promedio_general)}</td>
+                          <td style={{ textAlign: 'center' }}>{toNum(p.total_riesgos)}</td>
+                          <td style={{ textAlign: 'center' }}>{toNum(p.total_reprobadas)}</td>
+                          <td style={{ textAlign: 'center' }}>{toNum(p.total_activos)}</td>
+                          <td style={{ textAlign: 'center' }}>{toNum(p.total_desertores)}</td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span className="badge" style={{ background: LEVEL_COLORS[p.nivel_riesgo] || 'var(--muted)', color: '#fff' }}>
                               {toNum(p.tasa_desercion)}%
                             </span>
                           </td>
@@ -194,21 +194,21 @@ export default function DesercionPage() {
                       );
                     })}
                   </tbody>
-                </table></div>
+                </table>
               </div>
             </SectionCard>
           )}
 
           {data.insights && data.insights.length > 0 && (
-            <SectionCard title="Insights Estrat\u00e9gicos" icon={AlertTriangle}>
-              <div className="space-y-3">
+            <SectionCard title="Insights Estratégicos" icon={AlertTriangle}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {data.insights.map(function(ins, i) {
                   return (
-                    <div key={i} className="flex gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                      <div className="flex-shrink-0 w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
+                    <div key={i} style={{ display: 'flex', gap: '0.75rem', padding: '0.75rem', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                      <div style={{ flexShrink: 0, width: '1.75rem', height: '1.75rem', background: 'var(--accent)', color: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, marginTop: '0.125rem' }}>
                         {i + 1}
                       </div>
-                      <p className="text-sm text-gray-700 leading-relaxed">{ins}</p>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{ins}</p>
                     </div>
                   );
                 })}
@@ -217,12 +217,12 @@ export default function DesercionPage() {
           )}
 
           {data.por_carrera && data.por_carrera.length > 0 && (
-            <SectionCard title="An\u00e1lisis por Carrera" icon={Users}>
-              <div className="overflow-x-auto">
-                <div className="table-responsive"><table className="table table-zebra w-full text-sm">
+            <SectionCard title="Análisis por Carrera" icon={Users}>
+              <div style={{ overflowX: 'auto' }}>
+                <table className="table table-striped">
                   <thead>
-                    <tr className="bg-sky-600 text-white">
-                      <th className="text-left">Carrera</th><th>Alertas</th><th>Alto/Cr\u00edtico</th><th>Pendientes</th>
+                    <tr>
+                      <th style={{ textAlign: 'left' }}>Carrera</th><th>Alertas</th><th>Alto/Crítico</th><th>Pendientes</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -230,51 +230,51 @@ export default function DesercionPage() {
                       return (
                         <tr key={i}>
                           <td>{c.carrera}</td>
-                          <td className="text-center">{toNum(c.total_alertas)}</td>
-                          <td className="text-center">{toNum(c.alto_riesgo)}</td>
-                          <td className="text-center">{toNum(c.pendientes)}</td>
+                          <td style={{ textAlign: 'center' }}>{toNum(c.total_alertas)}</td>
+                          <td style={{ textAlign: 'center' }}>{toNum(c.alto_riesgo)}</td>
+                          <td style={{ textAlign: 'center' }}>{toNum(c.pendientes)}</td>
                         </tr>
                       );
                     })}
                   </tbody>
-                </table></div>
+                </table>
               </div>
             </SectionCard>
           )}
 
           {data.alertas_recientes && data.alertas_recientes.length > 0 && (
             <SectionCard title="Alertas Recientes" icon={ShieldAlert}>
-              <div className="overflow-x-auto">
-                <div className="table-responsive"><table className="table table-zebra w-full text-sm">
+              <div style={{ overflowX: 'auto' }}>
+                <table className="table table-striped">
                   <thead>
-                    <tr className="bg-indigo-600 text-white">
-                      <th>#</th><th>Matr\u00edcula</th><th>Alumno</th><th>Riesgo</th><th>Puntaje</th><th>Estado</th><th>Periodo</th>
+                    <tr>
+                      <th>#</th><th>Matrícula</th><th>Alumno</th><th>Riesgo</th><th>Puntaje</th><th>Estado</th><th>Periodo</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.alertas_recientes.map(function(a, i) {
                       return (
                         <tr key={a.id_alerta || i}>
-                          <td className="text-center">{i + 1}</td>
+                          <td style={{ textAlign: 'center' }}>{i + 1}</td>
                           <td>{a.matricula || ''}</td>
                           <td>{(a.nombres || '') + ' ' + (a.apellido_paterno || '') + ' ' + (a.apellido_materno || '')}</td>
-                          <td className="text-center">
-                            <span className="badge badge-sm" style={{background: LEVEL_COLORS[a.nivel_riesgo] || '#64748b', color: '#fff'}}>
+                          <td style={{ textAlign: 'center' }}>
+                            <span className="badge" style={{ background: LEVEL_COLORS[a.nivel_riesgo] || 'var(--muted)', color: '#fff' }}>
                               {a.nivel_riesgo || ''}
                             </span>
                           </td>
-                          <td className="text-center">{toNum(a.puntaje_riesgo)}</td>
-                          <td className="text-center">
+                          <td style={{ textAlign: 'center' }}>{toNum(a.puntaje_riesgo)}</td>
+                          <td style={{ textAlign: 'center' }}>
                             {a.atendida
-                              ? <span className="badge badge-sm bg-green-600 text-white">Atendida</span>
-                              : <span className="badge badge-sm bg-amber-600 text-white">Pendiente</span>}
+                              ? <span className="badge success">Atendida</span>
+                              : <span className="badge warning">Pendiente</span>}
                           </td>
                           <td>{a.nombre_periodo || ''}</td>
                         </tr>
                       );
                     })}
                   </tbody>
-                </table></div>
+                </table>
               </div>
             </SectionCard>
           )}

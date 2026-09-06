@@ -34,7 +34,7 @@ function EstadoBadge({ estado }) {
   const m = map[estado] || { cls: 'info', icon: Clock };
   const Icon = m.icon;
   return (
-    <span className={`badge ${m.cls}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+    <span className={`badge ${m.cls === 'ok' ? 'success' : m.cls === 'warn' ? 'warning' : m.cls === 'error' ? 'error' : 'info'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
       <Icon size={13} /> {estado?.replace(/_/g, ' ')}
     </span>
   );
@@ -560,16 +560,14 @@ export default function CoordinadorTramitesPage() {
         </div>
       </section>
 
-      <div className="tabs" style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 16 }}>
-        {tabs.map(tab => {
-          const Icon = tab.icon;
-          return (
-            <button key={tab.id} type="button" className={`btn ${activeTab === tab.id ? 'primary' : 'secondary'}`}
-              onClick={() => setActiveTab(tab.id)} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Icon size={16} /> {tab.label}
-            </button>
-          );
-        })}
+      <div className="tabs">
+        {tabs.map(tab => (
+          <button key={tab.id} type="button"
+            className={`tab ${activeTab === tab.id ? 'active' : ''}`}
+            onClick={() => setActiveTab(tab.id)}>
+            <tab.icon size={15} /> {tab.label}
+          </button>
+        ))}
       </div>
 
       {activeTab === 'bandeja' && renderBandeja()}

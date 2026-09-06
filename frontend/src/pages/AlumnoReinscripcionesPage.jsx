@@ -429,7 +429,7 @@ export default function AlumnoReinscripcionesPage() {
               <div key={i} className="list-item">
                 <div style={{ flex: 1 }}>
                   <strong>{req.titulo}</strong>
-                  <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#6b7280' }}>{req.desc}</p>
+                  <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: 'var(--muted)' }}>{req.desc}</p>
                 </div>
                 <a
                   href={req.link}
@@ -460,7 +460,7 @@ export default function AlumnoReinscripcionesPage() {
               <GraduationCap size={32} style={{ color: '#1e40af' }} />
               <div>
                 <strong>Tecnológico de Estudios Superiores de Ixtapaluca</strong>
-                <p style={{ margin: '0.15rem 0 0', fontSize: '0.8rem', color: '#6b7280' }}>{TESI_URL}</p>
+                <p style={{ margin: '0.15rem 0 0', fontSize: '0.8rem', color: 'var(--muted)' }}>{TESI_URL}</p>
               </div>
             </a>
             <a
@@ -476,7 +476,7 @@ export default function AlumnoReinscripcionesPage() {
               <FileText size={32} style={{ color: '#059669' }} />
               <div>
                 <strong>Sistema Integral de Gestión Académico Administrativo</strong>
-                <p style={{ margin: '0.15rem 0 0', fontSize: '0.8rem', color: '#6b7280' }}>{SIGAA_URL}</p>
+                <p style={{ margin: '0.15rem 0 0', fontSize: '0.8rem', color: 'var(--muted)' }}>{SIGAA_URL}</p>
               </div>
             </a>
           </div>
@@ -511,36 +511,36 @@ export default function AlumnoReinscripcionesPage() {
           {auditoria.length === 0 ? (
             <div className="empty">Sin actividad registrada.</div>
           ) : (
-            <div className="table-wrapper" style={{ overflowX: 'auto' }}>
-              <div className="table-responsive"><table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="table table-striped">
                 <thead>
-                  <tr style={{ borderBottom: '2px solid var(--border)', textAlign: 'left' }}>
-                    <th style={{ padding: '0.4rem' }}>Fecha</th>
-                    <th style={{ padding: '0.4rem' }}>Acción</th>
-                    <th style={{ padding: '0.4rem' }}>Anterior</th>
-                    <th style={{ padding: '0.4rem' }}>Nuevo</th>
-                    <th style={{ padding: '0.4rem' }}>Realizado por</th>
-                    <th style={{ padding: '0.4rem' }}>Detalle</th>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Acción</th>
+                    <th>Anterior</th>
+                    <th>Nuevo</th>
+                    <th>Realizado por</th>
+                    <th>Detalle</th>
                   </tr>
                 </thead>
                 <tbody>
                   {auditoria.map(a => (
-                    <tr key={a.id_auditoria} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '0.4rem', fontSize: '0.75rem' }}>{formatDate(a.creado_en)}</td>
-                      <td style={{ padding: '0.4rem' }}>
+                    <tr key={a.id_auditoria}>
+                      <td style={{ fontSize: '0.75rem' }}>{formatDate(a.creado_en)}</td>
+                      <td>
                         <span className={`badge ${a.accion === 'VALIDAR' ? 'success' : a.accion === 'RECHAZAR' || a.accion === 'CANCELAR' ? 'error' : 'info'}`}
                           style={{ fontSize: '0.65rem' }}>{a.accion}</span>
                       </td>
-                      <td style={{ padding: '0.4rem' }}>{a.estado_anterior || '—'}</td>
-                      <td style={{ padding: '0.4rem' }}>{a.estado_nuevo || '—'}</td>
-                      <td style={{ padding: '0.4rem', fontSize: '0.75rem' }}>{a.nombre_usuario || 'Sistema'}</td>
-                      <td style={{ padding: '0.4rem', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={a.detalle || ''}>
+                      <td>{a.estado_anterior || '—'}</td>
+                      <td>{a.estado_nuevo || '—'}</td>
+                      <td style={{ fontSize: '0.75rem' }}>{a.nombre_usuario || 'Sistema'}</td>
+                      <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={a.detalle || ''}>
                         {a.detalle || '—'}
                       </td>
                     </tr>
                   ))}
                 </tbody>
-              </table></div>
+              </table>
             </div>
           )}
         </SectionCard>
@@ -578,7 +578,7 @@ export default function AlumnoReinscripcionesPage() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
                       <div>
                         <strong>Folio RE-{String(item.id_reinscripcion).padStart(6, '0')}</strong>
-                        <span style={{ marginLeft: '0.5rem', fontSize: '0.85rem', color: '#6b7280' }}>
+                        <span style={{ marginLeft: '0.5rem', fontSize: '0.85rem', color: 'var(--muted)' }}>
                           {item.nombre_periodo} — <StatusBadge status={item.estado} />
                         </span>
                       </div>
@@ -638,13 +638,12 @@ export default function AlumnoReinscripcionesPage() {
         </div>
       </section>
 
-      <div className="tabs" style={{ display: 'flex', gap: '0.25rem', borderBottom: '2px solid var(--border)', marginBottom: '1rem', flexWrap: 'wrap' }}>
+      <div className="tabs">
         {TABS.map(tab => (
           <button key={tab.id} type="button"
-            className={`btn ${activeTab === tab.id ? 'primary' : 'ghost'}`}
-            style={{ borderRadius: 0, borderBottom: activeTab === tab.id ? '2px solid var(--primary)' : '2px solid transparent', marginBottom: '-2px' }}
+            className={`tab ${activeTab === tab.id ? 'active' : ''}`}
             onClick={() => setActiveTab(tab.id)}>
-            <tab.icon size={16} /> {tab.label}
+            <tab.icon size={15} /> {tab.label}
           </button>
         ))}
       </div>

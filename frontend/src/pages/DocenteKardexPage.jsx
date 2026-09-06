@@ -15,12 +15,12 @@ const TABS = [
 
 function Badge({ children, variant }) {
   const colors = {
-    aceptable: { bg: '#dcfce7', fg: '#166534' },
-    riesgo: { bg: '#fef3c7', fg: '#92400e' },
-    critico: { bg: '#fee2e2', fg: '#991b1b' },
-    info: { bg: '#dbeafe', fg: '#1e40af' }
+    aceptable: { bg: 'var(--success-bg, #dcfce7)', fg: 'var(--success-text, #166534)' },
+    riesgo: { bg: 'var(--warning-bg, #fef3c7)', fg: 'var(--warning-text, #92400e)' },
+    critico: { bg: 'var(--error-bg, #fee2e2)', fg: 'var(--error-text, #991b1b)' },
+    info: { bg: 'var(--info-bg, #dbeafe)', fg: 'var(--info-text, #1e40af)' }
   };
-  const c = colors[variant] || { bg: '#f1f5f9', fg: '#334155' };
+  const c = colors[variant] || { bg: 'var(--bg-secondary, #f1f5f9)', fg: 'var(--text-secondary, #334155)' };
   return (
     <span style={{
       display: 'inline-block', padding: '2px 8px', borderRadius: '10px',
@@ -33,13 +33,13 @@ function Badge({ children, variant }) {
 function StatCard({ label, value, variant }) {
   return (
     <div style={{
-      background: '#fff', borderRadius: '8px', padding: '10px 14px',
-      border: '1px solid #e2e8f0', flex: 1, minWidth: '100px'
+      background: 'var(--bg)', borderRadius: '8px', padding: '10px 14px',
+      border: '1px solid var(--border)', flex: 1, minWidth: '100px'
     }}>
-      <div style={{ fontSize: '9px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>{label}</div>
+      <div style={{ fontSize: '9px', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 600 }}>{label}</div>
       <div style={{
         fontSize: '18px', fontWeight: 700, marginTop: '3px',
-        color: variant === 'danger' ? '#dc2626' : variant === 'warning' ? '#d97706' : '#0f172a'
+        color: variant === 'danger' ? 'var(--error)' : variant === 'warning' ? 'var(--warning)' : 'var(--text)'
       }}>{value}</div>
     </div>
   );
@@ -127,7 +127,7 @@ function VistaDelGrupo({ token, grupos }) {
                         color: prom >= 80 ? '#16a34a' : prom >= 70 ? '#d97706' : '#dc2626' }}>{prom.toFixed(2)}</td>
                       <td style={{ padding: '4px 7px', textAlign: 'center' }}>{a.creditos_acumulados}</td>
                       <td style={{ padding: '4px 7px', textAlign: 'center',
-                        color: a.materias_reprobadas > 2 ? '#dc2626' : '#64748b' }}>{a.materias_reprobadas}</td>
+                        color: a.materias_reprobadas > 2 ? 'var(--error)' : 'var(--muted)' }}>{a.materias_reprobadas}</td>
                       <td style={{ padding: '4px 7px', textAlign: 'center' }}>
                         <Badge variant={a.estatus_academico === 'Regular' ? 'aceptable' : 'critico'}>
                           {a.estatus_academico?.replace(/_/g, ' ')}
@@ -228,14 +228,14 @@ function KardexConsulta({ token, grupos }) {
               {a.foto_institucional ? (
                 <img src={a.foto_institucional} alt="Foto" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e2e8f0', fontSize: '24px', fontWeight: 700, color: '#94a3b8' }}>
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary)', fontSize: '24px', fontWeight: 700, color: 'var(--muted)' }}>
                   {(a.nombres || 'A').charAt(0)}
                 </div>
               )}
             </div>
             <div style={{ flex: 1 }}>
               <h4 style={{ margin: '0 0 3px', fontSize: '15px' }}>{a.apellido_paterno} {a.apellido_materno} {a.nombres}</h4>
-              <p style={{ margin: '2px 0', fontSize: '11px', color: '#64748b' }}>
+              <p style={{ margin: '2px 0', fontSize: '11px', color: 'var(--muted)' }}>
                 {a.matricula} · {a.nombre_carrera} · {a.semestre_actual}° semestre
               </p>
               <div className="row gap wrap" style={{ marginTop: '6px' }}>
@@ -244,8 +244,8 @@ function KardexConsulta({ token, grupos }) {
                     {a.promedio_general || '0.00'}
                   </span>
                 </span>
-                <span style={{ fontSize: '11px', color: '#64748b' }}>Créditos: {a.creditos_acumulados || 0}</span>
-                <span style={{ fontSize: '11px', color: '#64748b' }}>Folio: {a.folio_kardex || '—'}</span>
+                <span style={{ fontSize: '11px', color: 'var(--muted)' }}>Créditos: {a.creditos_acumulados || 0}</span>
+                <span style={{ fontSize: '11px', color: 'var(--muted)' }}>Folio: {a.folio_kardex || '—'}</span>
               </div>
             </div>
           </div>
@@ -361,7 +361,7 @@ function ResumenDesempeno({ token, grupos }) {
         <>
           <div className="kardex-card" style={{ padding: '12px' }}>
             <h4 style={{ margin: '0 0 2px' }}>{a.nombre_completo}</h4>
-            <p style={{ margin: '0 0 8px', fontSize: '11px', color: '#64748b' }}>
+            <p style={{ margin: '0 0 8px', fontSize: '11px', color: 'var(--muted)' }}>
               {a.matricula} · {a.nombre_carrera} · Semestre {a.semestre_actual}
             </p>
             <div className="row gap wrap">
@@ -569,40 +569,20 @@ export default function DocenteKardexPage() {
     <div>
       <div style={{ marginBottom: '16px' }}>
         <h2 style={{ margin: '0 0 4px' }}>Gestión académica · Kardex</h2>
-        <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+        <p style={{ margin: 0, fontSize: '12px', color: 'var(--muted)' }}>
           Consulta informativa de expedientes autorizados. Revisa promedios, estado académico y
           detecta estudiantes con rezago en tus grupos.
         </p>
       </div>
 
-      <div className="tabs" style={{
-        display: 'flex', gap: '4px', borderBottom: '2px solid #e2e8f0',
-        marginBottom: '16px', overflowX: 'auto', paddingBottom: '0'
-      }}>
-        {TABS.map(tab => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.key;
-          return (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              type="button"
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '8px 16px', border: 'none',
-                borderBottom: isActive ? '2px solid #1e40af' : '2px solid transparent',
-                background: 'transparent', cursor: 'pointer',
-                color: isActive ? '#1e40af' : '#64748b',
-                fontWeight: isActive ? 700 : 500,
-                fontSize: '12px', whiteSpace: 'nowrap',
-                marginBottom: '-2px', transition: 'all 0.15s'
-              }}
-            >
-              <Icon size={16} />
-              {tab.label}
-            </button>
-          );
-        })}
+      <div className="tabs">
+        {TABS.map(tab => (
+          <button key={tab.key} type="button"
+            className={`tab ${activeTab === tab.key ? 'active' : ''}`}
+            onClick={() => setActiveTab(tab.key)}>
+            <tab.icon size={15} /> {tab.label}
+          </button>
+        ))}
       </div>
 
       {activeTab === 'grupo' && <VistaDelGrupo token={token} grupos={grupos} />}

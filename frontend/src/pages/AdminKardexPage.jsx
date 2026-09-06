@@ -20,10 +20,10 @@ function formatDate(d) {
 }
 
 function Badge({ type, children }) {
-  const cls = type === 'success' ? 'badge badge-success' :
-    type === 'danger' ? 'badge badge-danger' :
-    type === 'warning' ? 'badge badge-warning' :
-    type === 'info' ? 'badge badge-info' : 'badge badge-light';
+  const cls = type === 'success' ? 'badge success' :
+    type === 'danger' ? 'badge error' :
+    type === 'warning' ? 'badge warning' :
+    type === 'info' ? 'badge info' : 'badge';
   return <span className={cls}>{children}</span>;
 }
 
@@ -444,7 +444,7 @@ export default function AdminKardexPage() {
                   </div>
                 )}
                 {kardexData.firma_electronica && (
-                  <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: '#64748b' }}>
+                  <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', color: 'var(--muted)' }}>
                     <strong>Firma electrónica:</strong> <code>{kardexData.firma_electronica}</code>
                   </div>
                 )}
@@ -526,7 +526,7 @@ export default function AdminKardexPage() {
         {qrData && (
           <div style={{ textAlign: 'center', padding: '1rem' }}>
             {qrData.url_qr && <img src={qrData.url_qr} alt="QR" style={{ width: 150, borderRadius: 8 }} />}
-            <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.5rem' }}>Token: {qrData.qr_token}</p>
+            <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '0.5rem' }}>Token: {qrData.qr_token}</p>
           </div>
         )}
       </SectionCard>
@@ -728,13 +728,12 @@ export default function AdminKardexPage() {
       {error && <div className="alert error">{error}</div>}
       {message && <div className="alert success">{message}</div>}
 
-      <div className="tabs" style={{ display: 'flex', gap: '0.25rem', borderBottom: '2px solid var(--border)', marginBottom: '1rem', flexWrap: 'wrap' }}>
+      <div className="tabs">
         {TABS.map(tab => (
           <button key={tab.key} type="button"
-            className={`btn ${activeTab === tab.key ? 'primary' : 'ghost'}`}
-            style={{ borderRadius: 0, borderBottom: activeTab === tab.key ? '2px solid var(--primary)' : '2px solid transparent', marginBottom: '-2px' }}
+            className={`tab ${activeTab === tab.key ? 'active' : ''}`}
             onClick={() => setActiveTab(tab.key)}>
-            <tab.icon size={16} /> {tab.label}
+            <tab.icon size={15} /> {tab.label}
           </button>
         ))}
       </div>

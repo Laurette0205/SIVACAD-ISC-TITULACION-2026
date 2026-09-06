@@ -87,18 +87,18 @@ function ResumenGrupo({ grupo, onSeleccionar, seleccionado }) {
 
 function PanelGrupos({ grupos, cargando, error, onSeleccionarGrupo, grupoSeleccionado, onRefresh }) {
   if (cargando) {
-    return <div className="text-center py-4"><p className="muted">Cargando grupos asignados...</p></div>;
+    return <div style={{ textAlign: 'center', padding: '1.5rem 0' }}><p className="muted">Cargando grupos asignados...</p></div>;
   }
   if (error) {
-    return <div className="alert alert-danger">{error}</div>;
+    return <div className="alert danger">{error}</div>;
   }
   if (!grupos?.length) {
     return (
-      <div className="text-center py-4">
-        <BookOpen size={48} className="muted mb-2" />
+      <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
+        <BookOpen size={48} className="muted" style={{ display: 'block', margin: '0 auto 0.5rem' }} />
         <p className="muted">No se encontraron grupos asignados para el período activo.</p>
         {onRefresh && (
-          <button className="btn btn-outline mt-2" onClick={onRefresh}>
+          <button className="btn outline" style={{ marginTop: '0.5rem' }} onClick={onRefresh}>
             <RefreshCw size={16} /> Actualizar
           </button>
         )}
@@ -288,14 +288,14 @@ export default function DocenteReinscripcionesPage() {
   const renderGrupos = () => (
     <div className="stack">
       {periodoActivo && (
-        <div className="alert alert-info mb-2">
+        <div className="alert info mb-2">
           <Info size={16} /> Período activo: <strong>{periodoActivo.nombre_periodo}</strong>
         </div>
       )}
       <div className="card">
         <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ margin: 0 }}>Grupos asignados</h2>
-          <button className="btn btn-outline" onClick={loadGrupos}>
+          <button className="btn outline" onClick={loadGrupos}>
             <RefreshCw size={16} /> Actualizar
           </button>
         </div>
@@ -321,21 +321,21 @@ export default function DocenteReinscripcionesPage() {
         </div>
         <div className="card-body">
           {!grupoSeleccionado ? (
-            <div className="alert alert-info">
+            <div className="alert info">
               <Info size={16} /> Selecciona un grupo en la pestaña "Grupos actualizados" para ver su lista de reinscritos.
             </div>
           ) : (
             <>
-              <div className="alert alert-info mb-2">
+              <div className="alert info mb-2">
                 <BookOpen size={16} /> Grupo: <strong>{grupoSeleccionado.nombre_grupo}</strong> — {grupoSeleccionado.nombre_materia} — {grupoSeleccionado.nombre_periodo}
               </div>
               {cargandoLista ? (
                 <p className="muted">Cargando lista de alumnos...</p>
               ) : errorLista ? (
-                <div className="alert alert-danger">{errorLista}</div>
+                <div className="alert danger">{errorLista}</div>
               ) : listaReinscritos.length === 0 ? (
-                <div className="text-center py-4">
-                  <Users size={48} className="muted mb-2" />
+                <div className="text-center" style={{ padding: '1.5rem 0' }}>
+                  <Users size={48} className="muted" style={{ display: 'block', margin: '0 auto 0.5rem' }} />
                   <p className="muted">No hay alumnos registrados en este grupo.</p>
                 </div>
               ) : (
@@ -376,8 +376,8 @@ export default function DocenteReinscripcionesPage() {
                   </table>
                 </div>
               )}
-              <div className="mt-2">
-                <button className="btn btn-outline" onClick={() => loadLista(grupoSeleccionado.id_grupo, grupoSeleccionado.id_periodo)}>
+              <div className="mt-2" style={{ marginTop: '0.5rem' }}>
+                <button className="btn outline" onClick={() => loadLista(grupoSeleccionado.id_grupo, grupoSeleccionado.id_periodo)}>
                   <RefreshCw size={16} /> Actualizar lista
                 </button>
               </div>
@@ -421,7 +421,7 @@ export default function DocenteReinscripcionesPage() {
             <FormFiltroCambios filtro={filtroCambios} onChange={setFiltroCambios} />
 
             {!grupoSeleccionado && (
-              <div className="alert alert-info mb-2">
+              <div className="alert info mb-2">
                 <Info size={16} /> Mostrando cambios de todos los grupos. Selecciona un grupo en la pestaña "Grupos actualizados" para filtrar.
               </div>
             )}
@@ -429,10 +429,10 @@ export default function DocenteReinscripcionesPage() {
             {cargandoCambios ? (
               <p className="muted">Cargando cambios...</p>
             ) : errorCambios ? (
-              <div className="alert alert-danger">{errorCambios}</div>
+              <div className="alert danger">{errorCambios}</div>
             ) : cambiosFiltrados.length === 0 ? (
-              <div className="text-center py-4">
-                <ArrowUpDown size={48} className="muted mb-2" />
+              <div className="text-center" style={{ padding: '1.5rem 0' }}>
+                <ArrowUpDown size={48} className="muted" style={{ display: 'block', margin: '0 auto 0.5rem' }} />
                 <p className="muted">No se encontraron cambios o incidencias.</p>
               </div>
             ) : (
@@ -503,7 +503,7 @@ export default function DocenteReinscripcionesPage() {
             </h2>
             <div className="row gap">
               {noLeidas > 0 && (
-                <button className="btn btn-outline" onClick={async () => {
+                <button className="btn outline" onClick={async () => {
                   try {
                     await api.docenteReinscripcionesMarcarTodasLeidas(token);
                     await loadNotificaciones();
@@ -512,7 +512,7 @@ export default function DocenteReinscripcionesPage() {
                   <CheckCircle2 size={16} /> Marcar todas leídas
                 </button>
               )}
-              <button className="btn btn-outline" onClick={() => loadNotificaciones()}>
+              <button className="btn outline" onClick={() => loadNotificaciones()}>
                 <RefreshCw size={16} /> Actualizar
               </button>
             </div>
@@ -523,10 +523,10 @@ export default function DocenteReinscripcionesPage() {
             {cargandoNotif ? (
               <p className="muted">Cargando notificaciones...</p>
             ) : errorNotif ? (
-              <div className="alert alert-danger">{errorNotif}</div>
+              <div className="alert danger">{errorNotif}</div>
             ) : notifFiltradas.length === 0 ? (
-              <div className="text-center py-4">
-                <AlertCircle size={48} className="muted mb-2" />
+              <div className="text-center" style={{ padding: '1.5rem 0' }}>
+                <AlertCircle size={48} className="muted" style={{ display: 'block', margin: '0 auto 0.5rem' }} />
                 <p className="muted">No hay notificaciones de continuidad.</p>
               </div>
             ) : (
@@ -582,12 +582,12 @@ export default function DocenteReinscripcionesPage() {
 
   const renderResumen = () => {
     if (cargandoResumen) return <p className="muted">Cargando resumen...</p>;
-    if (errorResumen) return <div className="alert alert-danger">{errorResumen}</div>;
+    if (errorResumen) return <div className="alert danger">{errorResumen}</div>;
     if (!resumenGrupos?.length) {
       return (
         <div className="card">
           <div className="card-body text-center py-4">
-            <ClipboardList size={48} className="muted mb-2" />
+            <ClipboardList size={48} className="muted" style={{ display: 'block', margin: '0 auto 0.5rem' }} />
             <p className="muted">No hay datos de resumen disponibles.</p>
           </div>
         </div>
@@ -702,13 +702,12 @@ export default function DocenteReinscripcionesPage() {
         </div>
       </section>
 
-      <div className="tabs" style={{ display: 'flex', gap: '0.25rem', borderBottom: '2px solid var(--border)', marginBottom: '1rem', flexWrap: 'wrap' }}>
+      <div className="tabs">
         {TABS.map(tab => (
           <button key={tab.key} type="button"
-            className={`btn ${activeTab === tab.key ? 'primary' : 'ghost'}`}
-            style={{ borderRadius: 0, borderBottom: activeTab === tab.key ? '2px solid var(--primary)' : '2px solid transparent', marginBottom: '-2px' }}
+            className={`tab ${activeTab === tab.key ? 'active' : ''}`}
             onClick={() => setActiveTab(tab.key)}>
-            <tab.icon size={16} /> {tab.label}
+            <tab.icon size={15} /> {tab.label}
           </button>
         ))}
       </div>

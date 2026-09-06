@@ -22,7 +22,7 @@ const TABS = [
   { key: 'auditoria', label: 'Auditoría', icon: Shield }
 ];
 
-const RISK_COLORS = { Bajo: '#22c55e', Medio: '#eab308', Alto: '#f97316', 'Crítico': '#ef4444' };
+const RISK_COLORS = { Bajo: 'var(--success, #22c55e)', Medio: 'var(--warning, #eab308)', Alto: 'var(--color-warning, #f97316)', 'Crítico': 'var(--error, #ef4444)' };
 const RISK_BADGE = { Bajo: 'status ok', Medio: 'status warn', Alto: 'status warn', 'Crítico': 'status error' };
 
 function normalize(value) {
@@ -57,8 +57,8 @@ function BarChart({ data = [], title, height = 200 }) {
               <rect x={x} y={y} width={barW} height={barH} rx={4} fill={color} opacity={0.85}>
                 <title>{d.label}: {d.value}</title>
               </rect>
-              <text x={x + barW / 2} y={height - 4} textAnchor="middle" fontSize={11} fill="#64748B">{d.label}</text>
-              <text x={x + barW / 2} y={y - 6} textAnchor="middle" fontSize={12} fill="#0F172A" fontWeight="bold">{d.value}</text>
+              <text x={x + barW / 2} y={height - 4} textAnchor="middle" fontSize={11} fill="var(--muted)">{d.label}</text>
+              <text x={x + barW / 2} y={y - 6} textAnchor="middle" fontSize={12} fill="var(--text)" fontWeight="bold">{d.value}</text>
             </g>
           );
         })}
@@ -94,7 +94,7 @@ function DonutChart({ data = [], size = 160 }) {
       {data.map((d, i) => (
         <g key={`l${i}`}>
           <circle cx={size + 10} cy={20 + i * 22} r={6} fill={RISK_COLORS[d.label] || '#94a3b8'} />
-          <text x={size + 22} y={24 + i * 22} fontSize={11} fill="#334155">{d.label}: {d.value}</text>
+          <text x={size + 22} y={24 + i * 22} fontSize={11} fill="var(--text-secondary)">{d.label}: {d.value}</text>
         </g>
       ))}
     </svg>
@@ -484,16 +484,11 @@ export default function IADesercionPage() {
   if (!canAccessIA) return <Navigate to={getHomeRouteByUser?.(user) || '/app/dashboard'} replace />;
 
   const renderTabNav = () => (
-    <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginBottom: '1rem', borderBottom: '2px solid #e2e8f0', paddingBottom: '0.25rem' }}>
+    <div className="tabs">
       {TABS.map(tab => (
         <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6, padding: '0.5rem 1rem', border: 'none',
-            background: activeTab === tab.key ? '#4F46E5' : 'transparent', color: activeTab === tab.key ? '#fff' : '#64748B',
-            borderRadius: '8px 8px 0 0', cursor: 'pointer', fontSize: '0.85rem', fontWeight: activeTab === tab.key ? 600 : 400,
-            transition: 'all 0.2s'
-          }}>
-          <tab.icon size={16} /> {tab.label}
+          className={`tab ${activeTab === tab.key ? 'active' : ''}`}>
+          <tab.icon size={15} /> {tab.label}
         </button>
       ))}
     </div>

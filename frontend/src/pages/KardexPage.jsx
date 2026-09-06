@@ -27,12 +27,12 @@ function normalizeRole(value) {
 
 function Badge({ children, variant }) {
   const colors = {
-    aceptable: { bg: '#dcfce7', fg: '#166534' },
-    riesgo: { bg: '#fef3c7', fg: '#92400e' },
-    critico: { bg: '#fee2e2', fg: '#991b1b' },
-    info: { bg: '#dbeafe', fg: '#1e40af' }
+    aceptable: { bg: 'var(--success-bg, #dcfce7)', fg: 'var(--success-text, #166534)' },
+    riesgo: { bg: 'var(--warning-bg, #fef3c7)', fg: 'var(--warning-text, #92400e)' },
+    critico: { bg: 'var(--error-bg, #fee2e2)', fg: 'var(--error-text, #991b1b)' },
+    info: { bg: 'var(--info-bg, #dbeafe)', fg: 'var(--info-text, #1e40af)' }
   };
-  const c = colors[variant] || { bg: '#f1f5f9', fg: '#334155' };
+  const c = colors[variant] || { bg: 'var(--bg-secondary, #f1f5f9)', fg: 'var(--text-secondary, #334155)' };
   return (
     <span style={{
       display: 'inline-block', padding: '2px 8px', borderRadius: '10px',
@@ -45,13 +45,13 @@ function Badge({ children, variant }) {
 function StatCard({ label, value, variant }) {
   return (
     <div style={{
-      background: '#fff', borderRadius: '8px', padding: '10px 14px',
-      border: '1px solid #e2e8f0', flex: 1, minWidth: '100px'
+      background: 'var(--bg)', borderRadius: '8px', padding: '10px 14px',
+      border: '1px solid var(--border)', flex: 1, minWidth: '100px'
     }}>
-      <div style={{ fontSize: '9px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>{label}</div>
+      <div style={{ fontSize: '9px', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 600 }}>{label}</div>
       <div style={{
         fontSize: '18px', fontWeight: 700, marginTop: '3px',
-        color: variant === 'danger' ? '#dc2626' : variant === 'warning' ? '#d97706' : '#0f172a'
+        color: variant === 'danger' ? 'var(--error)' : variant === 'warning' ? 'var(--warning)' : 'var(--text)'
       }}>{value}</div>
     </div>
   );

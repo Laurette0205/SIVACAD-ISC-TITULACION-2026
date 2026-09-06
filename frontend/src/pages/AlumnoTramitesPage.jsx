@@ -16,8 +16,8 @@ function EstadoBadge({ estado }) {
     OBSERVADO:   { color: 'var(--color-danger)',   label: 'Observado' },
     DICTAMINADO: { color: 'var(--color-success)',  label: 'Dictaminado' },
     VALIDADO:    { color: 'var(--color-primary)',  label: 'Validado' },
-    EMITIDO:     { color: '#7b1fa2',               label: 'Emitido' },
-    ENTREGADO:   { color: '#2e7d32',               label: 'Entregado' },
+    EMITIDO:     { color: 'var(--color-accent)',    label: 'Emitido' },
+    ENTREGADO:   { color: 'var(--color-success)',   label: 'Entregado' },
     RECHAZADO:   { color: 'var(--color-danger)',   label: 'Rechazado' },
     CERRADO:     { color: 'var(--color-muted)',    label: 'Cerrado' },
   };

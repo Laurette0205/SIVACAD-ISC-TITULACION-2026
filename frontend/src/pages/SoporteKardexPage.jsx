@@ -35,7 +35,7 @@ const TABS = [
 function TabButton({ tab, active, onClick }) {
   const Icon = tab.icon;
   return (
-    <button type="button" className={`tab-btn ${active ? 'active' : ''}`} onClick={onClick}>
+    <button type="button" className={`tab ${active ? 'active' : ''}`} onClick={onClick}>
       <Icon size={16} /> {tab.label}
     </button>
   );
@@ -57,7 +57,7 @@ function InfoRow({ label, value, ok }) {
   return (
     <div className="list-item">
       <strong>{label}</strong>
-      <span style={{ color: ok === false ? '#dc2626' : ok === true ? '#16a34a' : 'inherit' }}>
+      <span style={{ color: ok === false ? 'var(--error)' : ok === true ? 'var(--success)' : 'inherit' }}>
         {value ?? '\u2014'}
       </span>
     </div>
@@ -561,8 +561,8 @@ function renderIntegridad(data) {
                 {data.detalle.map((d, i) => (
                   <tr key={d.id_alumno} style={{ background: d.archivo_existe ? '' : '#fef2f2' }}>
                     <td>{d.matricula}</td>
-                    <td>{d.qr_token_valido ? <span className="badge ok">Válido</span> : <span className="badge warn">Inválido</span>}</td>
-                    <td>{d.archivo_existe ? <span className="badge ok">Sí</span> : <span className="badge warn">No</span>}</td>
+                    <td>{d.qr_token_valido ? <span className="badge success">Válido</span> : <span className="badge error">Inválido</span>}</td>
+                    <td>{d.archivo_existe ? <span className="badge success">Sí</span> : <span className="badge error">No</span>}</td>
                     <td>{d.tamano_bytes ? `${(d.tamano_bytes / 1024).toFixed(1)} KB` : '\u2014'}</td>
                   </tr>
                 ))}

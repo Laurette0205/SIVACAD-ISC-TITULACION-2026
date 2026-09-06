@@ -366,7 +366,7 @@ export default function IABecasPage() {
                 disabled={loadingAsk || !mensaje.trim()}
               >
                 {loadingAsk ? (
-                  <Loader2 className="animate-spin" size={18} />
+                  <Loader2 size={18} />
                 ) : (
                   <Search size={18} />
                 )}
@@ -380,7 +380,7 @@ export default function IABecasPage() {
                 disabled={loadingEligibility}
               >
                 {loadingEligibility ? (
-                  <Loader2 className="animate-spin" size={18} />
+                  <Loader2 size={18} />
                 ) : (
                   <ShieldCheck size={18} />
                 )}

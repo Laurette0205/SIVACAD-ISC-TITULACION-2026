@@ -462,7 +462,7 @@ export default function IABecasAdminPage() {
               )}
               {['PENDIENTE', 'EN_REVISION'].includes(solicitudDetalle.estatus_solicitud) && (
                 <button className="btn secondary" onClick={() => handleValidarCriterios(solicitudDetalle.id_solicitud)} disabled={loading.validar}>
-                  {loading.validar ? <Loader2 className="animate-spin" size={16} /> : <ShieldCheck size={16} />}
+                  {loading.validar ? <Loader2 size={16} /> : <ShieldCheck size={16} />}
                   Validar criterios (IA)
                 </button>
               )}
@@ -495,7 +495,7 @@ export default function IABecasAdminPage() {
 
         <SectionCard title={`Solicitudes (${p.total || 0})`} subtitle={`Página ${p.page || 1} de ${p.total_paginas || 1}`}>
           {loading.solicitudes ? (
-            <div className="flex-center"><Loader2 className="animate-spin" size={24} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
           ) : s.length === 0 ? (
             <div className="empty">No hay solicitudes registradas</div>
           ) : (
@@ -549,7 +549,7 @@ export default function IABecasAdminPage() {
 
         <SectionCard title={`Registros (${p.total || 0})`} subtitle={`Página ${p.page || 1}`}>
           {loading.historial ? (
-            <div className="flex-center"><Loader2 className="animate-spin" size={24} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
           ) : h.length === 0 ? (
             <div className="empty">Sin registros históricos</div>
           ) : (
@@ -601,7 +601,7 @@ export default function IABecasAdminPage() {
 
         <SectionCard title={`Dictámenes (${p.total || 0})`} subtitle={`Página ${p.page || 1}`}>
           {loading.dictamenes ? (
-            <div className="flex-center"><Loader2 className="animate-spin" size={24} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
           ) : d.length === 0 ? (
             <div className="empty">No hay dictámenes registrados. Aprueba o rechaza solicitudes desde la sección Solicitudes.</div>
           ) : (
@@ -676,7 +676,7 @@ export default function IABecasAdminPage() {
 
         <SectionCard title={`Convocatorias (${p.total || 0})`} subtitle={`Página ${p.page || 1} de ${p.total_paginas || 1}`}>
           {loading.convocatorias ? (
-            <div className="flex-center"><Loader2 className="animate-spin" size={24} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
           ) : c.length === 0 ? (
             <div className="empty">No hay convocatorias registradas</div>
           ) : (
@@ -756,7 +756,7 @@ export default function IABecasAdminPage() {
               const formato = document.getElementById('formato_reporte').value;
               handleExportar(tipo, formato);
             }} disabled={loading.exportar}>
-              {loading.exportar ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
+              {loading.exportar ? <Loader2 size={16} /> : <Download size={16} />}
               Generar reporte
             </button>
           </div>
@@ -764,7 +764,7 @@ export default function IABecasAdminPage() {
 
         <SectionCard title={`Exportaciones realizadas (${p.total || 0})`}>
           {loading.exportaciones ? (
-            <div className="flex-center"><Loader2 className="animate-spin" size={24} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
           ) : e.length === 0 ? (
             <div className="empty">No hay exportaciones registradas</div>
           ) : (
@@ -829,7 +829,7 @@ export default function IABecasAdminPage() {
 
         <SectionCard title={`Eventos de auditoría (${p.total || 0})`}>
           {loading.auditoria ? (
-            <div className="flex-center"><Loader2 className="animate-spin" size={24} /></div>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
           ) : a.length === 0 ? (
             <div className="empty">No hay eventos de auditoría registrados</div>
           ) : (
@@ -881,13 +881,12 @@ export default function IABecasAdminPage() {
         </div>
       </div>
 
-      <div className="tabs" style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+      <div className="tabs" style={{ marginBottom: '1rem' }}>
         {TABS.map(tab => (
           <button
             key={tab.id}
-            className={`btn ${activeTab === tab.id ? 'primary' : 'secondary'}`}
+            className={`tab ${activeTab === tab.id ? 'active' : ''}`}
             onClick={() => setActiveTab(tab.id)}
-            style={{ fontSize: '0.85rem' }}
           >
             <tab.icon size={15} />
             {tab.label}

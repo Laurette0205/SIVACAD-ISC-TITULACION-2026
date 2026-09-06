@@ -327,7 +327,7 @@ export default function IABecasCoordinadorPage() {
         </SectionCard>
 
         <SectionCard title={`Solicitudes (${p.total || 0})`} subtitle={`Página ${p.page || 1} de ${p.total_paginas || 1}`}>
-          {loading.bandeja ? <div className="flex-center"><Loader2 className="animate-spin" size={24} /></div>
+          {loading.bandeja ? <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
           : s.length === 0 ? <div className="empty">No hay solicitudes en la bandeja</div>
           : <div className="list">{s.map(item => (
               <div key={item.id_solicitud} className="list-item" style={{ cursor: 'pointer' }} onClick={() => verDetalle(item.id_solicitud)}>
@@ -390,7 +390,7 @@ export default function IABecasCoordinadorPage() {
           </div>
         </SectionCard>
         <SectionCard title={`Candidatos (${p.total || 0})`}>
-          {loading.candidatos ? <div className="flex-center"><Loader2 className="animate-spin" size={24} /></div>
+          {loading.candidatos ? <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
           : c.length === 0 ? <div className="empty">No se encontraron candidatos</div>
           : <div className="list">{c.map((item, idx) => (
               <div key={item.id_alumno || idx} className="list-item">
@@ -431,7 +431,7 @@ export default function IABecasCoordinadorPage() {
               <input type="number" value={elegId} onChange={e => setElegId(e.target.value)} placeholder="Ej: 1" />
             </div>
             <button className="btn primary" onClick={handleElegibilidad} disabled={loading.elegibilidad || !elegId}>
-              {loading.elegibilidad ? <Loader2 className="animate-spin" size={16} /> : <ShieldCheck size={16} />}
+              {loading.elegibilidad ? <Loader2 size={16} /> : <ShieldCheck size={16} />}
               Evaluar elegibilidad
             </button>
           </div>
@@ -505,7 +505,7 @@ export default function IABecasCoordinadorPage() {
           </form>
         </SectionCard>
         <SectionCard title={`Observaciones registradas (${p.total || 0})`}>
-          {loading.observaciones ? <div className="flex-center"><Loader2 className="animate-spin" size={24} /></div>
+          {loading.observaciones ? <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
           : o.length === 0 ? <div className="empty">No hay observaciones registradas</div>
           : <div className="list">{o.map(item => (
               <div key={item.id_observacion} className="list-item">
@@ -548,7 +548,7 @@ export default function IABecasCoordinadorPage() {
           </div>
         </SectionCard>
         <SectionCard title={`Casos en seguimiento (${p.total || 0})`}>
-          {loading.seguimiento ? <div className="flex-center"><Loader2 className="animate-spin" size={24} /></div>
+          {loading.seguimiento ? <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
           : s.length === 0 ? <div className="empty">No hay casos en seguimiento</div>
           : <div className="list">{s.map((item, idx) => (
               <div key={item.id_solicitud || idx} className="list-item" style={{ cursor: 'pointer' }} onClick={() => { setActiveTab('bandeja'); verDetalle(item.id_solicitud); }}>
@@ -593,9 +593,9 @@ export default function IABecasCoordinadorPage() {
         </div>
       </div>
 
-      <div className="tabs" style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+      <div className="tabs" style={{ marginBottom: '1rem' }}>
         {TABS.map(tab => (
-          <button key={tab.id} className={`btn ${activeTab === tab.id ? 'primary' : 'secondary'}`} onClick={() => setActiveTab(tab.id)} style={{ fontSize: '0.85rem' }}>
+          <button key={tab.id} className={`tab ${activeTab === tab.id ? 'active' : ''}`} onClick={() => setActiveTab(tab.id)}>
             <tab.icon size={15} /> {tab.label}
           </button>
         ))}

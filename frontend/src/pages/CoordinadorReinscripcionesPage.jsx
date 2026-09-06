@@ -67,7 +67,7 @@ const TABS = [
 function TabButton({ tab, active, onClick }) {
   const Icon = tab.icon;
   return (
-    <button type="button" className={`tab-btn ${active ? 'active' : ''}`} onClick={onClick}>
+    <button type="button" className={`tab ${active ? 'active' : ''}`} onClick={onClick}>
       <Icon size={16} /> {tab.label}
     </button>
   );

@@ -12,17 +12,17 @@ import SoundToggleButton from '../components/SoundToggleButton';
 import { useAuth } from '../context/AuthContext';
 
 const PRIORITY_COLORS = {
-  CRITICO: '#ef4444', ALTO: '#f97316', MEDIO: '#eab308', BAJO: '#22c55e',
-  'SIN_PROMEDIO': '#94a3b8'
+  CRITICO: 'var(--danger, #ef4444)', ALTO: 'var(--warning, #f97316)', MEDIO: 'var(--warning, #eab308)', BAJO: 'var(--success, #22c55e)',
+  'SIN_PROMEDIO': 'var(--muted, #94a3b8)'
 };
 const PRIORITY_BADGE = {
   CRITICO: 'status error', ALTO: 'status warn', MEDIO: 'status warn',
   BAJO: 'status ok', 'SIN_PROMEDIO': 'status'
 };
-const SEVERIDAD_COLORS = { ALTA: '#ef4444', MEDIA: '#f97316', BAJA: '#eab308' };
+const SEVERIDAD_COLORS = { ALTA: 'var(--danger, #ef4444)', MEDIA: 'var(--warning, #f97316)', BAJA: 'var(--warning, #eab308)' };
 const ESTATUS_COLORS = {
-  PENDIENTE: '#f59e0b', EN_REVISION: '#3b82f6', APROBADA: '#22c55e',
-  RECHAZADA: '#ef4444', CANALIZADA: '#8b5cf6', OBSERVADA: '#f97316'
+  PENDIENTE: 'var(--warning, #f59e0b)', EN_REVISION: 'var(--info, #3b82f6)', APROBADA: 'var(--success, #22c55e)',
+  RECHAZADA: 'var(--danger, #ef4444)', CANALIZADA: 'var(--purple, #8b5cf6)', OBSERVADA: 'var(--warning, #f97316)'
 };
 
 function Modal({ open, onClose, title, children }) {
@@ -33,7 +33,7 @@ function Modal({ open, onClose, title, children }) {
       alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)'
     }} onClick={onClose}>
       <div style={{
-        background: '#fff', borderRadius: 16, padding: '1.5rem', width: '90%', maxWidth: 700,
+        background: 'var(--bg, #fff)', borderRadius: 16, padding: '1.5rem', width: '90%', maxWidth: 700,
         maxHeight: '85vh', overflow: 'auto', position: 'relative'
       }} onClick={e => e.stopPropagation()}>
         <button onClick={onClose} style={{
@@ -70,7 +70,7 @@ export default function IABecasDocentePage() {
   };
 
   if (authLoading) {
-    return <div className="loading-container"><Loader2 className="spinner" size={40} /></div>;
+    return <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={40} /></div>;
   }
 
   if (!token || !canAccess) {
@@ -85,17 +85,17 @@ export default function IABecasDocentePage() {
       <div className="page-header">
         <div className="page-title-row">
           <h1><Sparkles size={24} /> IA de Becas - Docente</h1>
-          <button className="btn btn-outline" onClick={() => window.location.reload()} style={{ padding: '6px 12px' }}>
+          <button className="btn outline" onClick={() => window.location.reload()} style={{ padding: '6px 12px' }}>
             <RefreshCw size={16} /> Actualizar
           </button>
         </div>
-        <p style={{ color: '#64748b', margin: 0 }}>
+        <p style={{ color: 'var(--muted, #64748b)', margin: 0 }}>
           Panel de apoyo académico para la detección y canalización de candidatos a beca
         </p>
       </div>
 
       {message && (
-        <div className={`alert ${message.includes('Error') || message.includes('error') ? 'alert-error' : 'alert-success'}`}>
+        <div className={`alert ${message.includes('Error') || message.includes('error') ? 'alert danger' : 'alert success'}`}>
           {message}
         </div>
       )}
@@ -149,7 +149,7 @@ function AlumnosSugeridos({ token, user, showMessage }) {
         <div className="card-header">
           <h3><Users size={18} /> Alumnos con necesidad potencial de beca ({meta.total})</h3>
         </div>
-        {loading ? <div className="loading-container"><Loader2 className="spinner" size={32} /></div> : (
+        {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={32} /></div> : (
           <div className="table-responsive"><table className="table">
             <thead>
               <tr>
@@ -175,17 +175,17 @@ function AlumnosSugeridos({ token, user, showMessage }) {
                   <td>{a.creditos_acumulados ?? '-'}</td>
                   <td><span className={PRIORITY_BADGE[a.nivel_prioridad] || 'status'} style={{ background: PRIORITY_COLORS[a.nivel_prioridad] }}>{a.nivel_prioridad}</span></td>
                   <td style={{ fontSize: 12, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.sugerencia_motivo}</td>
-                  <td><button className="btn btn-sm" onClick={() => verDetalle(a.id_alumno)}><Eye size={14} /> Ver</button></td>
+                  <td><button className="btn sm" onClick={() => verDetalle(a.id_alumno)}><Eye size={14} /> Ver</button></td>
                 </tr>
               ))}
-              {!alumnos.length && <tr><td colSpan={9} style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>No se encontraron alumnos sugeridos</td></tr>}
+              {!alumnos.length && <tr><td colSpan={9} style={{ textAlign: 'center', padding: 24, color: 'var(--muted, #94a3b8)' }}>No se encontraron alumnos sugeridos</td></tr>}
             </tbody>
           </table></div>
         )}
         {meta.totalPaginas > 1 && (
           <div className="pagination" style={{ padding: '1rem', display: 'flex', gap: 8, justifyContent: 'center' }}>
             {Array.from({ length: meta.totalPaginas }, (_, i) => i + 1).map(p => (
-              <button key={p} className={`btn btn-sm ${p === meta.pagina ? 'btn-primary' : 'btn-outline'}`} onClick={() => load(p)}>{p}</button>
+              <button key={p} className={`btn sm ${p === meta.pagina ? 'primary' : 'outline'}`} onClick={() => load(p)}>{p}</button>
             ))}
           </div>
         )}
@@ -194,7 +194,7 @@ function AlumnosSugeridos({ token, user, showMessage }) {
       <Modal open={detalleOpen} onClose={() => { setDetalleOpen(false); setSelectedAlumno(null); }} title="Detalle del alumno">
         {selectedAlumno && (
           <div>
-            <div className="info-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+            <div className="two-col" style={{ gap: 12, marginBottom: 16 }}>
               <div><strong>Nombre:</strong> {selectedAlumno.alumno?.apellido_paterno} {selectedAlumno.alumno?.apellido_materno} {selectedAlumno.alumno?.nombres}</div>
               <div><strong>Matrícula:</strong> {selectedAlumno.alumno?.matricula}</div>
               <div><strong>Carrera:</strong> {selectedAlumno.alumno?.nombre_carrera}</div>
@@ -219,7 +219,7 @@ function AlumnosSugeridos({ token, user, showMessage }) {
                   ))}
                 </tbody>
               </table></div>
-            ) : <p style={{ color: '#94a3b8' }}>Sin solicitudes de beca registradas</p>}
+            ) : <p style={{ color: 'var(--muted, #94a3b8)' }}>Sin solicitudes de beca registradas</p>}
           </div>
         )}
       </Modal>
@@ -249,7 +249,7 @@ function AlertasAcademicas({ token, user, showMessage }) {
         <div className="card-header">
           <h3><AlertTriangle size={18} /> Alertas académicas ({meta.total})</h3>
         </div>
-        {loading ? <div className="loading-container"><Loader2 className="spinner" size={32} /></div> : (
+        {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={32} /></div> : (
           <div className="table-responsive"><table className="table">
             <thead>
               <tr>
@@ -276,14 +276,14 @@ function AlertasAcademicas({ token, user, showMessage }) {
                   <td>{a.promedio_general ?? '-'}</td>
                 </tr>
               ))}
-              {!alertas.length && <tr><td colSpan={8} style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>Sin alertas académicas activas</td></tr>}
+              {!alertas.length && <tr><td colSpan={8} style={{ textAlign: 'center', padding: 24, color: 'var(--muted, #94a3b8)' }}>Sin alertas académicas activas</td></tr>}
             </tbody>
           </table></div>
         )}
         {meta.totalPaginas > 1 && (
           <div className="pagination" style={{ padding: '1rem', display: 'flex', gap: 8, justifyContent: 'center' }}>
             {Array.from({ length: meta.totalPaginas }, (_, i) => i + 1).map(p => (
-              <button key={p} className={`btn btn-sm ${p === meta.pagina ? 'btn-primary' : 'btn-outline'}`} onClick={() => load(p)}>{p}</button>
+              <button key={p} className={`btn sm ${p === meta.pagina ? 'primary' : 'outline'}`} onClick={() => load(p)}>{p}</button>
             ))}
           </div>
         )}
@@ -326,7 +326,7 @@ function Observaciones({ token, user, showMessage }) {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+    <div className="two-col" style={{ gap: 24 }}>
       <div className="card">
         <div className="card-header"><h3><MessageSquare size={18} /> Registrar observación</h3></div>
         <div className="card-body">
@@ -348,8 +348,8 @@ function Observaciones({ token, user, showMessage }) {
             <input type="checkbox" id="interna" checked={esInterna} onChange={e => setEsInterna(e.target.checked)} />
             <label htmlFor="interna" style={{ margin: 0 }}>Observación interna (solo visible para coordinadores)</label>
           </div>
-          <button className="btn btn-primary" onClick={registrarObs} disabled={saving}>
-            {saving ? <Loader2 className="spinner" size={16} /> : <MessageSquare size={16} />} Registrar
+          <button className="btn primary" onClick={registrarObs} disabled={saving}>
+            {saving ? <Loader2 size={16} /> : <MessageSquare size={16} />} Registrar
           </button>
         </div>
       </div>
@@ -357,7 +357,7 @@ function Observaciones({ token, user, showMessage }) {
       <div className="card">
         <div className="card-header">
           <h3><FileText size={18} /> Observaciones registradas</h3>
-          <button className="btn btn-outline btn-sm" onClick={cargarObservaciones} disabled={loadingObs}>
+          <button className="btn outline sm" onClick={cargarObservaciones} disabled={loadingObs}>
             <RefreshCw size={14} /> {loadingObs ? 'Cargando...' : 'Consultar'}
           </button>
         </div>
@@ -366,21 +366,21 @@ function Observaciones({ token, user, showMessage }) {
             <div style={{ maxHeight: 400, overflow: 'auto' }}>
               {observaciones.map(o => (
                 <div key={o.id_observacion} style={{
-                  padding: 12, marginBottom: 8, borderRadius: 8, background: '#f8fafc',
-                  border: '1px solid #e2e8f0'
+                  padding: 12, marginBottom: 8, borderRadius: 8, background: 'var(--bg-muted, #f8fafc)',
+                  border: '1px solid var(--border, #e2e8f0)'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span className="status" style={{ background: '#3b82f6', fontSize: 11 }}>{o.tipo_observacion}</span>
-                    <small style={{ color: '#94a3b8' }}>{o.fecha_observacion ? new Date(o.fecha_observacion).toLocaleString() : ''}</small>
+                    <span className="status" style={{ background: 'var(--info, #3b82f6)', fontSize: 11 }}>{o.tipo_observacion}</span>
+                    <small style={{ color: 'var(--muted, #94a3b8)' }}>{o.fecha_observacion ? new Date(o.fecha_observacion).toLocaleString() : ''}</small>
                   </div>
                   <p style={{ margin: '4px 0', fontSize: 14 }}>{o.observacion}</p>
-                  <small style={{ color: '#64748b' }}>Por: {o.nombre_usuario} ({o.rol_usuario})</small>
-                  {o.es_interna ? <span className="status" style={{ background: '#8b5cf6', marginLeft: 8, fontSize: 11 }}>Interna</span> : null}
+                  <small style={{ color: 'var(--muted, #64748b)' }}>Por: {o.nombre_usuario} ({o.rol_usuario})</small>
+                  {o.es_interna ? <span className="status" style={{ background: 'var(--purple, #8b5cf6)', marginLeft: 8, fontSize: 11 }}>Interna</span> : null}
                 </div>
               ))}
             </div>
           ) : (
-            <p style={{ color: '#94a3b8', textAlign: 'center', padding: 20 }}>
+            <p style={{ color: 'var(--muted, #94a3b8)', textAlign: 'center', padding: 20 }}>
               {loadingObs ? 'Cargando...' : 'Consulte un ID de solicitud para ver sus observaciones'}
             </p>
           )}
@@ -423,7 +423,7 @@ function Canalizar({ token, user, showMessage }) {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+    <div className="two-col" style={{ gap: 24 }}>
       <div className="card">
         <div className="card-header"><h3><Send size={18} /> Recomendar canalización</h3></div>
         <div className="card-body">
@@ -446,8 +446,8 @@ function Canalizar({ token, user, showMessage }) {
               onChange={e => setForm({ ...form, motivo: e.target.value })}
               placeholder="Describa el motivo de la canalización..." />
           </div>
-          <button className="btn btn-primary" onClick={canalizar} disabled={saving}>
-            {saving ? <Loader2 className="spinner" size={16} /> : <Send size={16} />} Canalizar
+          <button className="btn primary" onClick={canalizar} disabled={saving}>
+            {saving ? <Loader2 size={16} /> : <Send size={16} />} Canalizar
           </button>
         </div>
       </div>
@@ -458,23 +458,23 @@ function Canalizar({ token, user, showMessage }) {
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             <input className="form-control" value={busqueda} onChange={e => setBusqueda(e.target.value)}
               placeholder="Buscar por nombre, matrícula o código" onKeyDown={e => e.key === 'Enter' && buscarSolicitudes()} />
-            <button className="btn btn-outline" onClick={buscarSolicitudes} disabled={loadingSol}>
-              {loadingSol ? <Loader2 className="spinner" size={16} /> : <Search size={16} />}
+            <button className="btn outline" onClick={buscarSolicitudes} disabled={loadingSol}>
+              {loadingSol ? <Loader2 size={16} /> : <Search size={16} />}
             </button>
           </div>
           {solicitudes.length ? (
             <div style={{ maxHeight: 300, overflow: 'auto' }}>
               {solicitudes.map(s => (
                 <div key={s.id_solicitud} style={{
-                  padding: 10, marginBottom: 6, borderRadius: 8, background: '#f8fafc',
-                  border: '1px solid #e2e8f0', cursor: 'pointer', fontSize: 13
+                  padding: 10, marginBottom: 6, borderRadius: 8, background: 'var(--bg-muted, #f8fafc)',
+                  border: '1px solid var(--border, #e2e8f0)', cursor: 'pointer', fontSize: 13
                 }} onClick={() => setForm({ ...form, id_solicitud: String(s.id_solicitud) })}>
                   <strong>{s.codigo_solicitud}</strong> - {s.nombre_alumno}<br />
                   <small>{s.convocatoria_titulo} | <span className="status" style={{ background: ESTATUS_COLORS[s.estatus_solicitud] || '#94a3b8', fontSize: 11 }}>{s.estatus_solicitud}</span></small>
                 </div>
               ))}
             </div>
-          ) : <p style={{ color: '#94a3b8', textAlign: 'center' }}>{loadingSol ? 'Buscando...' : 'Realice una búsqueda para ver resultados'}</p>}
+          ) : <p style={{ color: 'var(--muted, #94a3b8)', textAlign: 'center' }}>{loadingSol ? 'Buscando...' : 'Realice una búsqueda para ver resultados'}</p>}
         </div>
       </div>
     </div>
@@ -515,7 +515,7 @@ function Seguimiento({ token, user, showMessage }) {
         <div className="card-header">
           <h3><Activity size={18} /> Seguimiento de casos ({meta.total})</h3>
         </div>
-        {loading ? <div className="loading-container"><Loader2 className="spinner" size={32} /></div> : (
+        {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={32} /></div> : (
           <div className="table-responsive"><table className="table">
             <thead>
               <tr>
@@ -541,17 +541,17 @@ function Seguimiento({ token, user, showMessage }) {
                   <td style={{ textAlign: 'center' }}>{s.total_observaciones || 0}</td>
                   <td style={{ fontSize: 12 }}>{s.areas_canalizacion || '-'}</td>
                   <td style={{ fontSize: 12 }}>{s.fecha_solicitud ? new Date(s.fecha_solicitud).toLocaleDateString() : '-'}</td>
-                  <td><button className="btn btn-sm" onClick={() => verDetalleCaso(s.id_solicitud)}><Eye size={14} /></button></td>
+                  <td><button className="btn sm" onClick={() => verDetalleCaso(s.id_solicitud)}><Eye size={14} /></button></td>
                 </tr>
               ))}
-              {!casos.length && <tr><td colSpan={9} style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>Sin casos en seguimiento</td></tr>}
+              {!casos.length && <tr><td colSpan={9} style={{ textAlign: 'center', padding: 24, color: 'var(--muted, #94a3b8)' }}>Sin casos en seguimiento</td></tr>}
             </tbody>
           </table></div>
         )}
         {meta.totalPaginas > 1 && (
           <div className="pagination" style={{ padding: '1rem', display: 'flex', gap: 8, justifyContent: 'center' }}>
             {Array.from({ length: meta.totalPaginas }, (_, i) => i + 1).map(p => (
-              <button key={p} className={`btn btn-sm ${p === meta.pagina ? 'btn-primary' : 'btn-outline'}`} onClick={() => load(p)}>{p}</button>
+              <button key={p} className={`btn sm ${p === meta.pagina ? 'primary' : 'outline'}`} onClick={() => load(p)}>{p}</button>
             ))}
           </div>
         )}
@@ -566,19 +566,19 @@ function Seguimiento({ token, user, showMessage }) {
               <div style={{ maxHeight: 400, overflow: 'auto' }}>
                 {selectedSolicitud.observaciones.map(o => (
                   <div key={o.id_observacion} style={{
-                    padding: 12, marginBottom: 8, borderRadius: 8, background: '#f8fafc',
-                    border: '1px solid #e2e8f0'
+                    padding: 12, marginBottom: 8, borderRadius: 8, background: 'var(--bg-muted, #f8fafc)',
+                    border: '1px solid var(--border, #e2e8f0)'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span className="status" style={{ background: '#3b82f6', fontSize: 11 }}>{o.tipo_observacion}</span>
-                      <small style={{ color: '#94a3b8' }}>{o.fecha_observacion ? new Date(o.fecha_observacion).toLocaleString() : ''}</small>
+                      <span className="status" style={{ background: 'var(--info, #3b82f6)', fontSize: 11 }}>{o.tipo_observacion}</span>
+                      <small style={{ color: 'var(--muted, #94a3b8)' }}>{o.fecha_observacion ? new Date(o.fecha_observacion).toLocaleString() : ''}</small>
                     </div>
                     <p style={{ margin: '4px 0', fontSize: 14 }}>{o.observacion}</p>
-                    <small style={{ color: '#64748b' }}>Por: {o.nombre_usuario} ({o.rol_usuario})</small>
+                    <small style={{ color: 'var(--muted, #64748b)' }}>Por: {o.nombre_usuario} ({o.rol_usuario})</small>
                   </div>
                 ))}
               </div>
-            ) : <p style={{ color: '#94a3b8' }}>Sin observaciones registradas</p>}
+            ) : <p style={{ color: 'var(--muted, #94a3b8)' }}>Sin observaciones registradas</p>}
           </div>
         )}
       </Modal>

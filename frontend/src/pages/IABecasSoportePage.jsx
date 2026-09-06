@@ -19,7 +19,7 @@ function formatDate(value) {
 function StatusBadge({ ok, label }) {
   return (
     <span className={`badge ${ok ? 'light' : 'error'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-      <span style={{ width: 8, height: 8, borderRadius: '50%', background: ok ? '#22c55e' : '#ef4444', display: 'inline-block' }} />
+      <span style={{ width: 8, height: 8, borderRadius: '50%', background: ok ? 'var(--success, #22c55e)' : 'var(--danger, #ef4444)', display: 'inline-block' }} />
       {label || (ok ? 'OK' : 'Fallo')}
     </span>
   );
@@ -33,7 +33,7 @@ function Modal({ open, onClose, title, children }) {
       alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)'
     }} onClick={onClose}>
       <div style={{
-        background: '#fff', borderRadius: 16, padding: '1.5rem', width: '90%', maxWidth: 800,
+        background: 'var(--bg, #fff)', borderRadius: 16, padding: '1.5rem', width: '90%', maxWidth: 800,
         maxHeight: '85vh', overflow: 'auto', position: 'relative'
       }} onClick={e => e.stopPropagation()}>
         <button onClick={onClose} style={{
@@ -77,7 +77,7 @@ export default function IABecasSoportePage() {
   ];
 
   if (authLoading) {
-    return <div className="loading-container"><Loader2 className="spinner" size={40} /></div>;
+    return <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={40} /></div>;
   }
 
   if (!token || !canAccess) {
@@ -132,17 +132,17 @@ export default function IABecasSoportePage() {
       <div className="page-header">
         <div className="page-title-row">
           <h1><Wrench size={24} /> IA de Becas - Soporte Técnico</h1>
-          <button className="btn btn-outline" onClick={() => window.location.reload()} style={{ padding: '6px 12px' }}>
+          <button className="btn outline" onClick={() => window.location.reload()} style={{ padding: '6px 12px' }}>
             <RefreshCw size={16} /> Recargar
           </button>
         </div>
-        <p style={{ color: '#64748b', margin: 0 }}>
+        <p style={{ color: 'var(--muted, #64748b)', margin: 0 }}>
           Monitoreo, depuración y validación técnica del módulo IA de Becas
         </p>
       </div>
 
       {error && (
-        <div className="alert alert-error" style={{ marginBottom: 16 }}>
+        <div className="alert danger" style={{ marginBottom: 16 }}>
           <AlertTriangle size={16} /> {error}
           <button onClick={() => setError('')} style={{ marginLeft: 12, background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}><X size={14} /></button>
         </div>
@@ -191,7 +191,7 @@ export default function IABecasSoportePage() {
 
       <Modal open={detalleTablaOpen} onClose={() => { setDetalleTablaOpen(false); setDetalleTabla(null); }} title="Detalle de tabla">
         {detalleTabla && (
-          <pre style={{ background: '#1e293b', color: '#e2e8f0', padding: 16, borderRadius: 8, overflow: 'auto', fontSize: 13, maxHeight: 400 }}>
+          <pre style={{ background: 'var(--code-bg, #1e293b)', color: 'var(--code-text, #e2e8f0)', padding: 16, borderRadius: 8, overflow: 'auto', fontSize: 13, maxHeight: 400 }}>
             {JSON.stringify(detalleTabla, null, 2)}
           </pre>
         )}
@@ -203,7 +203,7 @@ export default function IABecasSoportePage() {
 function PanelGeneral({ estado, integridad, conectividad, loading, loadEstado, loadIntegridad, loadConectividad, setDetalleTabla, setDetalleTablaOpen }) {
   React.useEffect(() => { if (!estado) loadEstado(); if (!integridad) loadIntegridad(); if (!conectividad) loadConectividad(); }, []);
 
-  if (loading && !estado) return <div className="loading-container"><Loader2 className="spinner" size={32} /></div>;
+  if (loading && !estado) return <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={32} /></div>;
 
   return (
     <div>
@@ -230,11 +230,11 @@ function PanelGeneral({ estado, integridad, conectividad, loading, loadEstado, l
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+      <div className="two-col" style={{ gap: 24 }}>
         <div className="card">
           <div className="card-header">
             <h3><Database size={18} /> Tablas del módulo</h3>
-            <button className="btn btn-outline btn-sm" onClick={loadEstado} disabled={loading}><RefreshCw size={14} /></button>
+            <button className="btn outline sm" onClick={loadEstado} disabled={loading}><RefreshCw size={14} /></button>
           </div>
           <div className="card-body" style={{ maxHeight: 350, overflow: 'auto' }}>
             {estado?.tablas ? (
@@ -250,14 +250,14 @@ function PanelGeneral({ estado, integridad, conectividad, loading, loadEstado, l
                   ))}
                 </tbody>
               </table></div>
-            ) : <p style={{ color: '#94a3b8', textAlign: 'center' }}>Sin datos</p>}
+            ) : <p style={{ color: 'var(--muted, #94a3b8)', textAlign: 'center' }}>Sin datos</p>}
           </div>
         </div>
 
         <div className="card">
           <div className="card-header">
             <h3><CheckSquare size={18} /> Integridad de tablas</h3>
-            <button className="btn btn-outline btn-sm" onClick={loadIntegridad} disabled={loading}><RefreshCw size={14} /></button>
+            <button className="btn outline sm" onClick={loadIntegridad} disabled={loading}><RefreshCw size={14} /></button>
           </div>
           <div className="card-body" style={{ maxHeight: 350, overflow: 'auto' }}>
             {integridad?.tablas ? (
@@ -274,7 +274,7 @@ function PanelGeneral({ estado, integridad, conectividad, loading, loadEstado, l
                   ))}
                 </tbody>
               </table></div>
-            ) : <p style={{ color: '#94a3b8', textAlign: 'center' }}>Sin datos</p>}
+            ) : <p style={{ color: 'var(--muted, #94a3b8)', textAlign: 'center' }}>Sin datos</p>}
           </div>
         </div>
       </div>
@@ -296,17 +296,17 @@ function RegistroErrores({ errores, loading, loadErrores, loadLogs }) {
       <div className="card-header">
         <h3><Bug size={18} /> Registro de errores e incidencias ({meta?.total || 0})</h3>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button className={`btn btn-sm ${nivelFiltro === 'ERROR' ? 'btn-primary' : 'btn-outline'}`}
+          <button className={`btn sm ${nivelFiltro === 'ERROR' ? 'primary' : 'outline'}`}
             onClick={() => { setNivelFiltro('ERROR'); loadErrores(); }}>Errores</button>
-          <button className={`btn btn-sm ${nivelFiltro === 'ALL' ? 'btn-primary' : 'btn-outline'}`}
+          <button className={`btn sm ${nivelFiltro === 'ALL' ? 'primary' : 'outline'}`}
             onClick={() => { setNivelFiltro('ALL'); loadLogs(); }}>Todos</button>
-          <button className="btn btn-outline btn-sm" onClick={() => nivelFiltro === 'ALL' ? loadLogs() : loadErrores()} disabled={loading}>
+          <button className="btn outline sm" onClick={() => nivelFiltro === 'ALL' ? loadLogs() : loadErrores()} disabled={loading}>
             <RefreshCw size={14} />
           </button>
         </div>
       </div>
       <div className="card-body">
-        {loading ? <div className="loading-container"><Loader2 className="spinner" size={24} /></div> : (
+        {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div> : (
           <>
             <div className="table-responsive"><table className="table">
               <thead>
@@ -331,20 +331,20 @@ function RegistroErrores({ errores, loading, loadErrores, loadLogs }) {
                     <td style={{ fontSize: 12, maxWidth: 250, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.descripcion}</td>
                     <td>
                       {item.detalle_json ? (
-                        <button className="btn btn-sm" onClick={() => alert(JSON.stringify(JSON.parse(item.detalle_json), null, 2))}>
+                        <button className="btn sm" onClick={() => alert(JSON.stringify(JSON.parse(item.detalle_json), null, 2))}>
                           <Eye size={14} />
                         </button>
                       ) : '-'}
                     </td>
                   </tr>
                 ))}
-                {!items.length && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>Sin registros</td></tr>}
+                {!items.length && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: 'var(--muted, #94a3b8)' }}>Sin registros</td></tr>}
               </tbody>
             </table></div>
             {meta?.totalPaginas > 1 && (
               <div className="pagination" style={{ padding: '1rem', display: 'flex', gap: 8, justifyContent: 'center' }}>
                 {Array.from({ length: meta.totalPaginas }, (_, i) => i + 1).map(p => (
-                  <button key={p} className={`btn btn-sm ${p === meta.pagina ? 'btn-primary' : 'btn-outline'}`}
+                  <button key={p} className={`btn sm ${p === meta.pagina ? 'primary' : 'outline'}`}
                     onClick={() => nivelFiltro === 'ALL' ? loadLogs(p) : loadErrores(p)}>{p}</button>
                 ))}
               </div>
@@ -359,14 +359,14 @@ function RegistroErrores({ errores, loading, loadErrores, loadLogs }) {
 function ValidacionRutas({ rutas, loading, loadRutas }) {
   React.useEffect(() => { if (!rutas) loadRutas(); }, []);
 
-  if (loading && !rutas) return <div className="loading-container"><Loader2 className="spinner" size={32} /></div>;
+  if (loading && !rutas) return <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={32} /></div>;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+    <div className="two-col" style={{ gap: 24 }}>
       <div className="card">
         <div className="card-header">
           <h3><Terminal size={18} /> Archivos Backend ({rutas?.backend?.length || 0})</h3>
-          <button className="btn btn-outline btn-sm" onClick={loadRutas} disabled={loading}><RefreshCw size={14} /></button>
+          <button className="btn outline sm" onClick={loadRutas} disabled={loading}><RefreshCw size={14} /></button>
         </div>
         <div className="card-body" style={{ maxHeight: 400, overflow: 'auto' }}>
           {rutas?.backend?.length ? (
@@ -374,14 +374,14 @@ function ValidacionRutas({ rutas, loading, loadRutas }) {
               {rutas.backend.map((f, i) => (
                 <li key={i} style={{
                   padding: '8px 12px', marginBottom: 4, borderRadius: 6,
-                  background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: 13,
+                  background: 'var(--bg-muted, #f8fafc)', border: '1px solid var(--border, #e2e8f0)', fontSize: 13,
                   fontFamily: 'monospace'
                 }}>
-                  <FileText size={14} style={{ marginRight: 8, color: '#3b82f6' }} />{f}
+                  <FileText size={14} style={{ marginRight: 8, color: 'var(--info, #3b82f6)' }} />{f}
                 </li>
               ))}
             </ul>
-          ) : <p style={{ color: '#94a3b8', textAlign: 'center' }}>Sin archivos</p>}
+          ) : <p style={{ color: 'var(--muted, #94a3b8)', textAlign: 'center' }}>Sin archivos</p>}
         </div>
       </div>
 
@@ -395,14 +395,14 @@ function ValidacionRutas({ rutas, loading, loadRutas }) {
               {rutas.frontend.map((f, i) => (
                 <li key={i} style={{
                   padding: '8px 12px', marginBottom: 4, borderRadius: 6,
-                  background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: 13,
+                  background: 'var(--bg-muted, #f8fafc)', border: '1px solid var(--border, #e2e8f0)', fontSize: 13,
                   fontFamily: 'monospace'
                 }}>
-                  <FileText size={14} style={{ marginRight: 8, color: '#22c55e' }} />{f}
+                  <FileText size={14} style={{ marginRight: 8, color: 'var(--success, #22c55e)' }} />{f}
                 </li>
               ))}
             </ul>
-          ) : <p style={{ color: '#94a3b8', textAlign: 'center' }}>Sin archivos</p>}
+          ) : <p style={{ color: 'var(--muted, #94a3b8)', textAlign: 'center' }}>Sin archivos</p>}
         </div>
       </div>
     </div>
@@ -419,10 +419,10 @@ function Exportaciones({ exportaciones, loading, loadExportaciones }) {
     <div className="card">
       <div className="card-header">
         <h3><Download size={18} /> Historial de exportaciones ({meta?.total || 0})</h3>
-        <button className="btn btn-outline btn-sm" onClick={() => loadExportaciones()} disabled={loading}><RefreshCw size={14} /></button>
+        <button className="btn outline sm" onClick={() => loadExportaciones()} disabled={loading}><RefreshCw size={14} /></button>
       </div>
       <div className="card-body">
-        {loading ? <div className="loading-container"><Loader2 className="spinner" size={24} /></div> : (
+        {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div> : (
           <div className="table-responsive"><table className="table">
             <thead>
               <tr>
@@ -449,14 +449,14 @@ function Exportaciones({ exportaciones, loading, loadExportaciones }) {
                   </td>
                 </tr>
               ))}
-              {!items.length && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>Sin exportaciones</td></tr>}
+              {!items.length && <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: 'var(--muted, #94a3b8)' }}>Sin exportaciones</td></tr>}
             </tbody>
           </table></div>
         )}
         {meta?.totalPaginas > 1 && (
           <div className="pagination" style={{ padding: '1rem', display: 'flex', gap: 8, justifyContent: 'center' }}>
             {Array.from({ length: meta.totalPaginas }, (_, i) => i + 1).map(p => (
-              <button key={p} className={`btn btn-sm ${p === meta.pagina ? 'btn-primary' : 'btn-outline'}`} onClick={() => loadExportaciones(p)}>{p}</button>
+              <button key={p} className={`btn sm ${p === meta.pagina ? 'primary' : 'outline'}`} onClick={() => loadExportaciones(p)}>{p}</button>
             ))}
           </div>
         )}
@@ -472,7 +472,7 @@ function EstadoServicio({ estado, verificacion, conectividad, loading, loadEstad
     if (!conectividad) loadConectividad();
   }, []);
 
-  if (loading && !verificacion) return <div className="loading-container"><Loader2 className="spinner" size={32} /></div>;
+  if (loading && !verificacion) return <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={32} /></div>;
 
   const v = verificacion?.verificaciones || [];
   const resumen = verificacion?.resumen;
@@ -503,13 +503,13 @@ function EstadoServicio({ estado, verificacion, conectividad, loading, loadEstad
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <button className="btn btn-primary" onClick={loadVerificacion} disabled={loading}>
+        <button className="btn primary" onClick={loadVerificacion} disabled={loading}>
           <RefreshCw size={16} /> {loading ? 'Verificando...' : 'Ejecutar verificación completa'}
         </button>
-        <button className="btn btn-outline" onClick={loadEstado} disabled={loading}>
+        <button className="btn outline" onClick={loadEstado} disabled={loading}>
           <Database size={16} /> Estado tablas
         </button>
-        <button className="btn btn-outline" onClick={loadConectividad} disabled={loading}>
+        <button className="btn outline" onClick={loadConectividad} disabled={loading}>
           <Wifi size={16} /> Probar conectividad
         </button>
       </div>
@@ -539,7 +539,7 @@ function EstadoServicio({ estado, verificacion, conectividad, loading, loadEstad
                 ))}
               </tbody>
             </table></div>
-          ) : <p style={{ color: '#94a3b8', textAlign: 'center', padding: 20 }}>Sin datos de verificación</p>}
+          ) : <p style={{ color: 'var(--muted, #94a3b8)', textAlign: 'center', padding: 20 }}>Sin datos de verificación</p>}
         </div>
       </div>
 

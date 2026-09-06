@@ -34,11 +34,11 @@ function badgeClass(st) {
 }
 
 const TIPO_ICONO = {
-  check: <CheckCircle2 size={18} style={{ color: '#22c55e' }} />,
-  x: <XCircle size={18} style={{ color: '#ef4444' }} />,
-  eye: <Shield size={18} style={{ color: '#3b82f6' }} />,
-  clock: <Clock size={18} style={{ color: '#f59e0b' }} />,
-  megaphone: <Sparkles size={18} style={{ color: '#a855f7' }} />
+  check: <CheckCircle2 size={18} style={{ color: 'var(--success, #22c55e)' }} />,
+  x: <XCircle size={18} style={{ color: 'var(--danger, #ef4444)' }} />,
+  eye: <Shield size={18} style={{ color: 'var(--info, #3b82f6)' }} />,
+  clock: <Clock size={18} style={{ color: 'var(--warning, #f59e0b)' }} />,
+  megaphone: <Sparkles size={18} style={{ color: 'var(--purple, #a855f7)' }} />
 };
 
 export default function IABecasAlumnoPage() {
@@ -138,7 +138,7 @@ export default function IABecasAlumnoPage() {
           </div>
         </div>
 
-        {loading.perfil ? <div className="flex-center"><Loader2 className="animate-spin" size={24} /></div>
+        {loading.perfil ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
         : p ? <div className="stats-grid">
           <div className="stat-card"><div><div className="stat-label">Promedio general</div><div className="stat-value">{p.promedio_general?.toFixed(2) ?? '—'}</div></div><div className="stat-icon"><Target size={22} /></div></div>
           <div className="stat-card"><div><div className="stat-label">Semestre actual</div><div className="stat-value">{p.semestre_actual ?? '—'}°</div></div><div className="stat-icon"><BookMarked size={22} /></div></div>
@@ -184,7 +184,7 @@ export default function IABecasAlumnoPage() {
           </div>
         </div>
 
-        {!e && <div className="flex-center"><button className="btn primary" onClick={loadElegibilidad} disabled={loading.elegibilidad}>{loading.elegibilidad ? <Loader2 className="animate-spin" size={16} /> : <ShieldCheck size={16} />} Evaluar mi elegibilidad</button></div>}
+        {!e && <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem 0' }}><button className="btn primary" onClick={loadElegibilidad} disabled={loading.elegibilidad}>{loading.elegibilidad ? <Loader2 size={16} /> : <ShieldCheck size={16} />} Evaluar mi elegibilidad</button></div>}
 
         {e && <>
           <div className={`alert ${e.eligible ? 'success' : 'warning'}`} style={{ marginBottom: '1rem' }}>
@@ -229,7 +229,7 @@ export default function IABecasAlumnoPage() {
           <div><div className="badge light">Solicitar beca</div><h1>Convocatorias activas</h1><p>Selecciona una convocatoria y envía tu solicitud.</p></div>
         </div>
 
-        {loading.convocatorias ? <div className="flex-center"><Loader2 className="animate-spin" size={24} /></div>
+        {loading.convocatorias ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
         : convocatorias.length === 0 ? <div className="empty">No hay convocatorias activas en este momento</div>
         : <div className="list">{convocatorias.map(c => (
           <div key={c.id_convocatoria} className="list-item">
@@ -303,7 +303,7 @@ export default function IABecasAlumnoPage() {
         )}
 
         <SectionCard title="Todas mis solicitudes">
-          {loading.solicitudes ? <div className="flex-center"><Loader2 className="animate-spin" size={24} /></div>
+          {loading.solicitudes ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
           : solicitudes.length === 0 ? <div className="empty">No tienes solicitudes registradas. Ve a "Solicitar beca" para enviar una.</div>
           : <div className="list">{solicitudes.map(s => (
             <div key={s.id_solicitud} className="list-item" style={{ cursor: 'pointer' }} onClick={() => verSeguimiento(s.id_solicitud)}>
@@ -333,7 +333,7 @@ export default function IABecasAlumnoPage() {
           <div><div className="badge light">Notificaciones y novedades</div><h1>Centro de notificaciones</h1><p>Mantente al tanto del estatus de tus solicitudes y nuevas convocatorias.</p></div>
         </div>
 
-        {loading.notificaciones ? <div className="flex-center"><Loader2 className="animate-spin" size={24} /></div>
+        {loading.notificaciones ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
         : nots.length === 0 ? <div className="empty">No hay notificaciones nuevas</div>
         : <div className="list">{nots.map((n, idx) => (
           <div key={idx} className="list-item">
@@ -383,9 +383,9 @@ export default function IABecasAlumnoPage() {
         </div>
       </div>
 
-      <div className="tabs" style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+      <div className="tabs" style={{ marginBottom: '1rem' }}>
         {TABS.map(tab => (
-          <button key={tab.id} className={`btn ${activeTab === tab.id ? 'primary' : 'secondary'}`} onClick={() => setActiveTab(tab.id)} style={{ fontSize: '0.85rem' }}>
+          <button key={tab.id} className={`tab ${activeTab === tab.id ? 'active' : ''}`} onClick={() => setActiveTab(tab.id)}>
             <tab.icon size={15} /> {tab.label}
           </button>
         ))}

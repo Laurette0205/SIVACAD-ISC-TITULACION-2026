@@ -19,15 +19,17 @@ const TABS = [
 
 function Badge({ children, variant }) {
   const colors = {
-    aceptable: 'background:#dcfce7;color:#166534;',
-    riesgo: 'background:#fef3c7;color:#92400e;',
-    critico: 'background:#fee2e2;color:#991b1b;',
-    info: 'background:#dbeafe;color:#1e40af;'
+    aceptable: { bg: 'var(--success-bg, #dcfce7)', fg: 'var(--success-text, #166534)' },
+    riesgo: { bg: 'var(--warning-bg, #fef3c7)', fg: 'var(--warning-text, #92400e)' },
+    critico: { bg: 'var(--error-bg, #fee2e2)', fg: 'var(--error-text, #991b1b)' },
+    info: { bg: 'var(--info-bg, #dbeafe)', fg: 'var(--info-text, #1e40af)' }
   };
+  const c = colors[variant] || { bg: 'var(--bg-secondary, #f1f5f9)', fg: 'var(--text-secondary, #334155)' };
   return (
     <span style={{
       display: 'inline-block', padding: '2px 8px', borderRadius: '10px',
-      fontSize: '10px', fontWeight: 600, ...(colors[variant] ? { background: colors[variant].match(/background:([^;]+)/)[1], color: colors[variant].match(/color:([^;]+)/)[1] } : { background: '#f1f5f9', color: '#334155' })
+      fontSize: '10px', fontWeight: 600,
+      background: c.bg, color: c.fg
     }}>{children}</span>
   );
 }
@@ -35,13 +37,13 @@ function Badge({ children, variant }) {
 function StatCard({ label, value, variant }) {
   return (
     <div style={{
-      background: '#fff', borderRadius: '8px', padding: '12px 16px',
-      border: '1px solid #e2e8f0', flex: 1, minWidth: '120px'
+      background: 'var(--bg)', borderRadius: '8px', padding: '12px 16px',
+      border: '1px solid var(--border)', flex: 1, minWidth: '120px'
     }}>
-      <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>{label}</div>
+      <div style={{ fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 600 }}>{label}</div>
       <div style={{
         fontSize: '20px', fontWeight: 700, marginTop: '4px',
-        color: variant === 'danger' ? '#dc2626' : variant === 'warning' ? '#d97706' : '#0f172a'
+        color: variant === 'danger' ? 'var(--error)' : variant === 'warning' ? 'var(--warning)' : 'var(--text)'
       }}>{value}</div>
     </div>
   );
@@ -162,7 +164,7 @@ function KardexPorGrupo({ token }) {
                       </td>
                       <td style={{ padding: '5px 8px', textAlign: 'center' }}>{a.creditos_acumulados}</td>
                       <td style={{ padding: '5px 8px', textAlign: 'center',
-                        color: a.materias_reprobadas > 2 ? '#dc2626' : '#64748b' }}>
+                        color: a.materias_reprobadas > 2 ? 'var(--error)' : 'var(--muted)' }}>
                         {a.materias_reprobadas}
                       </td>
                       <td style={{ padding: '5px 8px', textAlign: 'center' }}>{a.extraordinarios}</td>
@@ -239,17 +241,17 @@ function KardexPorAlumno({ token }) {
                 {a.foto_institucional ? (
                   <img src={a.foto_institucional} alt="Foto" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
                 ) : (
-                  <div className="avatar big" style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e2e8f0', borderRadius: '8px', fontSize: '28px' }}>
+                  <div className="avatar big" style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary)', borderRadius: '8px', fontSize: '28px' }}>
                     {(a.nombres || 'A').charAt(0)}
                   </div>
                 )}
               </div>
               <div style={{ flex: 1 }}>
                 <h3 style={{ margin: '0 0 4px' }}>{a.apellido_paterno} {a.apellido_materno} {a.nombres}</h3>
-                <p style={{ margin: '2px 0', fontSize: '12px', color: '#64748b' }}>
+                <p style={{ margin: '2px 0', fontSize: '12px', color: 'var(--muted)' }}>
                   {a.matricula} · {a.nombre_carrera} · {a.semestre_actual}° semestre
                 </p>
-                <p style={{ margin: '2px 0', fontSize: '12px', color: '#64748b' }}>
+                <p style={{ margin: '2px 0', fontSize: '12px', color: 'var(--muted)' }}>
                   Folio: {a.folio_kardex || '—'} · Control: {a.numero_control || '—'}
                 </p>
               </div>
@@ -424,7 +426,7 @@ function ResumenPorPeriodo({ token }) {
                         {c.promedio}
                       </td>
                       <td style={{ padding: '5px 8px', textAlign: 'center',
-                        color: c.rezago > 0 ? '#dc2626' : '#64748b' }}>
+                        color: c.rezago > 0 ? 'var(--error)' : 'var(--muted)' }}>
                         {c.rezago}
                       </td>
                       <td style={{ padding: '5px 8px', textAlign: 'center' }}>
@@ -524,9 +526,9 @@ function HistorialPorCarrera({ token }) {
                           color: parseFloat(p.promedio_carrera) >= 80 ? '#16a34a' : parseFloat(p.promedio_carrera) >= 70 ? '#d97706' : '#dc2626' }}>
                           {p.promedio_carrera}
                         </td>
-                        <td style={{ padding: '4px 6px', textAlign: 'center', color: p.rezago > 0 ? '#dc2626' : '#64748b' }}>{p.rezago}</td>
+                        <td style={{ padding: '4px 6px', textAlign: 'center', color: p.rezago > 0 ? 'var(--error)' : 'var(--muted)' }}>{p.rezago}</td>
                         <td style={{ padding: '4px 6px', textAlign: 'center', color: '#16a34a' }}>{p.excelencia}</td>
-                        <td style={{ padding: '4px 6px', textAlign: 'center', color: parseFloat(pctRezago) > 15 ? '#dc2626' : '#64748b' }}>{pctRezago}%</td>
+                        <td style={{ padding: '4px 6px', textAlign: 'center', color: parseFloat(pctRezago) > 15 ? 'var(--error)' : 'var(--muted)' }}>{pctRezago}%</td>
                         <td style={{ padding: '4px 6px', textAlign: 'center' }}>{p.promedio_creditos}</td>
                         <td style={{ padding: '4px 6px', textAlign: 'center' }}>{p.creditos_totales}</td>
                       </tr>
@@ -558,8 +560,8 @@ function HistorialPorCarrera({ token }) {
                         <td style={{ padding: '4px 6px', fontWeight: 600 }}>{t.semestre_actual}°</td>
                         <td style={{ padding: '4px 6px', textAlign: 'center' }}>{t.total_alumnos}</td>
                         <td style={{ padding: '4px 6px', textAlign: 'center', fontWeight: 600 }}>{t.promedio_semestre}</td>
-                        <td style={{ padding: '4px 6px', textAlign: 'center', color: t.rezago > 0 ? '#dc2626' : '#64748b' }}>{t.rezago}</td>
-                        <td style={{ padding: '4px 6px', textAlign: 'center', color: parseFloat(pctRezago) > 15 ? '#dc2626' : '#64748b' }}>{pctRezago}%</td>
+                        <td style={{ padding: '4px 6px', textAlign: 'center', color: t.rezago > 0 ? 'var(--error)' : 'var(--muted)' }}>{t.rezago}</td>
+                        <td style={{ padding: '4px 6px', textAlign: 'center', color: parseFloat(pctRezago) > 15 ? 'var(--error)' : 'var(--muted)' }}>{pctRezago}%</td>
                       </tr>
                     );
                   })}
@@ -692,7 +694,7 @@ function ValidacionTrayectorias({ token }) {
                   <h4 style={{ margin: 0 }}>
                     {valData.alumno.apellido_paterno} {valData.alumno.apellido_materno} {valData.alumno.nombres}
                   </h4>
-                  <p style={{ margin: '2px 0', fontSize: '11px', color: '#64748b' }}>
+                  <p style={{ margin: '2px 0', fontSize: '11px', color: 'var(--muted)' }}>
                     {valData.alumno.matricula} · {valData.alumno.nombre_carrera} · {valData.alumno.semestre_actual}° semestre
                   </p>
                 </div>
@@ -716,7 +718,7 @@ function ValidacionTrayectorias({ token }) {
                 }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 600, fontSize: '12px' }}>{val.indicador}</div>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>{val.detalle}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{val.detalle}</div>
                   </div>
                   <div style={{ textAlign: 'right', marginLeft: '12px' }}>
                     <div style={{ fontWeight: 700, fontSize: '14px' }}>{val.valor}</div>
@@ -827,7 +829,7 @@ function ValidacionTrayectorias({ token }) {
                 <div style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                   padding: '6px 10px', borderRadius: '4px', marginBottom: '4px',
-                  background: '#f8fafc', border: '1px solid #e2e8f0'
+                   background: 'var(--bg-secondary)', border: '1px solid var(--border)'
                 }}>
                   <span style={{ fontWeight: 600, fontSize: '12px' }}>{g.tipo}</span>
                   <Badge variant={g.tipo.includes('crítico') || g.tipo.includes('Exceso') || g.tipo.includes('Irregular') ? 'critico' : 'riesgo'}>
@@ -862,40 +864,20 @@ export default function CoordinadorKardexPage() {
     <div>
       <div style={{ marginBottom: '16px' }}>
         <h2 style={{ margin: '0 0 4px' }}>Gestión académica · Kardex</h2>
-        <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+        <p style={{ margin: 0, fontSize: '12px', color: 'var(--muted)' }}>
           Consulta, análisis y seguimiento de trayectorias académicas. 
           Permisos: consulta amplia por grupo, carrera y periodo.
         </p>
       </div>
 
-      <div className="tabs" style={{
-        display: 'flex', gap: '4px', borderBottom: '2px solid #e2e8f0',
-        marginBottom: '16px', overflowX: 'auto', paddingBottom: '0'
-      }}>
-        {TABS.map(tab => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.key;
-          return (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              type="button"
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '8px 16px', border: 'none',
-                borderBottom: isActive ? '2px solid #1e40af' : '2px solid transparent',
-                background: 'transparent', cursor: 'pointer',
-                color: isActive ? '#1e40af' : '#64748b',
-                fontWeight: isActive ? 700 : 500,
-                fontSize: '12px', whiteSpace: 'nowrap',
-                marginBottom: '-2px', transition: 'all 0.15s'
-              }}
-            >
-              <Icon size={16} />
-              {tab.label}
-            </button>
-          );
-        })}
+      <div className="tabs">
+        {TABS.map(tab => (
+          <button key={tab.key} type="button"
+            className={`tab ${activeTab === tab.key ? 'active' : ''}`}
+            onClick={() => setActiveTab(tab.key)}>
+            <tab.icon size={15} /> {tab.label}
+          </button>
+        ))}
       </div>
 
       {activeTab === 'grupo' && <KardexPorGrupo token={token} />}

@@ -38,7 +38,7 @@ const TABS = [
 function TabButton({ tab, active, onClick }) {
   const Icon = tab.icon;
   return (
-    <button type="button" className={`tab-btn ${active ? 'active' : ''}`} onClick={onClick}>
+    <button type="button" className={`tab ${active ? 'active' : ''}`} onClick={onClick}>
       <Icon size={16} /> {tab.label}
     </button>
   );
@@ -60,7 +60,7 @@ function InfoRow({ label, value, ok }) {
   return (
     <div className="list-item">
       <strong>{label}</strong>
-      <span style={{ color: ok === false ? '#dc2626' : ok === true ? '#16a34a' : 'inherit' }}>
+      <span style={{ color: ok === false ? 'var(--error)' : ok === true ? 'var(--success)' : 'inherit' }}>
         {value ?? '\u2014'}
       </span>
     </div>
@@ -68,11 +68,11 @@ function InfoRow({ label, value, ok }) {
 }
 
 const ESTADOS_INCIDENCIA = [
-  { value: 'EN_PROCESO', label: 'En proceso', color: '#2563eb' },
-  { value: 'EN_REVISION_TECNICA', label: 'En revisión técnica', color: '#d97706' },
-  { value: 'CORREGIDO', label: 'Corregido', color: '#16a34a' },
-  { value: 'REINTENTADO', label: 'Reintentado', color: '#9333ea' },
-  { value: 'CERRADO', label: 'Cerrado', color: '#64748b' }
+  { value: 'EN_PROCESO', label: 'En proceso', color: 'var(--color-info)' },
+  { value: 'EN_REVISION_TECNICA', label: 'En revisión técnica', color: 'var(--color-warning)' },
+  { value: 'CORREGIDO', label: 'Corregido', color: 'var(--color-success)' },
+  { value: 'REINTENTADO', label: 'Reintentado', color: 'var(--color-accent)' },
+  { value: 'CERRADO', label: 'Cerrado', color: 'var(--muted)' }
 ];
 
 function BadgeEstado({ estado }) {
@@ -84,7 +84,7 @@ function BadgeEstado({ estado }) {
 function BadgeNivel({ nivel }) {
   if (!nivel) return null;
   const n = String(nivel).toUpperCase();
-  const color = n === 'CRITICA' || n === 'ALTA' ? '#dc2626' : n === 'MEDIA' || n === 'MEDIO' ? '#d97706' : '#16a34a';
+  const color = n === 'CRITICA' || n === 'ALTA' ? 'var(--error)' : n === 'MEDIA' || n === 'MEDIO' ? 'var(--warning)' : 'var(--success)';
   return <span className="badge" style={{ background: color, color: '#fff' }}>{nivel}</span>;
 }
 
@@ -757,11 +757,11 @@ export default function SoporteTramitesPage() {
                     <thead><tr><th>Documento</th><th>Formato</th><th>Tamaño</th><th>Compatible</th></tr></thead>
                     <tbody>
                       {compatibilidadResult.documentos.map((d, i) => (
-                        <tr key={i} style={{ background: d.compatible ? '' : '#fef2f2' }}>
+                        <tr key={i} style={{ background: d.compatible ? '' : 'var(--error-bg, #fef2f2)' }}>
                           <td style={{ fontSize: '0.85rem' }}>{d.nombre}</td>
                           <td><code style={{ fontSize: '0.75rem' }}>{d.tipo}</code></td>
                           <td style={{ fontSize: '0.8rem' }}>{d.tamano_ok ? `${(d.tamano_bytes / 1024).toFixed(1)} KB` : 'Excede límite'}</td>
-                          <td>{d.compatible ? <CheckCircle2 size={16} color="#16a34a" /> : <XCircle size={16} color="#dc2626" />}</td>
+                          <td>{d.compatible ? <CheckCircle2 size={16} color="var(--success)" /> : <XCircle size={16} color="var(--error)" />}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -783,7 +783,7 @@ export default function SoporteTramitesPage() {
           </div>
         </div>
 
-        <div className="section-card" style={{ background: '#f8fafc' }}>
+        <div className="section-card" style={{ background: 'var(--bg-secondary)' }}>
           <div className="section-head"><Wrench size={18} /><h3>Información del módulo</h3></div>
           <div className="list">
             <InfoRow label="Responsable" value="Personal de soporte" />
@@ -802,7 +802,7 @@ export default function SoporteTramitesPage() {
     <div>
       <div style={{ marginBottom: '16px' }}>
         <h2 style={{ margin: '0 0 4px' }}>Trámites - Soporte técnico</h2>
-        <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+        <p style={{ margin: 0, fontSize: '12px', color: 'var(--muted)' }}>
           Panel técnico, incidencias, carga de archivos, recuperación, validación de integridad e historial técnico.
           Incidencias de trámite, recuperación de archivos, fallas de generación, soporte en carga documental.
         </p>

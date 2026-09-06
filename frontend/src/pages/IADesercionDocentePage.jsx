@@ -12,7 +12,7 @@ import { playSuccessSound, playErrorSound } from '../utils/soundManager';
 import SoundToggleButton from '../components/SoundToggleButton';
 import { useAuth } from '../context/AuthContext';
 
-const RISK_COLORS = { Bajo: '#22c55e', Medio: '#eab308', Alto: '#f97316', 'Crítico': '#ef4444' };
+const RISK_COLORS = { Bajo: 'var(--success, #22c55e)', Medio: 'var(--warning, #eab308)', Alto: 'var(--color-warning, #f97316)', 'Crítico': 'var(--error, #ef4444)' };
 const RISK_BADGE = { Bajo: 'status ok', Medio: 'status warn', Alto: 'status warn', 'Crítico': 'status error' };
 
 function riskLevel(value) {
@@ -32,7 +32,7 @@ function Modal({ open, onClose, title, children }) {
       alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)'
     }} onClick={onClose}>
       <div style={{
-        background: '#fff', borderRadius: 16, padding: '1.5rem', width: '90%', maxWidth: 700,
+        background: 'var(--bg)', borderRadius: 16, padding: '1.5rem', width: '90%', maxWidth: 700,
         maxHeight: '85vh', overflow: 'auto', position: 'relative'
       }} onClick={e => e.stopPropagation()}>
         <button onClick={onClose} style={{
@@ -283,23 +283,17 @@ export default function IADesercionDocentePage() {
           <div className="meta-card"><small>Grupos</small><strong>{grupos.length}</strong></div>
           <div className="meta-card"><small>Alumnos</small><strong>{totalAlumnos}</strong></div>
           <div className="meta-card"><small>Alertas</small><strong>{totalAlertas}</strong></div>
-          <div className="meta-card"><small>Críticas</small><strong style={{ color: '#ef4444' }}>{totalCriticas}</strong></div>
+          <div className="meta-card"><small>Críticas</small><strong style={{ color: 'var(--error)' }}>{totalCriticas}</strong></div>
         </div>
       </section>
 
       {message && <div className={`alert ${message.includes('Error') ? 'error' : 'info'}`}>{message}</div>}
 
-      <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginBottom: '1rem', borderBottom: '2px solid #e2e8f0', paddingBottom: '0.25rem' }}>
+      <div className="tabs">
         {TABS.map(tab => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '0.5rem 1rem', border: 'none',
-              background: activeTab === tab.key ? '#4F46E5' : 'transparent',
-              color: activeTab === tab.key ? '#fff' : '#64748B',
-              borderRadius: '8px 8px 0 0', cursor: 'pointer', fontSize: '0.85rem',
-              fontWeight: activeTab === tab.key ? 600 : 400, transition: 'all 0.2s'
-            }}>
-            <tab.icon size={16} /> {tab.label}
+            className={`tab ${activeTab === tab.key ? 'active' : ''}`}>
+            <tab.icon size={15} /> {tab.label}
           </button>
         ))}
       </div>

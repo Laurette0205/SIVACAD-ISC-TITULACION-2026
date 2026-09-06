@@ -18,7 +18,7 @@ function StatusDot({ ok, label }) {
     }}>
       <span style={{
         width: 10, height: 10, borderRadius: '50%',
-        background: ok ? '#22c55e' : '#ef4444',
+        background: ok ? 'var(--success)' : 'var(--error)',
         display: 'inline-block'
       }} />
       {label || (ok ? 'OK' : 'Fallo')}
@@ -26,24 +26,24 @@ function StatusDot({ ok, label }) {
   );
 }
 
-function MetricBox({ icon: Icon, label, value, color = '#4F46E5', sub }) {
+function MetricBox({ icon: Icon, label, value, color = 'var(--accent)', sub }) {
   return (
     <div style={{
-      background: '#fff', borderRadius: '10px', padding: '0.85rem 1rem',
-      boxShadow: '0 1px 3px rgba(0,0,0,.06)', border: '1px solid #f1f5f9',
+      background: 'var(--bg)', borderRadius: '10px', padding: '0.85rem 1rem',
+      boxShadow: '0 1px 3px rgba(0,0,0,.06)', border: '1px solid var(--border)',
       display: 'flex', alignItems: 'center', gap: '0.75rem'
     }}>
       <div style={{
         width: 38, height: 38, borderRadius: '10px',
-        background: `${color}15`, display: 'flex',
+        background: `color-mix(in srgb, ${color} 15%, transparent)`, display: 'flex',
         alignItems: 'center', justifyContent: 'center', color
       }}>
         <Icon size={20} />
       </div>
       <div>
-        <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 500 }}>{label}</div>
-        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0F172A' }}>{value}</div>
-        {sub && <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{sub}</div>}
+        <div style={{ fontSize: '0.75rem', color: 'var(--muted)', fontWeight: 500 }}>{label}</div>
+        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text)' }}>{value}</div>
+        {sub && <div style={{ fontSize: '0.68rem', color: 'var(--muted)' }}>{sub}</div>}
       </div>
     </div>
   );
@@ -149,11 +149,11 @@ export default function IADesercionSoportePage() {
     <div style={{ padding: '1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
-            <Terminal size={24} style={{ marginRight: '0.5rem', verticalAlign: 'middle', color: '#4F46E5' }} />
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
+            <Terminal size={24} style={{ marginRight: '0.5rem', verticalAlign: 'middle', color: 'var(--accent)' }} />
             IA de Deserción — Soporte Técnico
           </h1>
-          <p style={{ color: '#64748B', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+          <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
             Monitoreo, diagnóstico y mantenimiento del módulo de inteligencia institucional.
           </p>
         </div>
@@ -167,24 +167,18 @@ export default function IADesercionSoportePage() {
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1.5rem', borderBottom: '2px solid #e2e8f0', flexWrap: 'wrap' }}>
+      <div className="tabs">
         {tabs.map(t => (
-          <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
-            display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.2rem',
-            border: 'none', background: 'transparent', cursor: 'pointer',
-            fontSize: '0.85rem', fontWeight: activeTab === t.key ? 600 : 400,
-            color: activeTab === t.key ? '#4F46E5' : '#64748B',
-            borderBottom: activeTab === t.key ? '2px solid #4F46E5' : '2px solid transparent',
-            marginBottom: '-2px', transition: 'all 0.2s'
-          }}>
-            <t.icon size={16} />
+          <button key={t.key} onClick={() => setActiveTab(t.key)}
+            className={`tab ${activeTab === t.key ? 'active' : ''}`}>
+            <t.icon size={15} />
             {t.label}
           </button>
         ))}
       </div>
 
       {error && (
-        <div style={{ padding: '0.75rem 1rem', background: '#fef2f2', color: '#dc2626', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.85rem' }}>
+        <div className="alert danger" style={{ marginBottom: '1rem' }}>
           {error}
         </div>
       )}

@@ -405,8 +405,8 @@ export default function SoporteReinscripcionesPage() {
           {loading.incidencias ? (
             <p className="muted">Cargando incidencias...</p>
           ) : incidencias.length === 0 ? (
-            <div className="text-center py-4">
-              <AlertTriangle size={48} className="muted mb-2" />
+            <div className="text-center" style={{ padding: '1.5rem 0' }}>
+              <AlertTriangle size={48} className="muted" style={{ display: 'block', margin: '0 auto 0.5rem' }} />
               <p className="muted">No hay incidencias técnicas registradas en reinscripciones.</p>
             </div>
           ) : (
@@ -427,7 +427,7 @@ export default function SoporteReinscripcionesPage() {
                           <small className="muted">#{inc.id_incidencia}</small>
                         </div>
                         <strong>{inc.titulo}</strong>
-                        {inc.descripcion && <p style={{ margin: '0.25rem 0', fontSize: '0.9rem', color: '#6b7280' }}>{inc.descripcion}</p>}
+                        {inc.descripcion && <p style={{ margin: '0.25rem 0', fontSize: '0.9rem', color: 'var(--muted)' }}>{inc.descripcion}</p>}
                         <small className="muted">
                           {formatDate(inc.creado_en)}
                           {inc.reportado_por_nombre ? ` • Reportó: ${inc.reportado_por_nombre}` : ''}
@@ -518,8 +518,8 @@ export default function SoporteReinscripcionesPage() {
           {loading.monitoreo ? (
             <p className="muted">Cargando monitoreo...</p>
           ) : monitoreo.length === 0 ? (
-            <div className="text-center py-4">
-              <Activity size={48} className="muted mb-2" />
+            <div className="text-center" style={{ padding: '1.5rem 0' }}>
+              <Activity size={48} className="muted" style={{ display: 'block', margin: '0 auto 0.5rem' }} />
               <p className="muted">No hay registros de monitoreo.</p>
             </div>
           ) : (
@@ -612,7 +612,7 @@ export default function SoporteReinscripcionesPage() {
                     </div>
                     <div>
                       <strong>{r.prueba}</strong>
-                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#6b7280' }}>{r.detalle}</p>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--muted)' }}>{r.detalle}</p>
                     </div>
                   </div>
                 </div>
@@ -637,7 +637,7 @@ export default function SoporteReinscripcionesPage() {
           {loading.errores ? (
             <p className="muted">Cargando errores...</p>
           ) : errores.length === 0 ? (
-            <div className="text-center py-4">
+            <div className="text-center" style={{ padding: '1.5rem 0' }}>
               <CheckCircle2 size={48} style={{ color: '#10b981', opacity: 0.5 }} />
               <p className="muted">No hay errores de proceso registrados en las últimas 72h.</p>
             </div>
@@ -711,7 +711,7 @@ export default function SoporteReinscripcionesPage() {
           {loading.logs ? (
             <p className="muted">Cargando logs...</p>
           ) : logs.length === 0 ? (
-            <div className="text-center py-4">
+            <div className="text-center" style={{ padding: '1.5rem 0' }}>
               <FileText size={48} style={{ opacity: 0.3 }} />
               <p className="muted">No hay registros de operación.</p>
             </div>
@@ -784,13 +784,12 @@ export default function SoporteReinscripcionesPage() {
       {error && <div className="alert error">{error}</div>}
       {message && <div className="alert success">{message}</div>}
 
-      <div className="tabs" style={{ display: 'flex', gap: '0.25rem', borderBottom: '2px solid var(--border)', marginBottom: '1rem', flexWrap: 'wrap' }}>
+      <div className="tabs">
         {TABS.map(tab => (
           <button key={tab.key} type="button"
-            className={`btn ${activeTab === tab.key ? 'primary' : 'ghost'}`}
-            style={{ borderRadius: 0, borderBottom: activeTab === tab.key ? '2px solid var(--primary)' : '2px solid transparent', marginBottom: '-2px' }}
+            className={`tab ${activeTab === tab.key ? 'active' : ''}`}
             onClick={() => setActiveTab(tab.key)}>
-            <tab.icon size={16} /> {tab.label}
+            <tab.icon size={15} /> {tab.label}
           </button>
         ))}
       </div>
