@@ -85,14 +85,23 @@ function TypeBadge({ type }) {
 
 function MetricCard({ icon: Icon, label, value, hint, color }) {
   return (
-    <div className="stat-card" style={{ borderLeft: `4px solid ${color || 'var(--primary)'}` }}>
-      <div className="stat-icon" style={{ background: color || 'var(--primary)' }}>
-        <Icon size={22} />
+    <div
+      className="stat-card"
+      style={{
+        borderLeft: `4px solid ${color || 'var(--primary)'}`,
+        borderRadius: 16,
+        minHeight: 120,
+        padding: '1rem 1.1rem',
+        gap: '0.8rem'
+      }}
+    >
+      <div className="stat-icon" style={{ background: color || 'var(--primary)', width: 46, height: 46, borderRadius: 12 }}>
+        <Icon size={20} />
       </div>
-      <div className="stat-info">
-        <div className="stat-label">{label}</div>
-        <div className="stat-value">{value ?? '—'}</div>
-        {hint && <div className="stat-hint">{hint}</div>}
+      <div className="stat-info" style={{ gap: '0.3rem' }}>
+        <div className="stat-label" style={{ fontSize: '0.82rem' }}>{label}</div>
+        <div className="stat-value" style={{ fontSize: 'clamp(1.4rem, 3vw, 2rem)' }}>{value ?? '—'}</div>
+        {hint && <div className="stat-hint" style={{ fontSize: '0.78rem' }}>{hint}</div>}
       </div>
     </div>
   );
@@ -252,7 +261,7 @@ export default function AdminInscripcionesPage() {
 
     return (
       <div className="stack">
-        <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))' }}>
+        <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.75rem' }}>
           {stats.map(s => <MetricCard key={s.label} {...s} />)}
         </div>
 
