@@ -106,13 +106,18 @@ export default function DashboardPage() {
         setError('');
 
         if (!token) {
-          throw new Error('Token no disponible');
+          navigate('/login', { replace: true });
+          return;
         }
 
         const response = await api.dashboard(token);
         setData(response?.data || null);
       } catch (err) {
         console.error('Error al cargar dashboard:', err);
+        if (err?.status === 401 || err?.message?.includes('Token')) {
+          navigate('/login', { replace: true });
+          return;
+        }
         setData(null);
         setError(err?.message || 'Error al cargar dashboard');
       } finally {

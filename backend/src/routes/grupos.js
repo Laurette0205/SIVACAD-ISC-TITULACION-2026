@@ -32,8 +32,9 @@ function normalizeState(value) {
 
 router.get('/', auth, async (req, res) => {
   try {
-    const params = [];
-    const where = [];
+    const idInstitucion = req.user.id_institucion || 1;
+    const params = [idInstitucion];
+    const where = ['g.id_institucion = ?'];
 
     if (req.query?.id_periodo) {
       where.push('g.id_periodo = ?');
@@ -104,6 +105,7 @@ router.get('/', auth, async (req, res) => {
 
 router.post('/', auth, role(...ADMIN_COORD_ROLES), async (req, res) => {
   try {
+    const idInstitucion = req.user.id_institucion || 1;
     const idPeriodo = Number(req.body?.id_periodo || 0);
     const idCarrera = Number(req.body?.id_carrera || 0);
     const nombreGrupo = normalizeText(req.body?.nombre_grupo || req.body?.grupo);
@@ -152,11 +154,11 @@ router.post('/', auth, role(...ADMIN_COORD_ROLES), async (req, res) => {
     const [result] = await pool.execute(
       `
       INSERT INTO grupos
-        (id_periodo, id_carrera, nombre_grupo, semestre, turno, estado)
+        (id_periodo, id_carrera, nombre_grupo, semestre, turno, estado, id_institucion)
       VALUES
-        (?, ?, ?, ?, ?, ?)
+        (?, ?, ?, ?, ?, ?, ?)
       `,
-      [idPeriodo, idCarrera, nombreGrupo, semestre, turno, estado]
+      [idPeriodo, idCarrera, nombreGrupo, semestre, turno, estado, idInstitucion]
     );
 
     return res.status(201).json({

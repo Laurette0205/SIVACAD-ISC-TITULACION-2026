@@ -4,7 +4,7 @@
 
 **Autoras:** Bárcenas González Laura Casandra & Morales Ibarra Sandivel  
 **Institución:** TESI Ixtapaluca — Ingeniería en Sistemas Computacionales  
-**Versión:** 1.0 — Julio 2026
+**Versión:** 3.0 — Septiembre 2026
 
 ---
 
@@ -22,6 +22,7 @@
 10. [Primer Acceso y Pruebas Iniciales](#10-primer-acceso-y-pruebas-iniciales)
 11. [Despliegue en Producción](#11-despliegue-en-producción)
 12. [Solución de Problemas Comunes](#12-solución-de-problemas-comunes)
+13. [Configuración de Backup Automatizado](#13-configuración-de-backup-automatizado)
 
 ---
 
@@ -166,9 +167,12 @@ DB_USER=root
 DB_PASSWORD=tu_contraseña_mysql
 DB_NAME=sivacad_isc
 
-# JWT
-JWT_SECRET=generar_un_secreto_aleatorio_seguro
-JWT_EXPIRES_IN=24h
+# JWT — Access Token (8 horas)
+JWT_SECRET=generar_un_secreto_aleatorio_seguro_128bit
+JWT_EXPIRES_IN=8h
+
+# JWT — Refresh Token (DEBE ser diferente a JWT_SECRET)
+JWT_REFRESH_SECRET=generar_otro_secreto_aleatorio_diferente
 
 # Gemini API
 GEMINI_API_KEY=tu_api_key_de_gemini
@@ -185,6 +189,11 @@ FRONTEND_URL=http://localhost:5173
 # Flask ML
 FLASK_ML_URL=http://localhost:5001
 ```
+
+> **IMPORTANTE:** Genere valores aleatorios únicos para `JWT_SECRET` y `JWT_REFRESH_SECRET` usando:
+> ```bash
+> node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+> ```
 
 ### 5.3 Verificar configuración
 
@@ -436,18 +445,20 @@ NODE_ENV=production
 ```bash
 npm install -g pm2
 
-# Iniciar backend
+# Iniciar backend con configuración ecosystem.config.js
 cd backend
-pm2 start src/server.js --name sivacad-backend
-
-# Iniciar ML
-cd backend/ml
-pm2 start app.py --interpreter python --name sivacad-ml
+pm2 start ecosystem.config.js
 
 # Guardar configuración
 pm2 save
 pm2 startup
 ```
+
+El archivo `ecosystem.config.js` incluye:
+- Configuración de memoria (512MB para backend, 256MB para ML).
+- Reinicio automático en caso de caída.
+- Logs separados para cada proceso.
+- Variables de entorno de producción.
 
 ### 11.5 Configurar SSL/TLS (HTTPS)
 
@@ -540,4 +551,104 @@ npm run build
 
 ---
 
-*Fin del Manual de Instalación y Despliegue — SIVACAD v1.0*
+## 13. Configuración de Backup Automatizado
+
+### 13.1 Script de backup incluido
+
+SIVACAD incluye un script de backup automático en `backend/scripts/backup.sh`:
+
+```bash
+# Ejecutar backup manualmente
+bash backend/scripts/backup.sh
+```
+
+El script:
+- Crea un dump comprimido de la base de datos `sivacad_isc`.
+- Lo guarda en `backend/backups/` con nombre `sivacad_isc_YYYYMMDD_HHMMSS.sql.gz`.
+- Elimina backups con más de 30 días de antigüedad automáticamente.
+
+### 13.2 Programar backup con CRON (Linux/Mac)
+
+```bash
+# Editar crontab
+crontab -e
+
+# Agregar línea para backup diario a las 2:00 AM
+0 2 * * * /bin/bash /ruta/a/SIVACAD-ISC/backend/scripts/backup.sh >> /var/log/sivacad_backup.log 2>&1
+```
+
+### 13.3 Programar backup en Windows (Tarea Programada)
+
+```powershell
+# Crear tarea programada para ejecutar backup diariamente
+schtasks /create /tn "SIVACAD-Backup" /tr "bash C:\Xampp\htdocs\SIVACAD-ISC\backend\scripts\backup.sh" /sc daily /st 02:00
+```
+
+### 13.4 Restaurar desde backup
+
+```bash
+# Descomprimir el archivo
+gunzip backups/sivacad_isc_20260909_020000.sql.gz
+
+# Restaurar en MySQL
+mysql -u root -p sivacad_isc < backups/sivacad_isc_20260909_020000.sql
+```
+
+### 13.5 Verificar backups existentes
+
+```bash
+# Listar backups con tamaño y fecha
+ls -lh backend/backups/
+
+# Contar backups
+ls backend/backups/*.sql.gz 2>/dev/null | wc -l
+```
+
+### 13.6 Migraciones SQL Nuevas (v3.0)
+
+Las siguientes migraciones se agregaron en la versión 3.0:
+
+| Archivo | Propósito | Tablas afectadas |
+|---------|-----------|------------------|
+| `008_alumno_info_medica_laboral.sql` | Tablas de información personal del alumno | `informacion_medica`, `informacion_laboral`, `documentos_sensibles` |
+
+**Ejecución de migraciones:**
+
+```bash
+# Ejecutar la migración
+"C:/xampp/mysql/bin/mysql.exe" -u root sivacad_isc < database/008_alumno_info_medica_laboral.sql
+
+# Verificar tablas creadas
+"C:/xampp/mysql/bin/mysql.exe" -u root -e "SHOW TABLES FROM sivacad_isc LIKE 'informacion_%';"
+"C:/xampp/mysql/bin/mysql.exe" -u root -e "SHOW TABLES FROM sivacad_isc LIKE 'documentos_%';"
+```
+
+**Tablas nuevas (v3.0):**
+
+| Tabla | Descripción | Constraint principal |
+|-------|-------------|---------------------|
+| `informacion_medica` | Tipo de sangre, alergias, medicamentos, info psicológica | `uk_medico_alumno (id_alumno, id_institucion)` |
+| `informacion_laboral` | Empresa, puesto, teléfono, horario laboral | `uk_laboral_alumno (id_alumno, id_institucion)` |
+| `documentos_sensibles` | Archivos subidos por el alumno (PDF, imágenes, docs) | FK a `alumnos` |
+
+**Rutas backend nuevas (v3.0):**
+
+| Ruta | Método | Descripción |
+|------|--------|-------------|
+| `/api/alumno-info-medica` | GET | Obtener información médica |
+| `/api/alumno-info-medica` | PUT | Crear/actualizar información médica |
+| `/api/alumno-info-laboral` | GET | Obtener información laboral |
+| `/api/alumno-info-laboral` | PUT | Crear/actualizar información laboral |
+| `/api/alumno-documentos` | GET | Listar documentos del alumno |
+| `/api/alumno-documentos` | POST | Subir documento (multipart/form-data) |
+| `/api/alumno-documentos/:id` | DELETE | Eliminar documento |
+
+**Notas importantes:**
+- Todas las rutas nuevas requieren rol `ALUMNO` (bloqueo RBAC).
+- Las uploads se almacenan en `uploads/sensibles/`.
+- Se valida tipo de archivo (PDF, JPG, PNG, DOC, DOCX) y tamaño máximo (10MB).
+- Todas las operaciones generan registros de auditoría.
+
+---
+
+*Fin del Manual de Instalación y Despliegue — SIVACAD v3.0*

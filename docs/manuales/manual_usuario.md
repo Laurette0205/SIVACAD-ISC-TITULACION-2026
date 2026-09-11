@@ -4,7 +4,7 @@
 
 **Autoras:** Bárcenas González Laura Casandra & Morales Ibarra Sandivel  
 **Institución:** TESI Ixtapaluca — Ingeniería en Sistemas Computacionales  
-**Versión:** 1.0 — Julio 2026
+**Versión:** 3.0 — Septiembre 2026
 
 ---
 
@@ -21,6 +21,8 @@
 9. [Panel de Soporte](#9-panel-de-soporte)
 10. [Exportación de Reportes](#10-exportación-de-reportes)
 11. [Cierre de Sesión](#11-cierre-de-sesión)
+12. [Autenticación Multi-Factor (MFA)](#12-autenticación-multi-factor-mfa)
+13. [Reautenticación para Operaciones Sensibles](#13-reautenticación-para-operaciones-sensibles)
 
 ---
 
@@ -57,6 +59,9 @@ Entorno producción: https://sivacad.tesi.edu.mx (ejemplo)
 2. Ingrese su **correo institucional** (dominio `@tesi.edu.mx` o `@ixtapaluca.tecnm.mx`).
 3. Ingrese su **contraseña**.
 4. Haga clic en **Iniciar Sesión**.
+5. **Si tiene MFA activado:** el sistema le solicitará el código de 6 dígitos de su aplicación de autenticación (Google Authenticator, Authy, etc.). Ingrese el código y haga clic en **Verificar**.
+
+> **Nota:** Si no tiene acceso a su aplicación de autenticación, puede usar uno de sus códigos de recuperación en lugar del código de 6 dígitos.
 
 ### 3.2 Recuperación de contraseña
 
@@ -72,13 +77,14 @@ Entorno producción: https://sivacad.tesi.edu.mx (ejemplo)
 
 ### 3.3 Registro de nuevo usuario
 
+> **Nota:** Solo los **alumnos** pueden registrarse directamente. Los roles de Administrador, Coordinador, Docente y Soporte son asignados por un administrador del sistema.
+
 1. En la pantalla de login, haga clic en **Registrarse**.
-2. Complete el formulario con: nombres, apellidos, correo institucional, contraseña y seleccione su rol.
+2. Complete el formulario con: nombres, apellidos, correo institucional, contraseña.
 3. La contraseña debe cumplir con la política de seguridad: **12-20 caracteres**, mayúscula, minúscula, número y símbolo.
-4. Si es alumno, proporcione matrícula, CURP y carrera.
-5. Si es docente, proporcione número de empleado y especialidad.
-6. Acepte los términos y condiciones.
-7. Haga clic en **Registrar**.
+4. Proporcione matrícula, CURP y carrera.
+5. Acepte los términos y condiciones.
+6. Haga clic en **Registrar**.
 
 ---
 
@@ -337,6 +343,86 @@ El Coordinador tiene acceso a la gestión académica completa, similar al Admini
 
 - Genere reportes PDF y Excel.
 
+### 8.11 Información Personal y Datos Sensibles
+
+El panel del alumno incluye secciones para gestionar tu información personal de forma segura.
+
+#### Perfil y configuración (`/app/alumno/perfil`)
+
+Desde aquí puedes:
+- **Editar** tus nombres, apellido paterno, apellido materno y CURP
+- **Ver** tu correo institucional, matrícula y estadísticas académicas
+- **Acceder** a las demás secciones del panel
+
+Para editar tu perfil:
+1. Haz clic en "Editar perfil"
+2. Modifica los campos que desees
+3. Haz clic en "Guardar cambios"
+4. Los cambios se reflejan en ambas tablas (usuarios y alumnos)
+
+#### Contactos de emergencia (`/app/contactos-emergencia`)
+
+Registra las personas a contactar en caso de emergencia:
+1. Haz clic en "Agregar contacto"
+2. Completa nombre, parentesco, teléfono (10 dígitos) y correo electrónico
+3. Marca como "Principal" si es tu contacto principal
+4. Guarda el contacto
+
+**Validaciones:**
+- Nombre: solo letras, espacios, guiones y apóstrofes (2-200 caracteres)
+- Teléfono: exactamente 10 dígitos numéricos
+- Correo: formato válido (opcional)
+
+#### Información médica (`/app/alumno-info-medica`)
+
+Registra tu información de salud (confidencial):
+- **Tipo de sangre:** Selecciona de la lista (A+, A-, B+, B-, AB+, AB-, O+, O-)
+- **Alergias conocidas:** Describe cualquier alergia (máx. 2000 caracteres)
+- **Medicamentos actuales:** Medicamentos que tomas (máx. 2000 caracteres)
+- **Condiciones crónicas:** Condiciones de salud a largo plazo
+- **Restricciones físicas:** Limitaciones que debamos considerar
+- **Información psicológica:** Datos relevantes para atención psicológica (confidencial)
+- **Notas autorizadas:** Notas adicionales autorizadas
+
+**IMPORTANTE:** Esta información es confidencial y solo es visible para ti y personal autorizado.
+
+#### Información laboral (`/app/alumno-info-laboral`)
+
+Registra tu situación laboral actual:
+- **¿Trabajas actualmente?** Marca la casilla si tienes empleo
+- **Empresa:** Nombre de la empresa
+- **Puesto:** Tu cargo actual
+- **Teléfono laboral:** 10 dígitos del teléfono de la empresa
+- **Dirección laboral:** Ubicación del centro de trabajo
+- **Municipio/Alcaldía:** Ubicación geográfica
+- **Horario:** Ej: 8:00 - 17:00
+- **Contacto laboral autorizado:** Nombre y teléfono de tu contacto en la empresa
+
+#### Documentos personales (`/app/alumno-documentos`)
+
+Gestiona tus documentos oficiales:
+
+**Subir un documento:**
+1. Haz clic en "Subir documento"
+2. Selecciona el archivo (PDF, JPG, PNG, DOC o DOCX, máx. 10MB)
+3. Selecciona el tipo de documento (INE, CURP, Acta de nacimiento, etc.)
+4. Opcionalmente agrega fecha y descripción
+5. Haz clic en "Subir"
+
+**Eliminar un documento:**
+1. Haz clic en el ícono de basura junto al documento
+2. Confirma la eliminación
+
+**Tipos de documentos permitidos:**
+INE, CURP, Acta de nacimiento, Comprobante de domicilio, Certificado médico, Foto perfil, Título, Otros
+
+### 8.12 Restricciones del Panel del Alumno
+
+- Solo el rol **ALUMNO** puede acceder a estas secciones
+- No puedes modificar tu rol, permisos o estado de cuenta
+- Tu información se almacena de forma segura con auditoría completa
+- Los documentos se almacenan encriptados en el servidor
+
 ---
 
 ## 9. Panel de Soporte
@@ -403,4 +489,67 @@ El Coordinador tiene acceso a la gestión académica completa, similar al Admini
 
 ---
 
-*Fin del Manual de Usuario — SIVACAD v1.0*
+## 12. Autenticación Multi-Factor (MFA)
+
+### 12.1 ¿Qué es MFA?
+
+MFA es una capa extra de seguridad para su cuenta. Además de su contraseña, necesitará un código de 6 dígitos que cambia cada 30 segundos, generado por una aplicación en su teléfono.
+
+### 12.2 Activar MFA
+
+1. Inicie sesión en el sistema.
+2. Navegue a **Configuración de Seguridad**.
+3. Haga clic en **Activar MFA**.
+4. Escanee el código QR que aparece con Google Authenticator o Authy.
+5. Ingrese el código de 6 dígitos que muestra la app para confirmar.
+6. **Guarde sus códigos de recuperación** en un lugar seguro. Se muestran solo una vez.
+
+### 12.3 Login con MFA
+
+1. Ingrese correo y contraseña normalmente.
+2. Si MFA está activo, el sistema pedirá el código de 6 dígitos.
+3. Abra Google Authenticator o Authy en su teléfono.
+4. Ingrese el código que aparece (se renueva cada 30 segundos).
+5. Si el código es válido, accederá al sistema.
+
+### 12.4 ¿Perdió acceso a su teléfono?
+
+Use uno de sus **códigos de recuperación** (se generaron 10 al activar MFA):
+
+1. En la pantalla donde se solicita el código MFA, seleccione **"¿Perdiste el acceso?"**
+2. Ingrese uno de sus códigos de recuperación.
+3. El sistema le permitirá acceder sin MFA.
+4. **Importante:** Después de usar un código de recuperación, reconfigure MFA lo antes posible.
+
+### 12.5 Desactivar MFA
+
+1. Navegue a **Configuración de Seguridad**.
+2. Haga clic en **Desactivar MFA**.
+3. Ingrese el código actual de su aplicación de autenticación.
+4. MFA se desactivará.
+
+> **Recomendación:** Mantenga MFA activado para proteger su cuenta.
+
+---
+
+## 13. Reautenticación para Operaciones Sensibles
+
+### 13.1 ¿Qué es la reautenticación?
+
+Algunas operaciones importantes requieren que vuelva a confirmar su contraseña para asegurar que es usted quien las realiza. Esto protege su cuenta si alguien más tiene acceso a su sesión.
+
+### 13.2 ¿Cuándo se requiere?
+
+- Cambio de correo electrónico
+- Cambio de contraseña
+- Eliminación de cuenta
+
+### 13.3 ¿Cómo funciona?
+
+1. Al intentar realizar una operación sensible, el sistema le pedirá su contraseña actual.
+2. Ingrese su contraseña y confirme.
+3. La operación se realizará después de verificar su identidad.
+
+---
+
+*Fin del Manual de Usuario — SIVACAD v3.0*

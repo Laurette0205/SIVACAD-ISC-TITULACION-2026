@@ -21,7 +21,7 @@ function authRequired(req, res, next) {
   }
 
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     return next();
   } catch (error) {
     return res.status(401).json({ ok: false, message: 'Token inválido o expirado' });
@@ -41,12 +41,12 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-async function auditLog({ id_usuario, nombre_usuario, rol_usuario, accion, entidad_tipo, entidad_id, descripcion, detalle_json, nivel = 'INFO' }) {
+async function auditLog({ id_usuario, nombre_usuario, rol_usuario, accion, entidad_tipo, entidad_id, descripcion, detalle_json, nivel = 'INFO', id_institucion }) {
   try {
     await pool.query(
-      `INSERT INTO ia_becas_auditoria (id_usuario, nombre_usuario, rol_usuario, accion, entidad_tipo, entidad_id, descripcion, detalle_json, nivel)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id_usuario || null, nombre_usuario || null, rol_usuario || null, accion, entidad_tipo, entidad_id || null, descripcion || null, detalle_json ? JSON.stringify(detalle_json) : null, nivel]
+      `INSERT INTO ia_becas_auditoria (id_usuario, nombre_usuario, rol_usuario, accion, entidad_tipo, entidad_id, descripcion, detalle_json, nivel, id_institucion)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id_usuario || null, nombre_usuario || null, rol_usuario || null, accion, entidad_tipo, entidad_id || null, descripcion || null, detalle_json ? JSON.stringify(detalle_json) : null, nivel, id_institucion || 1]
     );
   } catch (error) {
     console.error('[iaBecasAdmin] Error al registrar auditoría:', error.message);
@@ -58,20 +58,23 @@ async function auditLog({ id_usuario, nombre_usuario, rol_usuario, accion, entid
 // ============================================================
 router.get('/metricas', authRequired, requireAdmin, async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM ia_becas_metricas_view LIMIT 1');
-    const [convocatorias] = await pool.query('SELECT id_convocatoria, codigo, titulo, institucion, categoria, activo, destacada, fecha_publicacion FROM ia_becas_convocatorias ORDER BY destacada DESC, fecha_publicacion DESC LIMIT 5');
+    const idInstitucion = req.user.id_institucion || 1;
+    const [rows] = await pool.query('SELECT * FROM ia_becas_metricas_view WHERE id_institucion = ? LIMIT 1', [idInstitucion]);
+    const [convocatorias] = await pool.query('SELECT id_convocatoria, codigo, titulo, institucion, categoria, activo, destacada, fecha_publicacion FROM ia_becas_convocatorias WHERE id_institucion = ? ORDER BY destacada DESC, fecha_publicacion DESC LIMIT 5', [idInstitucion]);
     const [solicitudesRecientes] = await pool.query(`
       SELECT s.id_solicitud, s.codigo_solicitud, s.nombre_alumno, s.estatus_solicitud, s.fecha_solicitud, c.titulo AS convocatoria_titulo
       FROM ia_becas_solicitudes s
       LEFT JOIN ia_becas_convocatorias c ON c.id_convocatoria = s.id_convocatoria
+      WHERE s.id_institucion = ?
       ORDER BY s.fecha_solicitud DESC LIMIT 5
-    `);
+    `, [idInstitucion]);
     const [dictamenesRecientes] = await pool.query(`
       SELECT d.id_dictamen, d.tipo_dictamen, d.monto_asignado, d.fecha_dictamen, d.nombre_dictamina, s.nombre_alumno
       FROM ia_becas_dictamenes d
       JOIN ia_becas_solicitudes s ON s.id_solicitud = d.id_solicitud
+      WHERE d.id_institucion = ?
       ORDER BY d.fecha_dictamen DESC LIMIT 5
-    `);
+    `, [idInstitucion]);
 
     return res.json({
       ok: true,
@@ -101,8 +104,8 @@ router.get('/solicitudes', authRequired, requireAdmin, async (req, res) => {
     const id_carrera = Number(req.query.id_carrera) || 0;
     const id_periodo = Number(req.query.id_periodo) || 0;
 
-    let where = 'WHERE 1=1';
-    const params = [];
+    let where = 'WHERE s.id_institucion = ?';
+    const params = [req.user.id_institucion || 1];
 
     if (estatus) {
       where += ' AND s.estatus_solicitud = ?';
@@ -165,7 +168,7 @@ router.get('/solicitudes/:id', authRequired, requireAdmin, async (req, res) => {
       return res.status(404).json({ ok: false, message: 'Solicitud no encontrada.' });
     }
 
-    const [documentos] = await pool.query('SELECT * FROM ia_becas_documentos WHERE id_solicitud = ?', [id]);
+    const [documentos] = await pool.query('SELECT * FROM ia_becas_documentos WHERE id_solicitud = ? AND id_institucion = ?', [id, req.user.id_institucion || 1]);
 
     return res.json({
       ok: true,
@@ -187,7 +190,7 @@ router.put('/solicitudes/:id/estatus', authRequired, requireAdmin, async (req, r
       return res.status(400).json({ ok: false, message: `Estatus inválido. Permitidos: ${estatusPermitidos.join(', ')}` });
     }
 
-    const [rows] = await pool.query('SELECT * FROM ia_becas_solicitudes WHERE id_solicitud = ? LIMIT 1', [id]);
+    const [rows] = await pool.query('SELECT * FROM ia_becas_solicitudes WHERE id_solicitud = ? AND id_institucion = ? LIMIT 1', [id, req.user.id_institucion || 1]);
     if (!rows?.length) {
       return res.status(404).json({ ok: false, message: 'Solicitud no encontrada.' });
     }
@@ -219,7 +222,8 @@ router.put('/solicitudes/:id/estatus', authRequired, requireAdmin, async (req, r
       entidad_tipo: 'ia_becas_solicitudes',
       entidad_id: id,
       descripcion: `Cambio de estatus de solicitud #${id} a "${estatus}"`,
-      detalle_json: { estatus_anterior: rows[0].estatus_solicitud, estatus_nuevo: estatus, nota_revisor }
+      detalle_json: { estatus_anterior: rows[0].estatus_solicitud, estatus_nuevo: estatus, nota_revisor },
+      id_institucion: req.user.id_institucion || 1
     });
 
     return res.json({ ok: true, message: `Solicitud #${id} actualizada a "${estatus}".` });
@@ -240,8 +244,8 @@ router.get('/dictamenes', authRequired, requireAdmin, async (req, res) => {
     const tipo = String(req.query.tipo || '').trim();
     const busqueda = String(req.query.busqueda || '').trim();
 
-    let where = 'WHERE 1=1';
-    const params = [];
+    let where = 'WHERE d.id_institucion = ?';
+    const params = [req.user.id_institucion || 1];
 
     if (tipo) {
       where += ' AND d.tipo_dictamen = ?';
@@ -313,13 +317,13 @@ router.post('/dictamenes', authRequired, requireAdmin, async (req, res) => {
     const result = await pool.query(
       `INSERT INTO ia_becas_dictamenes
        (id_solicitud, id_convocatoria, id_alumno, tipo_dictamen, fundamento, observaciones, monto_asignado,
-        validado_por_ia, resultado_ia, id_usuario_dictamina, nombre_dictamina)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        validado_por_ia, resultado_ia, id_usuario_dictamina, nombre_dictamina, id_institucion)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id_solicitud, solicitud.id_convocatoria, solicitud.id_alumno, tipo_dictamen,
         fundamento || null, observaciones || null, monto_asignado || null,
         validado_por_ia ? 1 : 0, resultado_ia ? JSON.stringify(resultado_ia) : null,
-        req.user?.id_usuario, nombre_usuario
+        req.user?.id_usuario, nombre_usuario, req.user.id_institucion || 1
       ]
     );
 
@@ -340,7 +344,8 @@ router.post('/dictamenes', authRequired, requireAdmin, async (req, res) => {
       id_usuario: req.user?.id_usuario, nombre_usuario, rol_usuario: req.user?.rol_nombre || req.user?.rol,
       accion: 'CREAR_DICTAMEN', entidad_tipo: 'ia_becas_dictamenes', entidad_id: result?.[0]?.insertId || null,
       descripcion: `Dictamen "${tipo_dictamen}" para solicitud #${id_solicitud} (${solicitud.nombre_alumno})`,
-      detalle_json: { id_solicitud, tipo_dictamen, fundamento, monto_asignado, validado_por_ia }
+      detalle_json: { id_solicitud, tipo_dictamen, fundamento, monto_asignado, validado_por_ia },
+      id_institucion: req.user.id_institucion || 1
     });
 
     return res.json({
@@ -365,8 +370,8 @@ router.get('/historial', authRequired, requireAdmin, async (req, res) => {
     const estatus = String(req.query.estatus || '').trim();
     const busqueda = String(req.query.busqueda || '').trim();
 
-    let where = 'WHERE 1=1';
-    const params = [];
+    let where = 'WHERE id_institucion = ?';
+    const params = [req.user.id_institucion || 1];
 
     if (estatus) {
       where += ' AND estatus_solicitud = ?';
@@ -407,8 +412,8 @@ router.get('/convocatorias', authRequired, requireAdmin, async (req, res) => {
     const categoria = String(req.query.categoria || '').trim();
     const activo = req.query.activo !== undefined ? Number(req.query.activo) : -1;
 
-    let where = 'WHERE 1=1';
-    const params = [];
+    let where = 'WHERE id_institucion = ?';
+    const params = [req.user.id_institucion || 1];
 
     if (categoria) {
       where += ' AND categoria = ?';
@@ -423,7 +428,7 @@ router.get('/convocatorias', authRequired, requireAdmin, async (req, res) => {
     const total = Number(countRows?.[0]?.total || 0);
 
     const [rows] = await pool.query(`SELECT * FROM ia_becas_convocatorias ${where} ORDER BY destacada DESC, fecha_publicacion DESC LIMIT ? OFFSET ?`, [...params, limit, offset]);
-    const [categorias] = await pool.query('SELECT DISTINCT categoria FROM ia_becas_convocatorias ORDER BY categoria');
+    const [categorias] = await pool.query('SELECT DISTINCT categoria FROM ia_becas_convocatorias WHERE id_institucion = ? ORDER BY categoria', [req.user.id_institucion || 1]);
 
     return res.json({
       ok: true,
@@ -452,15 +457,16 @@ router.post('/convocatorias', authRequired, requireAdmin, async (req, res) => {
     const result = await pool.query(
       `INSERT INTO ia_becas_convocatorias
        (codigo, titulo, institucion, categoria, tipo, url_oficial, descripcion, resumen, requisitos, beneficios,
-        nivel, alcance, vigencia_inicio, vigencia_fin, vigencia_texto, monto, activo, destacada, fecha_publicacion)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        nivel, alcance, vigencia_inicio, vigencia_fin, vigencia_texto, monto, activo, destacada, fecha_publicacion, id_institucion)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         codigo, titulo, institucion || '', categoria || 'Gobierno del Estado de México', tipo || 'OFICIAL',
         url_oficial || '', descripcion || null, resumen || null,
         requisitos ? JSON.stringify(requisitos) : null, beneficios ? JSON.stringify(beneficios) : null,
         nivel ? JSON.stringify(nivel) : null, alcance || 'Estado de México',
         vigencia_inicio || null, vigencia_fin || null, vigencia_texto || 'Consultar convocatoria vigente',
-        monto || null, activo !== undefined ? (activo ? 1 : 0) : 1, destacada ? 1 : 0, fecha_publicacion || null
+        monto || null, activo !== undefined ? (activo ? 1 : 0) : 1, destacada ? 1 : 0, fecha_publicacion || null,
+        req.user.id_institucion || 1
       ]
     );
 
@@ -469,7 +475,8 @@ router.post('/convocatorias', authRequired, requireAdmin, async (req, res) => {
       accion: 'CREAR_CONVOCATORIA', entidad_tipo: 'ia_becas_convocatorias',
       entidad_id: result?.[0]?.insertId || null,
       descripcion: `Convocatoria creada: ${titulo} (${codigo})`,
-      detalle_json: { codigo, titulo, institucion, categoria }
+      detalle_json: { codigo, titulo, institucion, categoria },
+      id_institucion: req.user.id_institucion || 1
     });
 
     return res.status(201).json({
@@ -510,7 +517,7 @@ router.put('/convocatorias/:id', authRequired, requireAdmin, async (req, res) =>
     }
 
     params.push(id);
-    await pool.query(`UPDATE ia_becas_convocatorias SET ${updates.join(', ')} WHERE id_convocatoria = ?`, params);
+    await pool.query(`UPDATE ia_becas_convocatorias SET ${updates.join(', ')} WHERE id_convocatoria = ? AND id_institucion = ?`, [...params, req.user.id_institucion || 1]);
 
     await auditLog({
       id_usuario: req.user?.id_usuario,
@@ -518,7 +525,8 @@ router.put('/convocatorias/:id', authRequired, requireAdmin, async (req, res) =>
       rol_usuario: req.user?.rol_nombre || req.user?.rol,
       accion: 'ACTUALIZAR_CONVOCATORIA', entidad_tipo: 'ia_becas_convocatorias', entidad_id: id,
       descripcion: `Convocatoria #${id} actualizada`,
-      detalle_json: req.body
+      detalle_json: req.body,
+      id_institucion: req.user.id_institucion || 1
     });
 
     return res.json({ ok: true, message: `Convocatoria #${id} actualizada.` });
@@ -537,10 +545,10 @@ router.get('/exportaciones', authRequired, requireAdmin, async (req, res) => {
     const limit = Math.min(100, Math.max(10, Number(req.query.limit) || 20));
     const offset = (page - 1) * limit;
 
-    const [countRows] = await pool.query('SELECT COUNT(*) AS total FROM ia_becas_exportaciones');
+    const [countRows] = await pool.query('SELECT COUNT(*) AS total FROM ia_becas_exportaciones WHERE id_institucion = ?', [req.user.id_institucion || 1]);
     const total = Number(countRows?.[0]?.total || 0);
 
-    const [rows] = await pool.query('SELECT * FROM ia_becas_exportaciones ORDER BY fecha_generacion DESC LIMIT ? OFFSET ?', [limit, offset]);
+    const [rows] = await pool.query('SELECT * FROM ia_becas_exportaciones WHERE id_institucion = ? ORDER BY fecha_generacion DESC LIMIT ? OFFSET ?', [req.user.id_institucion || 1, limit, offset]);
 
     return res.json({
       ok: true,
@@ -611,9 +619,9 @@ router.post('/exportar', authRequired, requireAdmin, async (req, res) => {
       const nombre_usuario = `${req.user?.nombres || ''} ${req.user?.apellido_paterno || ''}`.trim() || req.user?.nombre_completo || 'Administrador';
 
       const result = await pool.query(
-        `INSERT INTO ia_becas_exportaciones (id_usuario, nombre_usuario, tipo_reporte, formato, filtros_aplicados, total_registros)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [req.user?.id_usuario, nombre_usuario, tipo_reporte, formato, filtros ? JSON.stringify(filtros) : null, count]
+        `INSERT INTO ia_becas_exportaciones (id_usuario, nombre_usuario, tipo_reporte, formato, filtros_aplicados, total_registros, id_institucion)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [req.user?.id_usuario, nombre_usuario, tipo_reporte, formato, filtros ? JSON.stringify(filtros) : null, count, req.user.id_institucion || 1]
       );
 
       await auditLog({
@@ -621,7 +629,8 @@ router.post('/exportar', authRequired, requireAdmin, async (req, res) => {
         accion: 'EXPORTAR_REPORTE', entidad_tipo: 'ia_becas_exportaciones',
         entidad_id: result?.[0]?.insertId || null,
         descripcion: `Exportación "${tipo_reporte}" en formato ${formato} - ${count} registros`,
-        detalle_json: { tipo_reporte, formato, filtros, total_registros: count }
+        detalle_json: { tipo_reporte, formato, filtros, total_registros: count },
+        id_institucion: req.user.id_institucion || 1
       });
 
       return res.json({
@@ -655,8 +664,8 @@ router.get('/auditoria', authRequired, requireAdmin, async (req, res) => {
     const desde = String(req.query.desde || '').trim();
     const hasta = String(req.query.hasta || '').trim();
 
-    let where = 'WHERE 1=1';
-    const params = [];
+    let where = 'WHERE id_institucion = ?';
+    const params = [req.user.id_institucion || 1];
 
     if (accion) {
       where += ' AND accion = ?';
@@ -679,8 +688,8 @@ router.get('/auditoria', authRequired, requireAdmin, async (req, res) => {
     const total = Number(countRows?.[0]?.total || 0);
 
     const [rows] = await pool.query(`SELECT * FROM ia_becas_auditoria ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`, [...params, limit, offset]);
-    const [acciones] = await pool.query('SELECT DISTINCT accion FROM ia_becas_auditoria ORDER BY accion');
-    const [niveles] = await pool.query('SELECT DISTINCT nivel FROM ia_becas_auditoria ORDER BY nivel');
+    const [acciones] = await pool.query('SELECT DISTINCT accion FROM ia_becas_auditoria WHERE id_institucion = ? ORDER BY accion', [req.user.id_institucion || 1]);
+    const [niveles] = await pool.query('SELECT DISTINCT nivel FROM ia_becas_auditoria WHERE id_institucion = ? ORDER BY nivel', [req.user.id_institucion || 1]);
 
     return res.json({
       ok: true,
@@ -759,8 +768,8 @@ router.post('/validar-criterios', authRequired, requireAdmin, async (req, res) =
     const resultado_ia = { total_criterios: total, cumplidos, no_cumplidos: total - cumplidos, puntuacion, elegible, criterios_validados };
 
     await pool.query(
-      `UPDATE ia_becas_solicitudes SET criterios_validados = ? WHERE id_solicitud = ?`,
-      [JSON.stringify(resultado_ia), id_solicitud]
+      `UPDATE ia_becas_solicitudes SET criterios_validados = ? WHERE id_solicitud = ? AND id_institucion = ?`,
+      [JSON.stringify(resultado_ia), id_solicitud, req.user.id_institucion || 1]
     );
 
     await auditLog({
@@ -769,7 +778,8 @@ router.post('/validar-criterios', authRequired, requireAdmin, async (req, res) =
       rol_usuario: req.user?.rol_nombre || req.user?.rol,
       accion: 'VALIDAR_CRITERIOS', entidad_tipo: 'ia_becas_solicitudes', entidad_id: id_solicitud,
       descripcion: `Validación de criterios para solicitud #${id_solicitud}: ${cumplidos}/${total} cumplidos (${puntuacion}%)`,
-      detalle_json: resultado_ia
+      detalle_json: resultado_ia,
+      id_institucion: req.user.id_institucion || 1
     });
 
     return res.json({
@@ -788,31 +798,33 @@ router.post('/validar-criterios', authRequired, requireAdmin, async (req, res) =
 // ============================================================
 router.get('/indicadores', authRequired, requireAdmin, async (req, res) => {
   try {
-    const [metricas] = await pool.query('SELECT * FROM ia_becas_metricas_view LIMIT 1');
+    const idInstitucion = req.user.id_institucion || 1;
+    const [metricas] = await pool.query('SELECT * FROM ia_becas_metricas_view WHERE id_institucion = ? LIMIT 1', [idInstitucion]);
     const [porCarrera] = await pool.query(`
       SELECT s.nombre_carrera, COUNT(*) AS total_solicitudes,
              SUM(CASE WHEN s.estatus_solicitud = 'APROBADA' THEN 1 ELSE 0 END) AS aprobadas,
              SUM(CASE WHEN s.estatus_solicitud = 'RECHAZADA' THEN 1 ELSE 0 END) AS rechazadas,
              AVG(s.promedio_actual) AS promedio_grupo
       FROM ia_becas_solicitudes s
-      WHERE s.nombre_carrera IS NOT NULL AND s.nombre_carrera != ''
+      WHERE s.nombre_carrera IS NOT NULL AND s.nombre_carrera != '' AND s.id_institucion = ?
       GROUP BY s.nombre_carrera ORDER BY total_solicitudes DESC
-    `);
+    `, [idInstitucion]);
     const [porPeriodo] = await pool.query(`
       SELECT s.periodo_nombre, COUNT(*) AS total_solicitudes,
              SUM(CASE WHEN s.estatus_solicitud = 'APROBADA' THEN 1 ELSE 0 END) AS aprobadas,
              SUM(CASE WHEN s.estatus_solicitud = 'RECHAZADA' THEN 1 ELSE 0 END) AS rechazadas
       FROM ia_becas_solicitudes s
-      WHERE s.periodo_nombre IS NOT NULL AND s.periodo_nombre != ''
+      WHERE s.periodo_nombre IS NOT NULL AND s.periodo_nombre != '' AND s.id_institucion = ?
       GROUP BY s.periodo_nombre ORDER BY s.periodo_nombre DESC
-    `);
+    `, [idInstitucion]);
     const [porConvocatoria] = await pool.query(`
       SELECT c.titulo, c.institucion, COUNT(s.id_solicitud) AS total_solicitudes,
              SUM(CASE WHEN s.estatus_solicitud = 'APROBADA' THEN 1 ELSE 0 END) AS aprobadas
       FROM ia_becas_convocatorias c
       LEFT JOIN ia_becas_solicitudes s ON s.id_convocatoria = c.id_convocatoria
+      WHERE c.id_institucion = ?
       GROUP BY c.id_convocatoria ORDER BY total_solicitudes DESC
-    `);
+    `, [idInstitucion]);
 
     return res.json({
       ok: true,

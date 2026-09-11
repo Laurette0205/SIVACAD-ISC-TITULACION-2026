@@ -8,7 +8,7 @@ function authFromHeader(req, res, next) {
   if (!auth.startsWith('Bearer ')) return res.status(401).json({ ok: false, message: 'Token no disponible' });
   try {
     const token = auth.slice(7).trim();
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     const rol = String(decoded.rol || decoded.rol_nombre || '').toUpperCase();
     if (rol !== 'ADMINISTRADOR' && Number(decoded.rol_id) !== 1) {
       return res.status(403).json({ ok: false, message: 'Solo administradores pueden acceder a este módulo.' });

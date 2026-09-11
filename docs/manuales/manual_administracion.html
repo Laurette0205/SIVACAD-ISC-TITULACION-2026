@@ -3,283 +3,874 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manual de Administración — SIVACAD</title>
+<title>SIVACAD — Manual</title>
 <style>
-  :root { --bg: #ffffff; --text: #1e293b; --accent: #2563eb; --border: #e2e8f0; --code-bg: #f1f5f9; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; padding: 2.5rem; max-width: 1000px; margin: 0 auto; }
-  h1 { font-size: 2rem; color: #0f172a; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 0.25rem; }
-  .subtitle { color: #64748b; margin-bottom: 2rem; font-size: 0.95rem; }
-  h2 { font-size: 1.5rem; color: #0f172a; margin: 2.5rem 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; page-break-before: always; }
-  h2:first-of-type { page-break-before: avoid; }
-  h3 { font-size: 1.15rem; color: #1e293b; margin: 1.5rem 0 0.5rem; }
-  p { margin-bottom: 0.8rem; }
-  ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
-  li { margin-bottom: 0.3rem; }
-  code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
-  pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 0.8rem 0; font-size: 0.85rem; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
-  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
-  th { background: #1e3a5f; color: #fff; padding: 0.6rem; text-align: left; }
-  td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); }
-  tr:nth-child(even) { background: #f8fafc; }
-  .toc { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; margin: 2rem 0; }
-  .toc h2 { margin-top: 0; page-break-before: avoid; border-bottom: none; }
-  .toc a { color: var(--accent); text-decoration: none; }
-  .header-inst { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--accent); }
-  .header-inst h1 { border-bottom: none; margin-bottom: 0.2rem; }
-  .header-inst .sistema { font-size: 1.1rem; font-weight: 600; color: #0f172a; }
-  .header-inst .autoras { font-size: 0.9rem; color: #64748b; }
-  .header-inst .version { font-size: 0.8rem; color: #94a3b8; margin-top: 0.3rem; }
-  .footer-page { text-align: center; font-size: 0.75rem; color: #94a3b8; margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1rem; }
-  @media print {
-    @page { margin: 2cm 2.5cm; size: A4; @top-center { content: "SIVACAD — Manual de Administración"; font-size: 8pt; color: #94a3b8; } @bottom-center { content: counter(page); font-size: 8pt; color: #94a3b8; } }
-    @page { margin: 2cm 2.5cm 2.5cm 2.5cm; size: A4; }
-    body { padding: 0; font-size: 11pt; line-height: 1.5; color: #000; background: #fff; }
-    h1 { font-size: 18pt; }
-    h2 { font-size: 14pt; page-break-before: always; margin-top: 0; padding-top: 0; }
-    h2:first-of-type { page-break-before: avoid; }
-    h3 { font-size: 12pt; page-break-after: avoid; }
-    h4 { font-size: 11pt; page-break-after: avoid; }
-    p, li { font-size: 11pt; }
-    table { font-size: 9pt; page-break-inside: avoid; }
-    tr { page-break-inside: avoid; }
-    pre { font-size: 8pt; white-space: pre-wrap; word-break: break-word; page-break-inside: avoid; }
-    code { font-size: 8pt; }
-    .toc { page-break-after: always; }
-    .toc h2 { page-break-before: avoid; }
-    .header-inst { page-break-before: avoid; }
-    a { color: #000; text-decoration: none; }
-    .print-footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 8pt; color: #666; border-top: 0.5pt solid #ccc; padding: 4pt 0 2pt; }
-  }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; line-height: 1.6; color: #1a1a2e; background: #f8f9fa; }
+  h1 { color: #0f3460; border-bottom: 3px solid #0f3460; padding-bottom: 0.5rem; }
+  h2 { color: #16213e; margin-top: 2rem; border-left: 4px solid #e94560; padding-left: 0.75rem; }
+  h3 { color: #533483; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+  th, td { border: 1px solid #ddd; padding: 0.5rem 0.75rem; text-align: left; }
+  th { background: #0f3460; color: white; }
+  tr:nth-child(even) { background: #f2f2f2; }
+  pre { background: #1a1a2e; color: #a8e6cf; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+  code { background: #e8e8e8; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; }
+  pre code { background: none; padding: 0; }
+  blockquote { border-left: 4px solid #e94560; margin: 1rem 0; padding: 0.5rem 1rem; background: #fff3f3; border-radius: 0 8px 8px 0; }
+  li { margin: 0.25rem 0; }
+  hr { border: none; border-top: 2px solid #ddd; margin: 2rem 0; }
+  a { color: #e94560; }
+  strong { color: #16213e; }
 </style>
 </head>
 <body>
-
-<div class="header-inst">
-  <h1>Manual de Administración</h1>
-  <div class="sistema">Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos (SIVACAD)</div>
-  <div class="autoras">Autoras: Bárcenas González Laura Casandra &amp; Morales Ibarra Sandivel</div>
-  <div class="autoras">TESI Ixtapaluca — Ingeniería en Sistemas Computacionales</div>
-  <div class="version">Versión 1.0 — Julio 2026</div>
-</div>
-
-<div class="toc">
-  <h2>Índice</h2>
-  <ol>
-    <li><a href="#s1">Introducción</a></li>
-    <li><a href="#s2">Gestión de Usuarios</a></li>
-    <li><a href="#s3">Roles y Permisos</a></li>
-    <li><a href="#s4">Gestión de Módulos</a></li>
-    <li><a href="#s5">Gestión de Periodos Académicos</a></li>
-    <li><a href="#s6">Reportes Institucionales</a></li>
-    <li><a href="#s7">Auditoría y Bitácora</a></li>
-    <li><a href="#s8">Sesiones Activas</a></li>
-    <li><a href="#s9">Parámetros del Sistema</a></li>
-    <li><a href="#s10">Supervisión General</a></li>
-    <li><a href="#s11">Buenas Prácticas</a></li>
-  </ol>
-</div>
-
-<h2 id="s1">1. Introducción</h2>
+<h1>Manual de Administración — SIVACAD</h1>
+<p><strong>Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos</strong></p>
+<p><strong>Autoras:</strong> Bárcenas González Laura Casandra &amp; Morales Ibarra Sandivel<br><strong>Institución:</strong> TESI Ixtapaluca — Ingeniería en Sistemas Computacionales<br><strong>Versión:</strong> 3.0 — Septiembre 2026</p>
+<hr>
+<h2>Índice</h2>
+<ol>
+<li><a href="#1-introducci%C3%B3n">Introducción</a></li>
+<li><a href="#2-gesti%C3%B3n-de-usuarios">Gestión de Usuarios</a></li>
+<li><a href="#3-roles-y-permisos">Roles y Permisos</a></li>
+<li><a href="#4-gesti%C3%B3n-de-m%C3%B3dulos">Gestión de Módulos</a></li>
+<li><a href="#5-gesti%C3%B3n-de-periodos-acad%C3%A9micos">Gestión de Periodos Académicos</a></li>
+<li><a href="#6-reportes-institucionales">Reportes Institucionales</a></li>
+<li><a href="#7-auditor%C3%ADa-y-bit%C3%A1cora">Auditoría y Bitácora</a></li>
+<li><a href="#8-sesiones-activas">Sesiones Activas</a></li>
+<li><a href="#9-par%C3%A1metros-del-sistema">Parámetros del Sistema</a></li>
+<li><a href="#10-supervisi%C3%B3n-general">Supervisión General</a></li>
+<li><a href="#11-buenas-pr%C3%A1cticas">Buenas Prácticas</a></li>
+<li><a href="#12-autenticaci%C3%B3n-multi-factor-mfa">Autenticación Multi-Factor (MFA)</a></li>
+<li><a href="#13-reautenticaci%C3%B3n-para-operaciones-sensibles">Reautenticación para Operaciones Sensibles</a></li>
+</ol>
+<hr>
+<h2>1. Introducción</h2>
 <p>Este manual está dirigido al <strong>Administrador del sistema SIVACAD</strong>. Describe las tareas de gestión general de la plataforma: administración de usuarios, asignación de roles, configuración de módulos, generación de reportes institucionales, supervisión de auditoría y monitoreo del sistema.</p>
 <p>El administrador tiene el nivel más alto de privilegios en el sistema y es responsable de garantizar su correcto funcionamiento, seguridad y disponibilidad.</p>
-
-<h2 id="s2">2. Gestión de Usuarios</h2>
-
+<hr>
+<h2>2. Gestión de Usuarios</h2>
 <h3>2.1 Acceso al módulo</h3>
-<p>Inicie sesión con una cuenta con rol <strong>Administrador</strong>. En el menú lateral, seleccione <strong>Usuarios</strong>.</p>
-
+<ol>
+<li>Inicie sesión con una cuenta con rol <strong>Administrador</strong>.</li>
+<li>En el menú lateral, seleccione <strong>Usuarios</strong>.</li>
+</ol>
 <h3>2.2 Listado de usuarios</h3>
-<p>Visualiza una tabla con todos los usuarios registrados: nombre, correo, rol, estado (Activo/Inactivo), fecha de registro. Use los campos de búsqueda para filtrar.</p>
-
+<ul>
+<li>Visualiza una tabla con todos los usuarios registrados: nombre, correo, rol, estado (Activo/Inactivo), fecha de registro.</li>
+<li>Use los campos de búsqueda para filtrar por nombre, correo o rol.</li>
+</ul>
 <h3>2.3 Crear un nuevo usuario</h3>
 <ol>
-  <li>Haga clic en <strong>+ Nuevo Usuario</strong>.</li>
-  <li>Complete los campos obligatorios: nombres, apellidos, correo institucional, contraseña (<strong>12-20 caracteres, mayúscula, minúscula, número, símbolo</strong>), rol y datos adicionales según el rol.</li>
-  <li>Haga clic en <strong>Guardar</strong>.</li>
+<li>Haga clic en <strong>+ Nuevo Usuario</strong>.</li>
+<li>Complete los campos obligatorios:<ul>
+<li>Nombres y apellidos</li>
+<li>Correo institucional (debe ser @tesi.edu.mx o @ixtapaluca.tecnm.mx)</li>
+<li>Contraseña (debe cumplir la política: 12-20 caracteres, mayúscula, minúscula, número, símbolo)</li>
+<li>Rol (Administrador, Coordinador, Docente, Alumno, Soporte)</li>
+<li>Datos adicionales según el rol (matrícula, número de empleado, carrera)</li>
+</ul>
+</li>
+<li>Haga clic en <strong>Guardar</strong>.</li>
+<li>El sistema enviará un correo de confirmación al nuevo usuario (opcional).</li>
 </ol>
-
 <h3>2.4 Editar un usuario</h3>
-<p>Localice al usuario en el listado, haga clic en <strong>Editar</strong>, modifique los campos necesarios y guarde.</p>
-
+<ol>
+<li>Localice al usuario en el listado.</li>
+<li>Haga clic en el ícono <strong>Editar</strong> (lápiz).</li>
+<li>Modifique los campos necesarios.</li>
+<li>Haga clic en <strong>Guardar cambios</strong>.</li>
+</ol>
 <h3>2.5 Desactivar / Activar un usuario</h3>
-<p>Use el toggle de estado (Activo/Inactivo). Un usuario inactivo no puede iniciar sesión. Sus datos históricos se conservan.</p>
-
+<ol>
+<li>Localice al usuario en el listado.</li>
+<li>Haga clic en el ícono de <strong>estado</strong> (toggle Activo/Inactivo).</li>
+<li>Confirme la operación.</li>
+</ol>
+<blockquote>
+<p><strong>Nota:</strong> Un usuario inactivo no puede iniciar sesión. Sus datos históricos se conservan.</p>
+</blockquote>
 <h3>2.6 Eliminar un usuario</h3>
-<p>Haga clic en <strong>Eliminar</strong> y confirme. Esta operación es irreversible. Considere desactivar en lugar de eliminar.</p>
-
-<h2 id="s3">3. Roles y Permisos</h2>
-
+<ol>
+<li>Localice al usuario en el listado.</li>
+<li>Haga clic en el ícono <strong>Eliminar</strong> (papelera).</li>
+<li>Confirme la eliminación.</li>
+</ol>
+<blockquote>
+<p><strong>Advertencia:</strong> Esta operación es irreversible. Considere desactivar en lugar de eliminar.</p>
+</blockquote>
+<hr>
+<h2>3. Roles y Permisos</h2>
 <h3>3.1 Roles del sistema</h3>
+<p>SIVACAD implementa <strong>RBAC (Role-Based Access Control)</strong> con 5 roles:</p>
 <table>
-  <tr><th>Rol</th><th>Nivel</th><th>Módulos disponibles</th></tr>
-  <tr><td>Administrador</td><td>Total</td><td>Todos los módulos (CRUD)</td></tr>
-  <tr><td>Coordinador</td><td>Alto</td><td>Gestión académica sin usuarios ni auditoría global</td></tr>
-  <tr><td>Docente</td><td>Medio</td><td>Sus grupos, evaluaciones, trámites (opinar)</td></tr>
-  <tr><td>Alumno</td><td>Bajo</td><td>Autogestión: inscripciones, kardex, trámites, bienestar</td></tr>
-  <tr><td>Soporte</td><td>Consulta+</td><td>Lectura + logs, conectividad</td></tr>
-</table>
-
-<h3>3.2 Matriz de permisos</h3>
+<thead>
+<tr>
+<th>Rol</th>
+<th>Nivel de acceso</th>
+<th>Módulos disponibles</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Administrador</td>
+<td>Total</td>
+<td>Todos los módulos (crear, leer, actualizar, eliminar)</td>
+</tr>
+<tr>
+<td>Coordinador</td>
+<td>Alto</td>
+<td>Gestión académica completa, sin usuarios ni auditoría global</td>
+</tr>
+<tr>
+<td>Docente</td>
+<td>Medio</td>
+<td>Sus grupos, evaluaciones, trámites (opinar)</td>
+</tr>
+<tr>
+<td>Alumno</td>
+<td>Bajo</td>
+<td>Autogestión: inscripciones, kardex, trámites, bienestar</td>
+</tr>
+<tr>
+<td>Soporte</td>
+<td>Consulta+</td>
+<td>Lectura de la mayoría de módulos, logs, conectividad</td>
+</tr>
+</tbody></table>
+<h3>3.2 Matriz de permisos (resumen)</h3>
 <table>
-  <tr><th>Módulo</th><th>Admin</th><th>Coord</th><th>Docente</th><th>Alumno</th><th>Soporte</th></tr>
-  <tr><td>Dashboard</td><td>CRUD</td><td>CRUD</td><td>CRUD</td><td>CRUD</td><td>CRUD</td></tr>
-  <tr><td>Usuarios</td><td>CRUD</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
-  <tr><td>Alumnos</td><td>CRUD</td><td>CRUD</td><td>R</td><td>R</td><td>R</td></tr>
-  <tr><td>Docentes</td><td>CRUD</td><td>CRUD</td><td>R</td><td>—</td><td>R</td></tr>
-  <tr><td>Periodos</td><td>CRUD</td><td>CRUD</td><td>R</td><td>R</td><td>R</td></tr>
-  <tr><td>Grupos</td><td>CRUD</td><td>CRUD</td><td>R</td><td>R</td><td>R</td></tr>
-  <tr><td>Inscripciones</td><td>CRUD</td><td>CRUD</td><td>R</td><td>CR</td><td>R</td></tr>
-  <tr><td>Kardex</td><td>CRUD</td><td>CRUD</td><td>R</td><td>R</td><td>R</td></tr>
-  <tr><td>Evaluaciones</td><td>CRUD</td><td>CRUD</td><td>parcial</td><td>parcial</td><td>R</td></tr>
-  <tr><td>Trámites</td><td>CRUD</td><td>CRUD</td><td>R</td><td>CR</td><td>R</td></tr>
-  <tr><td>Actas OCR</td><td>CRUD</td><td>CRUD</td><td>R</td><td>R</td><td>R</td></tr>
-  <tr><td>IA Deserción</td><td>CRUD</td><td>CRUD</td><td>R</td><td>R</td><td>R</td></tr>
-  <tr><td>IA Bienestar</td><td>CRUD</td><td>CRUD</td><td>R</td><td>CRUD</td><td>R</td></tr>
-  <tr><td>IA Becas</td><td>CRUD</td><td>CRUD</td><td>R</td><td>CR</td><td>R</td></tr>
-  <tr><td>Asistente/Chatbot</td><td>CRUD</td><td>CRUD</td><td>CRUD</td><td>CRUD</td><td>CRUD</td></tr>
-  <tr><td>Reportes</td><td>CRUD</td><td>CRUD</td><td>CRUD</td><td>CRUD</td><td>CRUD</td></tr>
-  <tr><td>Auditoría</td><td>CRUD</td><td>R</td><td>—</td><td>—</td><td>CRUD</td></tr>
-</table>
-
-<h2 id="s4">4. Gestión de Módulos</h2>
-
+<thead>
+<tr>
+<th>Módulo</th>
+<th>Admin</th>
+<th>Coord</th>
+<th>Docente</th>
+<th>Alumno</th>
+<th>Soporte</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Dashboard</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>CRUD</td>
+</tr>
+<tr>
+<td>Usuarios</td>
+<td>CRUD</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Alumnos</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>R</td>
+<td>R</td>
+<td>R</td>
+</tr>
+<tr>
+<td>Docentes</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>R</td>
+<td>—</td>
+<td>R</td>
+</tr>
+<tr>
+<td>Periodos</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>R</td>
+<td>R</td>
+<td>R</td>
+</tr>
+<tr>
+<td>Grupos</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>R</td>
+<td>R</td>
+<td>R</td>
+</tr>
+<tr>
+<td>Inscripciones</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>R</td>
+<td>CR</td>
+<td>R</td>
+</tr>
+<tr>
+<td>Kardex</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>R</td>
+<td>R</td>
+<td>R</td>
+</tr>
+<tr>
+<td>Evaluaciones (crear)</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Evaluaciones (responder)</td>
+<td>—</td>
+<td>—</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Trámites (gestionar)</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>R</td>
+<td>CR</td>
+<td>R</td>
+</tr>
+<tr>
+<td>Actas OCR</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>R</td>
+<td>R</td>
+<td>R</td>
+</tr>
+<tr>
+<td>IA Deserción</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>R</td>
+<td>R</td>
+<td>R</td>
+</tr>
+<tr>
+<td>IA Bienestar (admin)</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>R</td>
+<td>—</td>
+<td>R</td>
+</tr>
+<tr>
+<td>IA Bienestar (alumno)</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>CRUD</td>
+<td>—</td>
+</tr>
+<tr>
+<td>IA Becas</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>R</td>
+<td>CR</td>
+<td>R</td>
+</tr>
+<tr>
+<td>Asistente/Chatbot</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>CRUD</td>
+</tr>
+<tr>
+<td>Reportes</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>CRUD</td>
+<td>CRUD</td>
+</tr>
+<tr>
+<td>Auditoría</td>
+<td>CRUD</td>
+<td>R</td>
+<td>—</td>
+<td>—</td>
+<td>CRUD</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>Leyenda:</strong> CRUD = Crear, Leer, Actualizar, Eliminar. R = Solo lectura. — = Sin acceso.</p>
+</blockquote>
+<h3>3.3 Cambiar el rol de un usuario</h3>
+<ol>
+<li>Vaya a <strong>Usuarios</strong>.</li>
+<li>Edite el usuario deseado.</li>
+<li>En el campo <strong>Rol</strong>, seleccione el nuevo rol.</li>
+<li>Guarde los cambios.</li>
+</ol>
+<blockquote>
+<p><strong>Precaución:</strong> Cambiar el rol de un usuario puede afectar su acceso a datos y funcionalidades.</p>
+</blockquote>
+<hr>
+<h2>4. Gestión de Módulos</h2>
 <h3>4.1 Habilitar / Deshabilitar módulos</h3>
-<p>El backend usa <code>mountIfAvailable</code> en <code>routes/index.js</code>. Para deshabilitar un módulo, elimine o renombre el archivo de ruta en <code>backend/src/routes/</code>. Para habilitarlo, asegúrese de que el archivo exista.</p>
-
+<p>El backend usa un sistema de montaje dinámico (<code>mountIfAvailable</code> en <code>routes/index.js</code>):</p>
+<ul>
+<li><strong>Para deshabilitar un módulo:</strong> Elimine o renombre el archivo de ruta correspondiente en <code>backend/src/routes/</code>.</li>
+<li><strong>Para habilitar un módulo:</strong> Asegúrese de que el archivo de ruta exista en <code>backend/src/routes/</code>. El sistema lo montará automáticamente al iniciar.</li>
+</ul>
 <h3>4.2 Módulos disponibles</h3>
 <ol>
-  <li><strong>Autenticación:</strong> Login, Register, Forgot/Reset</li>
-  <li><strong>Dashboard:</strong> Resumen por rol</li>
-  <li><strong>Alumnos:</strong> CRUD con filtros</li>
-  <li><strong>Docentes:</strong> CRUD</li>
-  <li><strong>Periodos:</strong> Gestión académica</li>
-  <li><strong>Grupos:</strong> Asignación materia-docente</li>
-  <li><strong>Inscripciones:</strong> Inscripción/reinscripción</li>
-  <li><strong>Kardex:</strong> Historial, fotos, QR, PDF, Excel</li>
-  <li><strong>Evaluaciones:</strong> 5 tipos, 4 estados</li>
-  <li><strong>Actas OCR:</strong> Subida y validación</li>
-  <li><strong>Trámites:</strong> Baja, cambio escuela/carrera</li>
-  <li><strong>IA Deserción:</strong> Predicción y alertas</li>
-  <li><strong>IA Bienestar:</strong> Check-in, chat, supervisión</li>
-  <li><strong>IA Becas:</strong> Catálogo, elegibilidad</li>
-  <li><strong>Asistente:</strong> Clasificador + RAG</li>
-  <li><strong>Chatbot:</strong> Conversación Gemini</li>
-  <li><strong>Reportes:</strong> PDF (PDFKit/Dompdf), Excel</li>
-  <li><strong>Auditoría:</strong> Bitácora SHA-256</li>
+<li><strong>Autenticación:</strong> Login, Register, Forgot/Reset Password.</li>
+<li><strong>Dashboard:</strong> Resumen por rol con tarjetas de métricas.</li>
+<li><strong>Alumnos:</strong> CRUD de alumnos con filtros.</li>
+<li><strong>Docentes:</strong> CRUD de docentes.</li>
+<li><strong>Periodos:</strong> Gestión de periodos académicos.</li>
+<li><strong>Grupos:</strong> Asignación de materia-docente-grupo.</li>
+<li><strong>Inscripciones:</strong> Inscripción y reinscripción de alumnos.</li>
+<li><strong>Kardex:</strong> Historial académico, fotos, QR, PDF, Excel.</li>
+<li><strong>Evaluaciones:</strong> 5 tipos de instrumento, 4 estados.</li>
+<li><strong>Actas OCR:</strong> Subida y validación de actas escaneadas.</li>
+<li><strong>Trámites:</strong> Baja, cambio de escuela, cambio de carrera.</li>
+<li><strong>IA Deserción:</strong> Predicción y alertas (4 sub-paneles).</li>
+<li><strong>IA Bienestar:</strong> Check-in emocional, chat, supervisión.</li>
+<li><strong>IA Becas:</strong> Catálogo de 14 becas, elegibilidad.</li>
+<li><strong>Asistente Académico:</strong> Clasificador de intenciones + RAG.</li>
+<li><strong>Chatbot:</strong> Conversación con Gemini.</li>
+<li><strong>Reportes:</strong> PDF (PDFKit/Dompdf) y Excel (ExcelJS).</li>
+<li><strong>Auditoría:</strong> Bitácora con hash SHA-256.</li>
 </ol>
-
-<h2 id="s5">5. Gestión de Periodos Académicos</h2>
+<hr>
+<h2>5. Gestión de Periodos Académicos</h2>
 <ol>
-  <li>Navegue a <strong>Periodos</strong>.</li>
-  <li>Para crear: capture clave única, nombre, fecha inicio/fin, estado inicial.</li>
-  <li>Para cerrar: cambie el estado a Inactivo o Finalizado.</li>
-  <li>Visualice totales: grupos, inscripciones activas por periodo.</li>
+<li>Navegue a <strong>Periodos</strong>.</li>
+<li>Para <strong>crear</strong> un nuevo periodo:<ul>
+<li>Capture la clave única del periodo (ej. <code>2026-1</code>).</li>
+<li>Nombre descriptivo (ej. <code>Enero-Junio 2026</code>).</li>
+<li>Fecha de inicio y fecha de fin.</li>
+<li>Estado inicial: <strong>Activo</strong> o <strong>Inactivo</strong>.</li>
+</ul>
+</li>
+<li>Para <strong>cerrar</strong> un periodo:<ul>
+<li>Cambie el estado a <strong>Inactivo</strong> o <strong>Finalizado</strong>.</li>
+<li>Un periodo finalizado no permite nuevas inscripciones.</li>
+</ul>
+</li>
+<li>Visualice totales: grupos registrados, inscripciones activas por periodo.</li>
 </ol>
-
-<h2 id="s6">6. Reportes Institucionales</h2>
-
+<hr>
+<h2>6. Reportes Institucionales</h2>
 <h3>6.1 Reporte PDF</h3>
-<p>Navegue a Reportes → Generar PDF. El documento incluye encabezado TESI, tarjetas de métricas, gráfico de barras y fecha de generación.</p>
-
+<ol>
+<li>Navegue a <strong>Reportes</strong>.</li>
+<li>Haga clic en <strong>Generar PDF</strong>.</li>
+<li>El sistema genera un documento con:<ul>
+<li>Encabezado institucional (TESI).</li>
+<li>Tarjetas de métricas (alumnos, docentes, periodos, grupos).</li>
+<li>Gráfico de barras comparativo.</li>
+<li>Fecha de generación.</li>
+</ul>
+</li>
+</ol>
 <h3>6.2 Reporte Excel</h3>
-<p>Navegue a Reportes → Generar Excel. El archivo contiene portada, resumen con colores institucionales y detalle de datos.</p>
-
-<h3>6.3 Exportación Bienestar</h3>
-<p>En Bienestar Admin, use Exportar TXT o Exportar CSV con filtro por rango de fechas.</p>
-
-<h2 id="s7">7. Auditoría y Bitácora</h2>
-
+<ol>
+<li>Haga clic en <strong>Generar Excel</strong>.</li>
+<li>El archivo contendrá:<ul>
+<li><strong>Hoja 1 — Portada:</strong> Título del sistema, fecha, autor.</li>
+<li><strong>Hoja 2 — Resumen:</strong> Tarjetas de métricas con colores institucionales.</li>
+<li><strong>Hoja 3 — Detalle:</strong> Datos completos del dashboard.</li>
+</ul>
+</li>
+</ol>
+<h3>6.3 Exportación de datos de Bienestar</h3>
+<ol>
+<li>Navegue a <strong>Bienestar Admin</strong>.</li>
+<li>Use los botones <strong>Exportar TXT</strong> o <strong>Exportar CSV</strong>.</li>
+<li>Seleccione el rango de fechas si es necesario.</li>
+</ol>
+<hr>
+<h2>7. Auditoría y Bitácora</h2>
 <h3>7.1 Bitácora de auditoría</h3>
-<p>Cada operación se registra en <code>bitacora_auditoria</code> con: id_usuario, acción, tabla, id_registro, valores_anteriores, valores_nuevos, IP origen, fecha_hora.</p>
-
+<p>Cada operación importante queda registrada en <code>bitacora_auditoria</code> con:</p>
+<ul>
+<li><strong>id_usuario:</strong> Quién realizó la operación.</li>
+<li><strong>accion:</strong> Qué se hizo (INSERT, UPDATE, DELETE, LOGIN, etc.).</li>
+<li><strong>tabla:</strong> En qué tabla.</li>
+<li><strong>id_registro:</strong> Identificador del registro afectado.</li>
+<li><strong>valores_anteriores:</strong> Estado previo (para modificaciones).</li>
+<li><strong>valores_nuevos:</strong> Estado posterior.</li>
+<li><strong>ip_origen:</strong> Dirección IP desde donde se realizó.</li>
+<li><strong>fecha_hora:</strong> Marca de tiempo.</li>
+</ul>
 <h3>7.2 Auditoría global con integridad</h3>
-<p>La tabla <code>auditoria_global</code> usa hash SHA-256 encadenado. Cada registro contiene el hash del anterior, garantizando integridad y no-repudio.</p>
-
-<h3>7.3 Consultar auditoría</h3>
-<p>Navegue a Auditoría. Filtre por usuario, acción, fecha o tabla. Los resultados muestran fecha, usuario, acción, tabla y detalles.</p>
-
-<h2 id="s8">8. Sesiones Activas</h2>
-
-<h3>8.1 Consultar sesiones</h3>
-<p>Navegue a Auditoría → Sesiones Activas. Visualice usuario, rol, inicio de sesión, última actividad, IP y estado.</p>
-
-<h3>8.2 Cerrar sesión de usuario</h3>
-<p>Localice la sesión y haga clic en Cerrar Sesión. El usuario será forzado a salir en su próximo request.</p>
-
-<h2 id="s9">9. Parámetros del Sistema</h2>
-
-<h3>9.1 Dominios de correo</h3>
-<pre>const WHITELIST_DOMAINS = [
-  'tesi.edu.mx',
-  'ixtapaluca.tecnm.mx'
-];</pre>
-
-<h3>9.2 Configuración CORS</h3>
-<p>En <code>backend/src/app.js</code> se definen orígenes permitidos, incluyendo regex para IPs LAN (192.168.x.x, 10.x.x.x, 172.16-31.x.x).</p>
-
-<h3>9.3 Rate limiting</h3>
-<p>Ruta forgot-password: máximo 5 solicitudes cada 15 minutos.</p>
-
-<h2 id="s10">10. Supervisión General</h2>
-
-<h3>10.1 Dashboard ejecutivo</h3>
+<p>La tabla <code>auditoria_global</code> utiliza un hash SHA-256 encadenado:</p>
+<ul>
+<li>Cada registro contiene un hash del registro anterior (<code>hash_anterior</code>).</li>
+<li>Esto garantiza la <strong>integridad y no-repudio</strong> de la cadena de auditoría.</li>
+<li>Si alguien modifica un registro histórico, el hash ya no coincidirá.</li>
+</ul>
+<h3>7.3 Eventos de seguridad</h3>
+<p>Además de las operaciones CRUD estándar, el sistema registra eventos de seguridad específicos:</p>
 <table>
-  <tr><th>Indicador</th><th>Descripción</th></tr>
-  <tr><td>Total de alumnos</td><td>Conteo de alumnos activos</td></tr>
-  <tr><td>Total de docentes</td><td>Conteo de docentes activos</td></tr>
-  <tr><td>Periodos activos</td><td>Periodos en curso</td></tr>
-  <tr><td>Inscripciones activas</td><td>Inscripciones del periodo actual</td></tr>
-  <tr><td>Trámites pendientes</td><td>Solicitudes sin resolver</td></tr>
-  <tr><td>Alertas de deserción</td><td>Alertas activas</td></tr>
-  <tr><td>Check-ins bienestar</td><td>Registros últimas 24h</td></tr>
-</table>
+<thead>
+<tr>
+<th>Evento</th>
+<th>Módulo</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>MFA_ENABLED</code></td>
+<td>SEGURIDAD</td>
+<td>MFA activado exitosamente por el usuario</td>
+</tr>
+<tr>
+<td><code>MFA_DISABLED</code></td>
+<td>SEGURIDAD</td>
+<td>MFA deshabilitado por el usuario</td>
+</tr>
+<tr>
+<td><code>MFA_ENABLE_FAILED</code></td>
+<td>SEGURIDAD</td>
+<td>Error al intentar activar MFA (código TOTP inválido)</td>
+</tr>
+<tr>
+<td><code>MFA_LOGIN_SUCCESS</code></td>
+<td>SEGURIDAD</td>
+<td>Login completado con verificación MFA exitosa</td>
+</tr>
+<tr>
+<td><code>MFA_LOGIN_FAILED</code></td>
+<td>SEGURIDAD</td>
+<td>Código MFA inválido durante intento de login</td>
+</tr>
+<tr>
+<td><code>REAUTH_SUCCESS</code></td>
+<td>SEGURIDAD</td>
+<td>Reautenticación exitosa (token temporal emitido)</td>
+</tr>
+<tr>
+<td><code>REAUTH_FAILED</code></td>
+<td>SEGURIDAD</td>
+<td>Reautenticación fallida (contraseña incorrecta)</td>
+</tr>
+<tr>
+<td><code>PROFILE_CHANGED</code></td>
+<td>USUARIOS</td>
+<td>Perfil de alumno o docente actualizado por un administrador</td>
+</tr>
+<tr>
+<td><code>NEW_DEVICE_LOGIN</code></td>
+<td>SEGURADOR</td>
+<td>Login desde un dispositivo no registrado previamente</td>
+</tr>
+</tbody></table>
+<h3>7.4 Almacenamiento seguro de tokens</h3>
+<p>Los tokens JWT de sesión se almacenan como <strong>hash SHA-256</strong> en la tabla <code>sesiones_activas</code> (campo <code>token_jwt</code>). Esto garantiza que, incluso si un atacante accede a la base de datos, los tokens sean inutilizables sin el secreto de firma.</p>
+<h3>7.5 Consultar auditoría</h3>
+<ol>
+<li>Navegue a <strong>Auditoría</strong>.</li>
+<li>Filtre por:<ul>
+<li><strong>Usuario:</strong> Seleccione un usuario específico.</li>
+<li><strong>Acción:</strong> Tipo de operación.</li>
+<li><strong>Fecha:</strong> Rango de fechas.</li>
+<li><strong>Tabla:</strong> Módulo específico.</li>
+</ul>
+</li>
+<li>Los resultados muestran: fecha, usuario, acción, tabla, detalles.</li>
+</ol>
+<hr>
+<h2>8. Sesiones Activas</h2>
+<h3>8.1 Consultar sesiones activas</h3>
+<ol>
+<li>Navegue a <strong>Auditoría</strong> → pestaña <strong>Sesiones Activas</strong>.</li>
+<li>Visualiza una tabla con:<ul>
+<li>Usuario y rol.</li>
+<li>Fecha de inicio de sesión.</li>
+<li>Última actividad.</li>
+<li>Dirección IP.</li>
+<li>Dispositivo (user-agent).</li>
+<li>Estado (activa/expirada).</li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<p><strong>Nota de seguridad:</strong> El campo <code>token_jwt</code> muestra un hash SHA-256 del token, no el JWT crudo. Esto protege las sesiones en caso de acceso no autorizado a la base de datos.</p>
+</blockquote>
+<h3>8.2 Cerrar sesión de un usuario</h3>
+<ol>
+<li>Localice la sesión en el listado.</li>
+<li>Haga clic en <strong>Cerrar Sesión</strong>.</li>
+<li>Confirme la operación.</li>
+<li>El usuario será forzado a salir del sistema en su próximo request.</li>
+</ol>
+<hr>
+<h2>9. Parámetros del Sistema</h2>
+<h3>9.1 Configuración de correo institucional</h3>
+<p>Los dominios de correo aceptados se definen en el middleware <code>validateInstitutionalEmail</code>:</p>
+<pre><code class="language-javascript">const ALLOWED_INSTITUTION_EMAIL_DOMAINS = [
+  &#39;tesi.edu.mx&#39;,
+  &#39;ixtapaluca.tecnm.mx&#39;,
+  &#39;ixtapaluca.tecnm.edu.mx&#39;,
+  &#39;outlook.com&#39;,
+  &#39;outlook.es&#39;
+];
+</code></pre>
+<h3>9.2 Variables de entorno de seguridad</h3>
+<p>En el archivo <code>.env</code> del backend, las variables de seguridad crítica son:</p>
+<pre><code class="language-env"># JWT — Access token secret
+JWT_SECRET=secreto_aleatorio_seguro_128bit
 
-<h3>10.2 Supervisión de Bienestar</h3>
-<p>Bienestar Admin con 5 pestañas: Resumen Ejecutivo, Indicadores de Riesgo, Catálogo de Alertas, Historial Seguimientos, Auditoría.</p>
+# JWT — Refresh token secret (DEBE ser diferente a JWT_SECRET)
+JWT_REFRESH_SECRET=otro_secreto_aleatorio_diferente
 
+# JWT — Expiración del access token
+JWT_EXPIRES_IN=8h
+</code></pre>
+<blockquote>
+<p><strong>Importante:</strong> <code>JWT_SECRET</code> y <code>JWT_REFRESH_SECRET</code> deben ser valores <strong>distintos</strong>. Si ambos son iguales, un atacante podría usar un token de acceso para generar tokens de refresco válidos.</p>
+</blockquote>
+<h3>9.3 Configuración CORS</h3>
+<p>En <code>backend/src/app.js</code> se definen los orígenes permitidos:</p>
+<pre><code class="language-javascript">const allowedOrigins = [
+  &#39;http://localhost:5173&#39;,
+  &#39;http://localhost:3000&#39;,
+  // ... más orígenes
+];
+
+const originRegexPatterns = [
+  /^https?:\/\/192\.168\..*/,
+  /^https?:\/\/10\..*/,
+  /^https?:\/\/172\.(1[6-9]|2[0-9]|3[01])\..*/
+];
+</code></pre>
+<h3>9.4 Rate limiting</h3>
+<pre><code class="language-javascript">// Límite en login: 10 solicitudes cada 15 minutos
+router.post(&#39;/login&#39;, rateLimit({ windowMs: 15 * 60 * 1000, max: 10 }));
+
+// Límite en forgot-password: 5 solicitudes cada 15 minutos
+router.post(&#39;/forgot-password&#39;, rateLimit({ windowMs: 15 * 60 * 1000, max: 5 }));
+
+// Límite en register: 5 solicitudes cada hora
+router.post(&#39;/register&#39;, rateLimit({ windowMs: 60 * 60 * 1000, max: 5 }));
+</code></pre>
+<hr>
+<h2>10. Supervisión General</h2>
+<h3>10.1 Dashboard ejecutivo</h3>
+<p>El dashboard del administrador muestra:</p>
+<table>
+<thead>
+<tr>
+<th>Indicador</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Total de alumnos</td>
+<td>Conteo de alumnos activos</td>
+</tr>
+<tr>
+<td>Total de docentes</td>
+<td>Conteo de docentes activos</td>
+</tr>
+<tr>
+<td>Periodos activos</td>
+<td>Periodos académicos en curso</td>
+</tr>
+<tr>
+<td>Inscripciones activas</td>
+<td>Inscripciones del periodo actual</td>
+</tr>
+<tr>
+<td>Trámites pendientes</td>
+<td>Solicitudes de trámite sin resolver</td>
+</tr>
+<tr>
+<td>Alertas de deserción</td>
+<td>Alertas activas de riesgo de deserción</td>
+</tr>
+<tr>
+<td>Check-ins de bienestar</td>
+<td>Check-ins registrados en las últimas 24h</td>
+</tr>
+</tbody></table>
+<h3>10.2 Supervisión de Bienestar (Admin)</h3>
+<ol>
+<li>Navegue a <strong>Bienestar Admin</strong>.</li>
+<li>Pestañas disponibles:<ul>
+<li><strong>Resumen Ejecutivo:</strong> 7 consultas agregadas (total alumnos en check-in, riesgo promedio, alertas activas, etc.).</li>
+<li><strong>Indicadores de Riesgo:</strong> Distribución de niveles de riesgo (bajo, medio, alto, crítico).</li>
+<li><strong>Catálogo de Alertas:</strong> Listado de alertas generadas con opciones de seguimiento.</li>
+<li><strong>Historial Seguimientos:</strong> Registro de intervenciones realizadas.</li>
+<li><strong>Auditoría:</strong> Registro de accesos y modificaciones en el módulo.</li>
+</ul>
+</li>
+</ol>
 <h3>10.3 Supervisión de Deserción</h3>
-<p>IA Deserción: ver alertas activas, ejecutar predicción, crear planes de seguimiento, consultar historial.</p>
-
-<h2 id="s11">11. Buenas Prácticas</h2>
-
+<ol>
+<li>Navegue a <strong>IA Deserción</strong>.</li>
+<li>Acciones disponibles:<ul>
+<li>Ver alertas activas por alumno.</li>
+<li>Ejecutar predicción heurística o ML.</li>
+<li>Crear planes de seguimiento.</li>
+<li>Consultar historial de alertas resueltas.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2>11. Buenas Prácticas</h2>
 <h3>11.1 Seguridad</h3>
 <ul>
-  <li>Cambie la contraseña por defecto inmediatamente después de instalar.</li>
-  <li>Las contraseñas deben cumplir: <strong>12-20 caracteres</strong>, mayúscula, minúscula, número y símbolo.</li>
-  <li>No comparta cuentas de administrador.</li>
-  <li>Revise la bitácora de auditoría periódicamente.</li>
-  <li>Mantenga actualizadas las dependencias.</li>
+<li>Cambie la contraseña por defecto del administrador inmediatamente después de la instalación.</li>
+<li>Las contraseñas deben cumplir la política: <strong>12-20 caracteres</strong>, mayúscula, minúscula, número y símbolo.</li>
+<li><strong>Active MFA (Multi-Factor Authentication)</strong> en la cuenta de administrador. Vaya a Configuración de Seguridad → Activar MFA.</li>
+<li>No comparta cuentas de administrador.</li>
+<li>Revise la bitácora de auditoría periódicamente, especialmente los eventos de seguridad (MFA, reautenticación, dispositivos nuevos).</li>
+<li>Mantenga actualizadas las dependencias del proyecto.</li>
+<li>Verifique que <code>JWT_SECRET</code> y <code>JWT_REFRESH_SECRET</code> sean valores diferentes en el <code>.env</code>.</li>
+<li>Ejecute el script de backup periódicamente: <code>bash backend/scripts/backup.sh</code>.</li>
 </ul>
-
 <h3>11.2 Gestión de usuarios</h3>
 <ul>
-  <li>Desactive (no elimine) usuarios que ya no pertenezcan a la institución.</li>
-  <li>Asigne el rol Soporte solo a personal técnico de confianza.</li>
+<li>Desactive (no elimine) usuarios que ya no pertenezcan a la institución.</li>
+<li>Asigne el rol <strong>Soporte</strong> solo a personal técnico de confianza.</li>
+<li>Revise periódicamente usuarios inactivos para mantener la BD limpia.</li>
 </ul>
-
 <h3>11.3 Periodos académicos</h3>
 <ul>
-  <li>Cree el nuevo periodo antes de que termine el anterior.</li>
-  <li>No elimine periodos históricos; márquelos como finalizados.</li>
+<li>Cree el nuevo periodo antes de que termine el anterior para evitar interrupciones.</li>
+<li>No elimine periodos con datos históricos; márquelos como finalizados.</li>
 </ul>
-
 <h3>11.4 Respaldo de datos</h3>
 <ul>
-  <li>Realice respaldos periódicos de la BD.</li>
-  <li>Guarde los archivos subidos en almacenamiento externo.</li>
-  <li>Documente los cambios de configuración.</li>
+<li>Realice respaldos periódicos de la base de datos.</li>
+<li>Guarde los archivos subidos (uploads/) en almacenamiento externo.</li>
+<li>Documente los cambios de configuración en el .env.</li>
 </ul>
-
 <h3>11.5 Monitoreo</h3>
 <ul>
-  <li>Revise el dashboard diariamente.</li>
-  <li>Configure alertas de errores del servidor.</li>
-  <li>Supervise consumo de recursos (RAM, CPU, disco).</li>
+<li>Revise el dashboard diariamente para detectar anomalías.</li>
+<li>Configure alertas de errores del servidor (logs).</li>
+<li>Supervise el consumo de recursos (RAM, CPU, disco).</li>
 </ul>
+<hr>
+<h2>12. Autenticación Multi-Factor (MFA)</h2>
+<h3>12.1 ¿Qué es MFA?</h3>
+<p>MFA (Multi-Factor Authentication) agrega una segunda capa de seguridad al inicio de sesión. Además de la contraseña, el usuario debe ingresar un código de 6 dígitos generado por una aplicación de autenticación en su teléfono (Google Authenticator, Authy, etc.).</p>
+<h3>12.2 Configurar MFA</h3>
+<ol>
+<li>Inicie sesión en el sistema.</li>
+<li>Navegue a <strong>Configuración de Seguridad</strong> o solicite al endpoint <code>POST /api/mfa/setup</code>.</li>
+<li>El sistema genera un código QR y una clave secreta.</li>
+<li>Escanee el código QR con Google Authenticator o Authy.</li>
+<li>Ingrese el código de 6 dígitos para verificar la configuración.</li>
+<li><strong>Guarde los códigos de recuperación</strong> en un lugar seguro (se muestran solo una vez).</li>
+</ol>
+<h3>12.3 Activar MFA</h3>
+<ol>
+<li>Después de configurar, envíe el código TOTP al endpoint <code>POST /api/mfa/enable</code>.</li>
+<li>Si el código es válido, MFA se activa para su cuenta.</li>
+<li>A partir de ese momento, cada login requerirá el código de 6 dígitos.</li>
+</ol>
+<h3>12.4 Login con MFA</h3>
+<ol>
+<li>Ingrese correo y contraseña normalmente.</li>
+<li>Si MFA está activado, el sistema retorna <code>mfaRequired: true</code>.</li>
+<li>El frontend muestra un campo para ingresar el código de 6 dígitos.</li>
+<li>El código se envía al endpoint <code>POST /api/auth/login-mfa</code> junto con el token temporal.</li>
+<li>Si el código es válido, se completa el login con el JWT completo.</li>
+</ol>
+<h3>12.5 Códigos de Recuperación</h3>
+<ul>
+<li>Se generan 10 códigos de un solo uso al activar MFA.</li>
+<li>Si no tiene acceso a su aplicación de autenticación, use un código de recuperación.</li>
+<li>Cada código solo se puede usar una vez.</li>
+<li>Si se agotan los códigos, contacte al administrador para deshabilitar MFA.</li>
+</ul>
+<h3>12.6 Deshabilitar MFA</h3>
+<ol>
+<li>Envíe el código TOTP actual al endpoint <code>POST /api/mfa/disable</code>.</li>
+<li>MFA se desactivará para su cuenta.</li>
+<li>Se recomienda mantener MFA activado para mayor seguridad.</li>
+</ol>
+<h3>12.7 Auditoría MFA</h3>
+<p>Todos los eventos de MFA quedan registrados en la auditoría:</p>
+<ul>
+<li><code>MFA_ENABLED</code>: cuando un usuario activa MFA.</li>
+<li><code>MFA_DISABLED</code>: cuando un usuario desactiva MFA.</li>
+<li><code>MFA_LOGIN_SUCCESS</code>: login exitoso con código MFA.</li>
+<li><code>MFA_LOGIN_FAILED</code>: código MFA inválido durante login.</li>
+</ul>
+<hr>
+<h2>13. Reautenticación para Operaciones Sensibles</h2>
+<h3>13.1 ¿Qué es la reautenticación?</h3>
+<p>La reautenticación es el proceso de revalidar las credenciales del usuario antes de realizar operaciones sensibles como cambio de email, cambio de contraseña o eliminación de cuenta. Esto previene que un atacante con acceso a una sesión activa realice cambios críticos.</p>
+<h3>13.2 ¿Cuándo se requiere?</h3>
+<ul>
+<li>Cambio de correo institucional</li>
+<li>Cambio de contraseña</li>
+<li>Eliminación de cuenta</li>
+<li>Asignación o cambio de rol</li>
+<li>Deshabilitación de MFA</li>
+<li>Configuración de acceso de emergencia (break-glass)</li>
+</ul>
+<h3>13.3 ¿Cómo funciona?</h3>
+<ol>
+<li>El sistema solicita la contraseña actual del usuario.</li>
+<li>Se envía al endpoint <code>POST /api/auth/reauthenticate</code> con la contraseña.</li>
+<li>Si la contraseña es válida, se retorna un <code>reauthToken</code> con expiración de 10 minutos.</li>
+<li>Las operaciones sensibles incluyen el header <code>X-Reauth-Token</code> con este token.</li>
+<li>El middleware <code>requireReauthentication</code> verifica el token antes de procesar la operación.</li>
+</ol>
+<h3>13.4 Auditoría de reautenticación</h3>
+<ul>
+<li><code>REAUTH_SUCCESS</code>: reautenticación exitosa, token temporal emitido.</li>
+<li><code>REAUTH_FAILED</code>: contraseña incorrecta durante reautenticación.</li>
+</ul>
+<hr>
+<h2>14. Panel del Alumno — Datos Personales</h2>
+<h3>14.1 Estructura del Panel</h3>
+<p>El panel del alumno permite gestionar la información personal, contactos de emergencia, información médica, información laboral y documentos sensibles.</p>
+<h3>14.2 Subsecciones disponibles</h3>
+<table>
+<thead>
+<tr>
+<th>Subsección</th>
+<th>Ruta</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Perfil y configuración</td>
+<td><code>/app/alumno/perfil</code></td>
+<td>Nombres, apellidos, CURP, estadísticas</td>
+</tr>
+<tr>
+<td>Contactos de emergencia</td>
+<td><code>/app/contactos-emergencia</code></td>
+<td>Contactos para situaciones urgentes</td>
+</tr>
+<tr>
+<td>Información médica</td>
+<td><code>/app/alumno-info-medica</code></td>
+<td>Tipo de sangre, alergias, medicamentos, info psicológica</td>
+</tr>
+<tr>
+<td>Información laboral</td>
+<td><code>/app/alumno-info-laboral</code></td>
+<td>Empresa, puesto, teléfono, horario</td>
+</tr>
+<tr>
+<td>Documentos personales</td>
+<td><code>/app/alumno-documentos</code></td>
+<td>Subida y gestión de documentos oficiales</td>
+</tr>
+</tbody></table>
+<h3>14.3 Restricciones por rol</h3>
+<ul>
+<li>Solo el rol <strong>ALUMNO</strong> puede acceder a estas secciones.</li>
+<li>Un administrador o coordinador que intente acceder recibirá error <strong>403 Forbidden</strong>.</li>
+<li>Todas las operaciones generan registros de auditoría.</li>
+</ul>
+<h3>14.4 Auditoría del panel</h3>
+<table>
+<thead>
+<tr>
+<th>Evento</th>
+<th>Módulo</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>PROFILE_CHANGED</code></td>
+<td>ALUMNO</td>
+<td>Actualización de nombres, apellidos o CURP</td>
+</tr>
+<tr>
+<td><code>CONTACTO_CREADO</code></td>
+<td>EMERGENCIA</td>
+<td>Nuevo contacto de emergencia</td>
+</tr>
+<tr>
+<td><code>CONTACTO_ACTUALIZADO</code></td>
+<td>EMERGENCIA</td>
+<td>Edición de contacto existente</td>
+</tr>
+<tr>
+<td><code>CONTACTO_ELIMINADO</code></td>
+<td>EMERGENCIA</td>
+<td>Eliminación de contacto</td>
+</tr>
+<tr>
+<td><code>INFORMACION_MEDICA_CREADA</code></td>
+<td>SALUD</td>
+<td>Primera carga de información médica</td>
+</tr>
+<tr>
+<td><code>INFORMACION_MEDICA_ACTUALIZADA</code></td>
+<td>SALUD</td>
+<td>Edición de información médica</td>
+</tr>
+<tr>
+<td><code>INFORMACION_LABORAL_CREADA</code></td>
+<td>LABORAL</td>
+<td>Primera carga de información laboral</td>
+</tr>
+<tr>
+<td><code>INFORMACION_LABORAL_ACTUALIZADA</code></td>
+<td>LABORAL</td>
+<td>Edición de información laboral</td>
+</tr>
+<tr>
+<td><code>DOCUMENTO_SUBIDO</code></td>
+<td>DOCUMENTOS</td>
+<td>Subida de archivo sensible</td>
+</tr>
+<tr>
+<td><code>DOCUMENTO_ELIMINADO</code></td>
+<td>DOCUMENTOS</td>
+<td>Eliminación de archivo sensible</td>
+</tr>
+</tbody></table>
+<h3>14.5 Tablas involucradas</h3>
+<table>
+<thead>
+<tr>
+<th>Tabla</th>
+<th>Propósito</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>alumnos</code></td>
+<td>Datos académicos del alumno (nombres, apellidos, CURP)</td>
+</tr>
+<tr>
+<td><code>usuarios</code></td>
+<td>Datos de usuario (nombres, apellidos, correo, rol)</td>
+</tr>
+<tr>
+<td><code>contactos_emergencia</code></td>
+<td>Contactos de emergencia del alumno</td>
+</tr>
+<tr>
+<td><code>informacion_medica</code></td>
+<td>Datos médicos y psicológicos</td>
+</tr>
+<tr>
+<td><code>informacion_laboral</code></td>
+<td>Datos de empleo actual</td>
+</tr>
+<tr>
+<td><code>documentos_sensibles</code></td>
+<td>Archivos subidos (PDF, imágenes, documentos)</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>Fin del Manual de Administración — SIVACAD v3.0</em></p>
 
-<div class="footer-page">Fin del Manual de Administración — SIVACAD v1.0 — TESI Ixtapaluca — ISC 2026</div>
-
-<div class="print-footer">SIVACAD &mdash; Manual de Administración &mdash; TESI Ixtapaluca &mdash; ISC 2026</div>
 </body>
 </html>

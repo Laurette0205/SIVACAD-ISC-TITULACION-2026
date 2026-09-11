@@ -10,6 +10,9 @@ async function main() {
   let totalFailed = 0;
 
   const suites = [
+    { name: 'Security', file: './security.test' },
+    { name: 'Institution', file: './institution.test' },
+    { name: 'Additional Security', file: './additional-security.test' },
     { name: 'ML Bridge', file: './test-mlBridge' },
     { name: 'Predictor', file: './test-predictor' },
     { name: 'Métricas', file: './test-metrics' }

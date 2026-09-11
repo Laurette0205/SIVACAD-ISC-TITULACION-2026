@@ -205,6 +205,105 @@ async function generateExcelWithPhp(id) {
   }
 }
 
+// =====================================================
+// SECURITY REPORT SERVICES
+// =====================================================
+
+async function getMFAEvents(fechaInicio, fechaFin) {
+  let where = "WHERE a.accion IN ('MFA_ENABLED','MFA_DISABLED','MFA_ENABLE_FAILED','MFA_LOGIN_SUCCESS','MFA_LOGIN_FAILED')";
+  const params = [];
+
+  if (fechaInicio) { where += ' AND a.fecha_hora >= ?'; params.push(fechaInicio); }
+  if (fechaFin) { where += ' AND a.fecha_hora <= ?'; params.push(fechaFin); }
+
+  const [eventos] = await pool.execute(
+    `SELECT a.id_bitacora, u.nombres, u.apellidos, u.correo_institucional,
+            a.accion, a.tabla, a.ip_origen, a.fecha_hora
+     FROM bitacora_auditoria a
+     LEFT JOIN usuarios u ON a.id_usuario = u.id_usuario
+     ${where}
+     ORDER BY a.fecha_hora DESC`,
+    params
+  );
+
+  const [resumen] = await pool.execute(
+    `SELECT a.accion, COUNT(*) AS total
+     FROM bitacora_auditoria a
+     ${where}
+     GROUP BY a.accion`,
+    params
+  );
+
+  return { eventos, resumen };
+}
+
+async function getSuspiciousActivity(horas = 24) {
+  const [actividades] = await pool.execute(
+    `SELECT a.id_bitacora, u.nombres, u.apellidos, u.correo_institucional,
+            a.accion, a.tabla, a.ip_origen, a.fecha_hora,
+            CASE
+              WHEN a.accion IN ('MFA_LOGIN_FAILED') THEN 'Intento MFA fallido'
+              WHEN a.accion IN ('REAUTH_FAILED') THEN 'Reautenticación fallida'
+              WHEN a.accion IN ('NEW_DEVICE_LOGIN') THEN 'Login desde dispositivo nuevo'
+              WHEN a.accion = 'LOGIN' AND a.detalle LIKE '%fallido%' THEN 'Login fallido'
+              ELSE 'Evento detectado'
+            END AS tipo_alerta
+     FROM bitacora_auditoria a
+     LEFT JOIN usuarios u ON a.id_usuario = u.id_usuario
+     WHERE a.accion IN ('MFA_LOGIN_FAILED','REAUTH_FAILED','NEW_DEVICE_LOGIN','LOGIN')
+       AND a.fecha_hora >= NOW() - INTERVAL ? HOUR
+     ORDER BY a.fecha_hora DESC`,
+    [Number(horas)]
+  );
+
+  const [resumen] = await pool.execute(
+    `SELECT
+       COUNT(CASE WHEN accion = 'MFA_LOGIN_FAILED' THEN 1 END) AS intentos_mfa_fallidos,
+       COUNT(CASE WHEN accion = 'REAUTH_FAILED' THEN 1 END) AS reautenticaciones_fallidas,
+       COUNT(CASE WHEN accion = 'NEW_DEVICE_LOGIN' THEN 1 END) AS dispositivos_nuevos,
+       COUNT(*) AS total_eventos
+     FROM bitacora_auditoria
+     WHERE accion IN ('MFA_LOGIN_FAILED','REAUTH_FAILED','NEW_DEVICE_LOGIN')
+       AND fecha_hora >= NOW() - INTERVAL ? HOUR`,
+    [Number(horas)]
+  );
+
+  return { actividades, resumen: resumen[0] || {} };
+}
+
+async function getKnownDevices(usuarioId) {
+  let where = '';
+  const params = [];
+
+  if (usuarioId) {
+    where = 'WHERE sa.id_usuario = ?';
+    params.push(Number(usuarioId));
+  }
+
+  const [dispositivos] = await pool.execute(
+    `SELECT sa.id_sesion, u.nombres, u.apellidos, u.correo_institucional,
+            sa.ip_origen, sa.dispositivo, sa.fecha_inicio, sa.ultima_actividad, sa.estado
+     FROM sesiones_activas sa
+     LEFT JOIN usuarios u ON sa.id_usuario = u.id_usuario
+     ${where}
+     ORDER BY sa.ultima_actividad DESC
+     LIMIT 200`,
+    params
+  );
+
+  const [resumen] = await pool.execute(
+    `SELECT
+       COUNT(DISTINCT id_usuario) AS usuarios_unicos,
+       COUNT(*) AS total_sesiones,
+       COUNT(CASE WHEN estado = 'activa' THEN 1 END) AS sesiones_activas
+     FROM sesiones_activas
+     ${where}`,
+    params
+  );
+
+  return { dispositivos, resumen: resumen[0] || {} };
+}
+
 module.exports = {
   getKardexData,
   getKardexDataByUserId,
@@ -218,5 +317,8 @@ module.exports = {
   isPhpAvailable,
   generarFolio,
   formatFechaMX,
-  getTzInfo
+  getTzInfo,
+  getMFAEvents,
+  getSuspiciousActivity,
+  getKnownDevices
 };

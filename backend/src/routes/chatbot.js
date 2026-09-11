@@ -63,7 +63,7 @@ function authMiddleware(req, res, next) {
     return res.status(401).json({ ok: false, message: 'Token no disponible' });
   }
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     req.user = decoded;
     req.token = token;
     return next();
@@ -172,13 +172,13 @@ function buildFallbackReply(mensaje, role) {
   return 'Puedo ayudarte con SIVACAD, becas, kardex, evaluaciones, acompanamiento, asistencia institucional y soporte tecnico. Escribe tu consulta con mas detalle.';
 }
 
-async function saveToDatabase(id_usuario, rol_usuario, mensaje, respuesta, modo, proveedor, tiempo_ms) {
+async function saveToDatabase(id_usuario, rol_usuario, mensaje, respuesta, modo, proveedor, tiempo_ms, id_institucion) {
   if (!id_usuario) return;
   try {
     await pool.execute(
-      `INSERT INTO chatbot_mensajes (id_usuario, rol_usuario, mensaje, respuesta, modo_respuesta, proveedor, tiempo_respuesta_ms)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [id_usuario, rol_usuario, mensaje, respuesta, modo, proveedor, tiempo_ms || null]
+      `INSERT INTO chatbot_mensajes (id_usuario, rol_usuario, mensaje, respuesta, modo_respuesta, proveedor, tiempo_respuesta_ms, id_institucion)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id_usuario, rol_usuario, mensaje, respuesta, modo, proveedor, tiempo_ms || null, id_institucion || 1]
     );
   } catch (err) {
     console.error('Error guardando mensaje chatbot en DB:', err.message);
@@ -297,6 +297,7 @@ router.post('/mensaje', authMiddleware, async (req, res) => {
     const role = getRoleName(req.user);
     const id_usuario = getUserId(req.user);
     const rol_usuario = role;
+    const id_institucion = req.user.id_institucion || 1;
 
     if (role === 'DOCENTE') {
       const tipoConsulta = await docenteQueries.detectarTipoConsulta(mensaje);
@@ -305,7 +306,7 @@ router.post('/mensaje', authMiddleware, async (req, res) => {
         const result = await docenteQueries.ejecutarConsulta(tipoConsulta, {}, id_usuario, periodoActivo);
         if (result) {
           const respuestaFinal = result.respuesta + '\n\n* Esta informacion ha sido registrada y notificada a la division de Ingenieria en Sistemas Computacionales para conocimiento del Administrador y Coordinador.';
-          saveToDatabase(id_usuario, rol_usuario, mensaje, respuestaFinal, 'DOCENTE_QUERY', 'database', Date.now() - startTime);
+          saveToDatabase(id_usuario, rol_usuario, mensaje, respuestaFinal, 'DOCENTE_QUERY', 'database', Date.now() - startTime, id_institucion);
           docenteQueries.logQuery(id_usuario, mensaje, respuestaFinal, tipoConsulta.tipo);
           registrarAuditoria(id_usuario, rol_usuario, 'DOCENTE_CONSULTA', `Tipo: ${tipoConsulta.tipo} - Pregunta: "${mensaje.substring(0,150)}"`, req.ip);
           return res.json({ ok: true, respuesta: respuestaFinal, mode: 'DOCENTE_QUERY', provider: 'database', tipo: tipoConsulta.tipo, count: result.count });
@@ -320,7 +321,7 @@ router.post('/mensaje', authMiddleware, async (req, res) => {
         const result = await alumnoQueries.ejecutarConsulta(tipoConsulta, {}, id_usuario, periodoActivo);
         if (result) {
           const respuestaFinal = result.respuesta;
-          saveToDatabase(id_usuario, rol_usuario, mensaje, respuestaFinal, 'ALUMNO_QUERY', 'database', Date.now() - startTime);
+          saveToDatabase(id_usuario, rol_usuario, mensaje, respuestaFinal, 'ALUMNO_QUERY', 'database', Date.now() - startTime, id_institucion);
           alumnoQueries.logQuery(id_usuario, mensaje, respuestaFinal, tipoConsulta.tipo);
           registrarAuditoria(id_usuario, rol_usuario, 'ALUMNO_CONSULTA', `Tipo: ${tipoConsulta.tipo} - Pregunta: "${mensaje.substring(0,150)}"`, req.ip);
           return res.json({ ok: true, respuesta: respuestaFinal, mode: 'ALUMNO_QUERY', provider: 'database', tipo: tipoConsulta.tipo, count: result.count });
@@ -334,7 +335,7 @@ router.post('/mensaje', authMiddleware, async (req, res) => {
         const result = await soporteQueries.ejecutarConsulta(tipoConsulta, {});
         if (result) {
           const respuestaFinal = result.respuesta;
-          saveToDatabase(id_usuario, rol_usuario, mensaje, respuestaFinal, 'SOPORTE_QUERY', 'database', Date.now() - startTime);
+          saveToDatabase(id_usuario, rol_usuario, mensaje, respuestaFinal, 'SOPORTE_QUERY', 'database', Date.now() - startTime, id_institucion);
           soporteQueries.logQuery(id_usuario, mensaje, respuestaFinal, tipoConsulta.tipo);
           registrarAuditoria(id_usuario, rol_usuario, 'SOPORTE_CONSULTA', `Tipo: ${tipoConsulta.tipo} - Pregunta: "${mensaje.substring(0,150)}"`, req.ip);
           return res.json({ ok: true, respuesta: respuestaFinal, mode: 'SOPORTE_QUERY', provider: 'database', tipo: tipoConsulta.tipo, count: result.count });
@@ -345,7 +346,7 @@ router.post('/mensaje', authMiddleware, async (req, res) => {
     const result = await generarRespuestaIA(req, mensaje, startTime);
 
     if (id_usuario) {
-      saveToDatabase(id_usuario, rol_usuario, mensaje, result.respuesta, result.mode, result.provider, result.tiempo_ms || null);
+      saveToDatabase(id_usuario, rol_usuario, mensaje, result.respuesta, result.mode, result.provider, result.tiempo_ms || null, id_institucion);
       if (result.mode === 'FALLBACK' && result.warning) {
         registrarAuditoria(id_usuario, rol_usuario, 'FALLBACK_ACTIVADO', `Mensaje: "${mensaje.substring(0,100)}" - ${result.warning}`, req.ip);
       }
@@ -389,29 +390,37 @@ router.get('/metricas', authMiddleware, async (req, res) => {
       return res.status(403).json({ ok: false, message: 'Acceso no autorizado a metricas globales.' });
     }
 
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [totalMensajes] = await pool.execute(
-      'SELECT COUNT(*) AS total FROM chatbot_mensajes WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
+      'SELECT COUNT(*) AS total FROM chatbot_mensajes WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) AND id_institucion = ?',
+      [idInstitucion]
     );
     const [mensajesHoy] = await pool.execute(
-      'SELECT COUNT(*) AS total FROM chatbot_mensajes WHERE DATE(created_at) = CURDATE()'
+      'SELECT COUNT(*) AS total FROM chatbot_mensajes WHERE DATE(created_at) = CURDATE() AND id_institucion = ?',
+      [idInstitucion]
     );
     const [modoStats] = await pool.execute(
       `SELECT modo_respuesta, COUNT(*) AS total FROM chatbot_mensajes
-       WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-       GROUP BY modo_respuesta`
+       WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND id_institucion = ?
+       GROUP BY modo_respuesta`,
+      [idInstitucion]
     );
     const [rolStats] = await pool.execute(
       `SELECT rol_usuario, COUNT(*) AS total FROM chatbot_mensajes
-       WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-       GROUP BY rol_usuario ORDER BY total DESC`
+       WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND id_institucion = ?
+       GROUP BY rol_usuario ORDER BY total DESC`,
+      [idInstitucion]
     );
     const [tiempoPromedio] = await pool.execute(
-      'SELECT AVG(tiempo_respuesta_ms) AS promedio FROM chatbot_mensajes WHERE tiempo_respuesta_ms IS NOT NULL AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)'
+      'SELECT AVG(tiempo_respuesta_ms) AS promedio FROM chatbot_mensajes WHERE tiempo_respuesta_ms IS NOT NULL AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND id_institucion = ?',
+      [idInstitucion]
     );
     const [topUsuarios] = await pool.execute(
       `SELECT id_usuario, rol_usuario, COUNT(*) AS total FROM chatbot_mensajes
-       WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-       GROUP BY id_usuario, rol_usuario ORDER BY total DESC LIMIT 10`
+       WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) AND id_institucion = ?
+       GROUP BY id_usuario, rol_usuario ORDER BY total DESC LIMIT 10`,
+      [idInstitucion]
     );
     const [incidenciasAbiertas] = await pool.execute(
       "SELECT COUNT(*) AS total FROM chatbot_incidencias WHERE estado IN ('ABIERTA','EN_REVISION')"
@@ -480,7 +489,7 @@ router.get('/configuracion', authMiddleware, async (req, res) => {
       return res.status(403).json({ ok: false, message: 'Acceso no autorizado a la configuracion del sistema.' });
     }
 
-    const [rows] = await pool.execute('SELECT * FROM chatbot_configuracion ORDER BY id_config');
+    const [rows] = await pool.execute('SELECT * FROM chatbot_configuracion WHERE id_institucion = ? ORDER BY id_config', [req.user.id_institucion || 1]);
     return res.json({ ok: true, data: rows });
   } catch (error) {
     console.error('Error al obtener configuracion:', error);
@@ -500,7 +509,8 @@ router.put('/configuracion', authMiddleware, async (req, res) => {
       return res.status(400).json({ ok: false, message: 'clave y valor son requeridos.' });
     }
 
-    const [existing] = await pool.execute('SELECT id_config, editable FROM chatbot_configuracion WHERE clave = ?', [clave]);
+    const idInstitucion = req.user.id_institucion || 1;
+    const [existing] = await pool.execute('SELECT id_config, editable FROM chatbot_configuracion WHERE clave = ? AND id_institucion = ?', [clave, idInstitucion]);
     if (existing.length === 0) {
       return res.status(404).json({ ok: false, message: 'Configuracion no encontrada.' });
     }
@@ -508,7 +518,7 @@ router.put('/configuracion', authMiddleware, async (req, res) => {
       return res.status(403).json({ ok: false, message: 'Esta configuracion no es editable.' });
     }
 
-    await pool.execute('UPDATE chatbot_configuracion SET valor = ? WHERE clave = ?', [String(valor), clave]);
+    await pool.execute('UPDATE chatbot_configuracion SET valor = ? WHERE clave = ? AND id_institucion = ?', [String(valor), clave, idInstitucion]);
 
     const id_usuario = getUserId(req.user);
     if (id_usuario) {
@@ -669,9 +679,9 @@ router.get('/conversaciones', authMiddleware, async (req, res) => {
       const [rows] = await pool.execute(
         `SELECT cm.*, CONCAT(u.nombres, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS nombre_completo FROM chatbot_mensajes cm
          LEFT JOIN usuarios u ON cm.id_usuario = u.id_usuario
-         WHERE cm.id_usuario = ?
+         WHERE cm.id_usuario = ? AND cm.id_institucion = ?
          ORDER BY cm.created_at DESC LIMIT 50`,
-        [currentUserId]
+        [currentUserId, req.user.id_institucion || 1]
       );
       return res.json({ ok: true, data: rows, propia: true });
     }
@@ -683,10 +693,15 @@ router.get('/conversaciones', authMiddleware, async (req, res) => {
     let sql = `SELECT cm.*, CONCAT(u.nombres, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS nombre_completo FROM chatbot_mensajes cm LEFT JOIN usuarios u ON cm.id_usuario = u.id_usuario`;
     const params = [];
 
+    const conditions = ['cm.id_institucion = ?'];
+    params.push(req.user.id_institucion || 1);
+
     if (usuarioId) {
-      sql += ' WHERE cm.id_usuario = ?';
+      conditions.push('cm.id_usuario = ?');
       params.push(usuarioId);
     }
+
+    sql += ' WHERE ' + conditions.join(' AND ');
 
     sql += ' ORDER BY cm.created_at DESC LIMIT ? OFFSET ?';
     params.push(limit, offset);
@@ -711,13 +726,15 @@ router.get('/exportar', authMiddleware, async (req, res) => {
     const hasta = req.query.hasta || null;
 
     let data;
+    const idInstitucion = req.user.id_institucion || 1;
     if (tipo === 'conversaciones') {
       let sql = `SELECT cm.*, CONCAT(u.nombres, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS nombre_completo FROM chatbot_mensajes cm LEFT JOIN usuarios u ON cm.id_usuario = u.id_usuario`;
       const params = [];
-      const conditions = [];
+      const conditions = ['cm.id_institucion = ?'];
+      params.push(idInstitucion);
       if (desde) { conditions.push('cm.created_at >= ?'); params.push(desde); }
       if (hasta) { conditions.push('cm.created_at <= ?'); params.push(hasta); }
-      if (conditions.length > 0) sql += ' WHERE ' + conditions.join(' AND ');
+      sql += ' WHERE ' + conditions.join(' AND ');
       sql += ' ORDER BY cm.created_at DESC';
       const [rows] = await pool.execute(sql, params);
       data = rows;

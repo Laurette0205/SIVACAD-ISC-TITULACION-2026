@@ -8,14 +8,15 @@ async function resolveDocenteId(idUsuario) {
   return rows.length > 0 ? rows[0] : null;
 }
 
-async function registrarAuditoria(id_tramite, id_usuario, accion, detalle, req) {
+async function registrarAuditoria(id_tramite, id_usuario, accion, detalle, req, id_institucion) {
   try {
     await db.query(
-      `INSERT INTO tramites_auditoria (id_tramite, id_usuario, accion, detalle, ip, user_agent)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO tramites_auditoria (id_tramite, id_usuario, accion, detalle, ip, user_agent, id_institucion)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [id_tramite, id_usuario, accion, detalle || null,
         req?.ip || req?.headers?.['x-forwarded-for'] || req?.connection?.remoteAddress || null,
-        req?.headers?.['user-agent'] || null]
+        req?.headers?.['user-agent'] || null,
+        id_institucion]
     );
   } catch (err) {
     console.error('Error registrando auditoría:', err);
@@ -54,28 +55,32 @@ const resumen = async (req, res) => {
     const docente = await resolveDocenteId(req.user.id_usuario);
     if (!docente) return res.status(400).json({ ok: false, message: 'Perfil docente no encontrado' });
 
+    const id_institucion = req.user?.id_institucion || 1;
     const filter = buildDocenteFilter(docente.id_docente);
     const estadosVisibles = ['SOLICITADO', 'EN_REVISION', 'EN_ANALISIS', 'OBSERVADO', 'DICTAMINADO', 'VALIDADO'];
 
     const [total] = await db.query(
-      `SELECT COUNT(*) AS total FROM tramites t WHERE t.estado_actual IN (?) AND ${filter}`,
-      [estadosVisibles]
+      `SELECT COUNT(*) AS total FROM tramites t WHERE t.estado_actual IN (?) AND t.id_institucion = ? AND ${filter}`,
+      [estadosVisibles, id_institucion]
     );
     const [porEstado] = await db.query(
       `SELECT t.estado_actual, COUNT(*) AS cantidad FROM tramites t
-       WHERE t.estado_actual IN (?) AND ${filter}
+       WHERE t.estado_actual IN (?) AND t.id_institucion = ? AND ${filter}
        GROUP BY t.estado_actual ORDER BY t.estado_actual`,
-      [estadosVisibles]
+      [estadosVisibles, id_institucion]
     );
     const [pendientesOpinion] = await db.query(
       `SELECT COUNT(*) AS pendientes FROM tramites t
        WHERE t.estado_actual IN ('SOLICITADO', 'EN_REVISION', 'EN_ANALISIS')
          AND t.docente_opinion_emitida = 0
-         AND ${filter}`
+         AND t.id_institucion = ?
+         AND ${filter}`,
+      [id_institucion]
     );
     const [conOpinion] = await db.query(
       `SELECT COUNT(*) AS emitidas FROM tramites t
-       WHERE t.docente_opinion_emitida = 1 AND ${filter}`
+       WHERE t.docente_opinion_emitida = 1 AND t.id_institucion = ? AND ${filter}`,
+      [id_institucion]
     );
     const [misGrupos] = await db.query(
       `SELECT COUNT(*) AS total FROM cargas_academicas ca
@@ -144,17 +149,19 @@ const alumnosGrupo = async (req, res) => {
       return res.status(403).json({ ok: false, message: 'No tienes acceso a este grupo' });
     }
 
+    const id_institucion = req.user?.id_institucion || 1;
+
     const [rows] = await db.query(
       `SELECT a.id_alumno, a.matricula, a.nombres, a.apellido_paterno, a.apellido_materno,
               a.curp, a.semestre_actual, a.estatus_academico,
               c.nombre_carrera,
-              (SELECT COUNT(*) FROM tramites t WHERE t.id_alumno = a.id_alumno) AS tramites_activos
+              (SELECT COUNT(*) FROM tramites t WHERE t.id_alumno = a.id_alumno AND t.id_institucion = ?) AS tramites_activos
        FROM grupos_alumnos ga
        JOIN alumnos a ON a.id_alumno = ga.id_alumno
        LEFT JOIN carreras c ON c.id_carrera = a.id_carrera
        WHERE ga.id_grupo = ? AND ga.id_periodo = ? AND ga.estado = 'ACTIVO'
        ORDER BY a.apellido_paterno, a.apellido_materno, a.nombres`,
-      [idGrupo, idPeriodo]
+      [id_institucion, idGrupo, idPeriodo]
     );
     return res.json({ ok: true, data: rows });
   } catch (error) {
@@ -168,8 +175,9 @@ const bandeja = async (req, res) => {
     const docente = await resolveDocenteId(req.user.id_usuario);
     if (!docente) return res.status(400).json({ ok: false, message: 'Perfil docente no encontrado' });
 
+    const id_institucion = req.user?.id_institucion || 1;
     const estadosVisibles = ['SOLICITADO', 'EN_REVISION', 'EN_ANALISIS', 'OBSERVADO', 'DICTAMINADO', 'VALIDADO'];
-    const params = [estadosVisibles];
+    const params = [estadosVisibles, id_institucion];
     const filter = buildDocenteFilter(docente.id_docente);
 
     let sql = `
@@ -183,7 +191,7 @@ const bandeja = async (req, res) => {
       JOIN tramites_tipos tt ON tt.id_tipo = t.id_tipo
       JOIN alumnos a ON a.id_alumno = t.id_alumno
       LEFT JOIN carreras c ON c.id_carrera = a.id_carrera
-      WHERE t.estado_actual IN (?) AND ${filter}
+      WHERE t.estado_actual IN (?) AND t.id_institucion = ? AND ${filter}
     `;
 
     if (req.query.tipo) {
@@ -219,6 +227,7 @@ const obtenerTramite = async (req, res) => {
     const docente = await resolveDocenteId(req.user.id_usuario);
     if (!docente) return res.status(400).json({ ok: false, message: 'Perfil docente no encontrado' });
 
+    const id_institucion = req.user?.id_institucion || 1;
     const filter = buildDocenteFilter(docente.id_docente);
 
     const [tramites] = await db.query(
@@ -231,29 +240,29 @@ const obtenerTramite = async (req, res) => {
       JOIN alumnos a ON a.id_alumno = t.id_alumno
       LEFT JOIN carreras c ON c.id_carrera = a.id_carrera
       JOIN usuarios u_sol ON u_sol.id_usuario = t.id_usuario_solicitante
-      WHERE t.id_tramite = ? AND ${filter}`,
-      [id]
+      WHERE t.id_tramite = ? AND t.id_institucion = ? AND ${filter}`,
+      [id, id_institucion]
     );
     if (tramites.length === 0) {
       return res.status(404).json({ ok: false, message: 'Trámite no encontrado o sin acceso' });
     }
 
     const [documentos] = await db.query(
-      'SELECT * FROM tramites_documentos WHERE id_tramite = ? ORDER BY subido_en DESC', [id]
+      'SELECT * FROM tramites_documentos WHERE id_tramite = ? AND id_institucion = ? ORDER BY subido_en DESC', [id, id_institucion]
     );
     const [observaciones] = await db.query(
       `SELECT o.*, u.nombres, u.apellido_paterno
        FROM tramites_observaciones o
        LEFT JOIN usuarios u ON u.id_usuario = o.id_usuario
-       WHERE o.id_tramite = ?
-       ORDER BY o.creado_en DESC`, [id]
+       WHERE o.id_tramite = ? AND o.id_institucion = ?
+       ORDER BY o.creado_en DESC`, [id, id_institucion]
     );
     const [historial] = await db.query(
       `SELECT h.*, u.nombres, u.apellido_paterno
        FROM tramites_historial_estados h
        LEFT JOIN usuarios u ON u.id_usuario = h.cambiado_por
-       WHERE h.id_tramite = ?
-       ORDER BY h.creado_en DESC`, [id]
+       WHERE h.id_tramite = ? AND h.id_institucion = ?
+       ORDER BY h.creado_en DESC`, [id, id_institucion]
     );
 
     return res.json({ ok: true, data: { ...tramites[0], documentos, observaciones, historial_estados: historial } });
@@ -272,10 +281,11 @@ const emitirOpinionAcademica = async (req, res) => {
     const docente = await resolveDocenteId(req.user.id_usuario);
     if (!docente) return res.status(400).json({ ok: false, message: 'Perfil docente no encontrado' });
 
+    const id_institucion = req.user?.id_institucion || 1;
     const filter = buildDocenteFilter(docente.id_docente);
     const [tramites] = await db.query(
-      `SELECT id_tramite, folio, estado_actual FROM tramites t WHERE t.id_tramite = ? AND ${filter}`,
-      [id]
+      `SELECT id_tramite, folio, estado_actual FROM tramites t WHERE t.id_tramite = ? AND t.id_institucion = ? AND ${filter}`,
+      [id, id_institucion]
     );
     if (tramites.length === 0) return res.status(404).json({ ok: false, message: 'Trámite no encontrado o sin acceso' });
     const t = tramites[0];
@@ -294,18 +304,18 @@ const emitirOpinionAcademica = async (req, res) => {
         docente_opinion_en = NOW(),
         estado_actual = ?,
         observaciones = COALESCE(NULLIF(?, ''), observaciones)
-      WHERE id_tramite = ?`,
-      [opinion, req.user.id_usuario, nuevoEstado, observaciones || null, id]
+      WHERE id_tramite = ? AND id_institucion = ?`,
+      [opinion, req.user.id_usuario, nuevoEstado, observaciones || null, id, id_institucion]
     );
 
     await db.query(
-      `INSERT INTO tramites_observaciones (id_tramite, id_usuario, tipo, observacion)
-       VALUES (?, ?, 'OPINION_DOCENTE', ?)`,
-      [id, req.user.id_usuario, opinion]
+      `INSERT INTO tramites_observaciones (id_tramite, id_usuario, tipo, observacion, id_institucion)
+       VALUES (?, ?, 'OPINION_DOCENTE', ?, ?)`,
+      [id, req.user.id_usuario, opinion, id_institucion]
     );
 
     await registrarAuditoria(id, req.user.id_usuario, 'OPINION_DOCENTE',
-      `Opinión académica emitida para ${t.folio}${tipo_dictamen === 'OBSERVADO' ? ' (Observado)' : ''}`, req);
+      `Opinión académica emitida para ${t.folio}${tipo_dictamen === 'OBSERVADO' ? ' (Observado)' : ''}`, req, id_institucion);
     await registrarBitacora(req.user.id_usuario, 'OPINION_DOCENTE',
       `Opinión académica emitida: ${t.folio}`, req);
 
@@ -328,10 +338,11 @@ const confirmarCompatibilidad = async (req, res) => {
     const docente = await resolveDocenteId(req.user.id_usuario);
     if (!docente) return res.status(400).json({ ok: false, message: 'Perfil docente no encontrado' });
 
+    const id_institucion = req.user?.id_institucion || 1;
     const filter = buildDocenteFilter(docente.id_docente);
     const [tramites] = await db.query(
-      `SELECT id_tramite, folio, estado_actual FROM tramites t WHERE t.id_tramite = ? AND ${filter}`,
-      [id]
+      `SELECT id_tramite, folio, estado_actual FROM tramites t WHERE t.id_tramite = ? AND t.id_institucion = ? AND ${filter}`,
+      [id, id_institucion]
     );
     if (tramites.length === 0) return res.status(404).json({ ok: false, message: 'Trámite no encontrado o sin acceso' });
     const t = tramites[0];
@@ -339,18 +350,18 @@ const confirmarCompatibilidad = async (req, res) => {
     const validacion = JSON.stringify({ compatible: !!compatible, fundamento: fundamento || '', materias: materias || [] });
 
     await db.query(
-      `UPDATE tramites SET docente_validacion_materias = ? WHERE id_tramite = ?`,
-      [validacion, id]
+      `UPDATE tramites SET docente_validacion_materias = ? WHERE id_tramite = ? AND id_institucion = ?`,
+      [validacion, id, id_institucion]
     );
 
     await db.query(
-      `INSERT INTO tramites_observaciones (id_tramite, id_usuario, tipo, observacion)
-       VALUES (?, ?, 'VALIDACION_MATERIAS', ?)`,
-      [id, req.user.id_usuario, `Compatibilidad: ${compatible ? 'COMPATIBLE' : 'NO COMPATIBLE'}. ${fundamento || ''}`]
+      `INSERT INTO tramites_observaciones (id_tramite, id_usuario, tipo, observacion, id_institucion)
+       VALUES (?, ?, 'VALIDACION_MATERIAS', ?, ?)`,
+      [id, req.user.id_usuario, `Compatibilidad: ${compatible ? 'COMPATIBLE' : 'NO COMPATIBLE'}. ${fundamento || ''}`, id_institucion]
     );
 
     await registrarAuditoria(id, req.user.id_usuario, 'VALIDAR_MATERIAS',
-      `Validación de materias para ${t.folio}: ${compatible ? 'COMPATIBLE' : 'NO COMPATIBLE'}`, req);
+      `Validación de materias para ${t.folio}: ${compatible ? 'COMPATIBLE' : 'NO COMPATIBLE'}`, req, id_institucion);
 
     return res.json({ ok: true, message: `Compatibilidad confirmada: ${compatible ? 'Compatible' : 'No compatible'}` });
   } catch (error) {
@@ -366,10 +377,11 @@ const revisarTrayectoria = async (req, res) => {
     const docente = await resolveDocenteId(req.user.id_usuario);
     if (!docente) return res.status(400).json({ ok: false, message: 'Perfil docente no encontrado' });
 
+    const id_institucion = req.user?.id_institucion || 1;
     const filter = buildDocenteFilter(docente.id_docente);
     const [tramites] = await db.query(
-      `SELECT t.id_alumno FROM tramites t WHERE t.id_tramite = ? AND ${filter}`,
-      [id]
+      `SELECT t.id_alumno FROM tramites t WHERE t.id_tramite = ? AND t.id_institucion = ? AND ${filter}`,
+      [id, id_institucion]
     );
     if (tramites.length === 0) return res.status(404).json({ ok: false, message: 'Trámite no encontrado o sin acceso' });
     const idAlumno = tramites[0].id_alumno;
@@ -422,21 +434,22 @@ const agregarObservacionDocente = async (req, res) => {
     const docente = await resolveDocenteId(req.user.id_usuario);
     if (!docente) return res.status(400).json({ ok: false, message: 'Perfil docente no encontrado' });
 
+    const id_institucion = req.user?.id_institucion || 1;
     const filter = buildDocenteFilter(docente.id_docente);
     const [tramites] = await db.query(
-      `SELECT id_tramite, folio FROM tramites t WHERE t.id_tramite = ? AND ${filter}`,
-      [id]
+      `SELECT id_tramite, folio FROM tramites t WHERE t.id_tramite = ? AND t.id_institucion = ? AND ${filter}`,
+      [id, id_institucion]
     );
     if (tramites.length === 0) return res.status(404).json({ ok: false, message: 'Trámite no encontrado o sin acceso' });
 
     await db.query(
-      `INSERT INTO tramites_observaciones (id_tramite, id_usuario, tipo, observacion)
-       VALUES (?, ?, ?, ?)`,
-      [id, req.user.id_usuario, tipo || 'OPINION_DOCENTE', observacion]
+      `INSERT INTO tramites_observaciones (id_tramite, id_usuario, tipo, observacion, id_institucion)
+       VALUES (?, ?, ?, ?, ?)`,
+      [id, req.user.id_usuario, tipo || 'OPINION_DOCENTE', observacion, id_institucion]
     );
 
     await registrarAuditoria(id, req.user.id_usuario, 'OBSERVACION_DOCENTE',
-      `Observación docente (${tipo || 'OPINION_DOCENTE'}) en ${tramites[0].folio}`, req);
+      `Observación docente (${tipo || 'OPINION_DOCENTE'}) en ${tramites[0].folio}`, req, id_institucion);
 
     return res.status(201).json({ ok: true, message: 'Observación registrada' });
   } catch (error) {
@@ -453,21 +466,22 @@ const validarObservaciones = async (req, res) => {
     const docente = await resolveDocenteId(req.user.id_usuario);
     if (!docente) return res.status(400).json({ ok: false, message: 'Perfil docente no encontrado' });
 
+    const id_institucion = req.user?.id_institucion || 1;
     const filter = buildDocenteFilter(docente.id_docente);
     const [tramites] = await db.query(
-      `SELECT id_tramite, folio FROM tramites t WHERE t.id_tramite = ? AND ${filter}`,
-      [id]
+      `SELECT id_tramite, folio FROM tramites t WHERE t.id_tramite = ? AND t.id_institucion = ? AND ${filter}`,
+      [id, id_institucion]
     );
     if (tramites.length === 0) return res.status(404).json({ ok: false, message: 'Trámite no encontrado o sin acceso' });
 
     await db.query(
-      `INSERT INTO tramites_observaciones (id_tramite, id_usuario, tipo, observacion)
-       VALUES (?, ?, 'VALIDACION', ?)`,
-      [id, req.user.id_usuario, observacion || 'Observaciones validadas por docente']
+      `INSERT INTO tramites_observaciones (id_tramite, id_usuario, tipo, observacion, id_institucion)
+       VALUES (?, ?, 'VALIDACION', ?, ?)`,
+      [id, req.user.id_usuario, observacion || 'Observaciones validadas por docente', id_institucion]
     );
 
     await registrarAuditoria(id, req.user.id_usuario, 'VALIDAR_OBSERVACIONES',
-      `Observaciones validadas por docente en ${tramites[0].folio}`, req);
+      `Observaciones validadas por docente en ${tramites[0].folio}`, req, id_institucion);
 
     return res.json({ ok: true, message: 'Observaciones validadas exitosamente' });
   } catch (error) {
@@ -478,7 +492,8 @@ const validarObservaciones = async (req, res) => {
 
 const catalogos = async (req, res) => {
   try {
-    const [tipos] = await db.query('SELECT * FROM tramites_tipos WHERE activo = 1 ORDER BY nombre');
+    const id_institucion = req.user?.id_institucion || 1;
+    const [tipos] = await db.query('SELECT * FROM tramites_tipos WHERE activo = 1 AND id_institucion = ? ORDER BY nombre', [id_institucion]);
     const [estados] = await db.query('SELECT * FROM tramites_estados ORDER BY orden');
     const [carreras] = await db.query('SELECT id_carrera, nombre_carrera FROM carreras ORDER BY nombre_carrera');
     return res.json({ ok: true, data: { tipos, estados, carreras } });
@@ -494,7 +509,8 @@ const reportes = async (req, res) => {
     if (!docente) return res.status(400).json({ ok: false, message: 'Perfil docente no encontrado' });
 
     const { tipo, desde, hasta, estado } = req.query;
-    const params = [];
+    const id_institucion = req.user?.id_institucion || 1;
+    const params = [id_institucion];
     const filter = buildDocenteFilter(docente.id_docente);
 
     let sql = `
@@ -507,7 +523,7 @@ const reportes = async (req, res) => {
       JOIN tramites_tipos tt ON tt.id_tipo = t.id_tipo
       JOIN alumnos a ON a.id_alumno = t.id_alumno
       LEFT JOIN carreras c ON c.id_carrera = a.id_carrera
-      WHERE ${filter}
+      WHERE t.id_institucion = ? AND ${filter}
     `;
     if (tipo) { sql += ' AND tt.codigo = ?'; params.push(tipo); }
     if (estado) { sql += ' AND t.estado_actual = ?'; params.push(estado); }
@@ -525,13 +541,14 @@ const reportes = async (req, res) => {
 
 const bitacora = async (req, res) => {
   try {
-    const params = [];
+    const id_institucion = req.user?.id_institucion || 1;
+    const params = [id_institucion];
     let sql = `
       SELECT ta.*, u.nombres, u.apellido_paterno, t.folio
       FROM tramites_auditoria ta
       LEFT JOIN usuarios u ON u.id_usuario = ta.id_usuario
       LEFT JOIN tramites t ON t.id_tramite = ta.id_tramite
-      WHERE ta.accion IN ('OPINION_DOCENTE','OBSERVACION_DOCENTE','VALIDAR_MATERIAS','VALIDAR_OBSERVACIONES')
+      WHERE ta.id_institucion = ? AND ta.accion IN ('OPINION_DOCENTE','OBSERVACION_DOCENTE','VALIDAR_MATERIAS','VALIDAR_OBSERVACIONES')
     `;
     if (req.query.tramite_id) { sql += ' AND ta.id_tramite = ?'; params.push(req.query.tramite_id); }
     sql += ' ORDER BY ta.creado_en DESC LIMIT 200';

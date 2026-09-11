@@ -272,20 +272,20 @@ async function ensureSeedCatalogs(conn) {
   }
 }
 
-async function loadCatalogs(conn) {
+async function loadCatalogs(conn, idInstitucion = 1) {
   await ensureEvaluationSchema(conn);
   await ensureSeedCatalogs(conn);
-  const [tplRows] = await conn.execute('SELECT id_plantilla, codigo_plantilla, nombre_plantilla, descripcion, tipo_instrumento, publico_objetivo, escala, ponderacion_total, regla_convivencia, activo FROM evaluacion_plantillas ORDER BY id_plantilla ASC');
-  const [questionRows] = await conn.execute('SELECT id_pregunta, id_plantilla, criterio, descripcion, peso, tipo_respuesta, orden_pregunta, activo FROM evaluacion_plantilla_preguntas ORDER BY id_plantilla ASC, orden_pregunta ASC');
-  const [periodRows] = await conn.execute('SELECT id_periodo, nombre_periodo, fecha_inicio, fecha_fin, estado FROM periodos ORDER BY fecha_inicio DESC, id_periodo DESC');
+  const [tplRows] = await conn.execute('SELECT id_plantilla, codigo_plantilla, nombre_plantilla, descripcion, tipo_instrumento, publico_objetivo, escala, ponderacion_total, regla_convivencia, activo FROM evaluacion_plantillas WHERE id_institucion = ? ORDER BY id_plantilla ASC', [idInstitucion]);
+  const [questionRows] = await conn.execute('SELECT pp.id_pregunta, pp.id_plantilla, pp.criterio, pp.descripcion, pp.peso, pp.tipo_respuesta, pp.orden_pregunta, pp.activo FROM evaluacion_plantilla_preguntas pp INNER JOIN evaluacion_plantillas pl ON pl.id_plantilla = pp.id_plantilla WHERE pl.id_institucion = ? ORDER BY pp.id_plantilla ASC, pp.orden_pregunta ASC', [idInstitucion]);
+  const [periodRows] = await conn.execute('SELECT id_periodo, nombre_periodo, fecha_inicio, fecha_fin, estado FROM periodos WHERE id_institucion = ? ORDER BY fecha_inicio DESC, id_periodo DESC', [idInstitucion]);
   const plantillas = tplRows.map((row) => mapTemplateRow(row, questionRows));
   const resumen = { total_plantillas: plantillas.length, total_preguntas: questionRows.length, tipos: plantillas.length, objetivos: new Set(plantillas.map((p) => p.publico_objetivo)).size, escalas: new Set(plantillas.map((p) => p.escala)).size };
   return { plantillas, preguntas: questionRows.map(mapQuestionRow), resumen, periodos: periodRows };
 }
 
-async function loadEvaluations(conn, filters = {}) {
-  const where = [];
-  const params = [];
+async function loadEvaluations(conn, filters = {}, idInstitucion = 1) {
+  const where = ['e.id_institucion = ?'];
+  const params = [idInstitucion];
   if (filters.id_periodo) { where.push('e.id_periodo = ?'); params.push(Number(filters.id_periodo)); }
   if (filters.estado) { where.push('UPPER(e.estado) = ?'); params.push(normalizeUpper(filters.estado)); }
   if (filters.tipo_instrumento) { where.push('UPPER(e.tipo_instrumento) = ?'); params.push(normalizeUpper(filters.tipo_instrumento)); }
@@ -316,7 +316,7 @@ async function loadEvaluations(conn, filters = {}) {
   return rows;
 }
 
-async function loadEvaluationDetail(conn, idEvaluacion) {
+async function loadEvaluationDetail(conn, idEvaluacion, idInstitucion = 1) {
   const [rows] = await conn.execute(`
     SELECT e.id_evaluacion, e.id_periodo, e.id_plantilla, e.titulo, e.descripcion,
       e.fecha_inicio, e.fecha_fin, UPPER(e.estado) AS estado,
@@ -326,7 +326,7 @@ async function loadEvaluationDetail(conn, idEvaluacion) {
     FROM evaluaciones e
     LEFT JOIN periodos p ON p.id_periodo = e.id_periodo
     LEFT JOIN evaluacion_plantillas tp ON tp.id_plantilla = e.id_plantilla
-    WHERE e.id_evaluacion = ? LIMIT 1`, [idEvaluacion]);
+    WHERE e.id_evaluacion = ? AND e.id_institucion = ? LIMIT 1`, [idEvaluacion, idInstitucion]);
   const evaluation = rows?.[0] || null;
   if (!evaluation) return null;
   const [questions] = await conn.execute('SELECT id_pregunta, id_evaluacion, id_pregunta_plantilla, criterio, descripcion, peso, tipo_respuesta, orden_pregunta, activo FROM evaluacion_preguntas WHERE id_evaluacion = ? ORDER BY orden_pregunta ASC, id_pregunta ASC', [idEvaluacion]);
@@ -335,7 +335,7 @@ async function loadEvaluationDetail(conn, idEvaluacion) {
   return { ...evaluation, preguntas: questions, resultados: results, total_respuestas: Number(responses?.[0]?.total || 0) };
 }
 
-async function loadResumen(conn) {
+async function loadResumen(conn, idInstitucion = 1) {
   const [rows] = await conn.execute(`
     SELECT COUNT(*) AS total,
       SUM(CASE WHEN UPPER(estado) = 'ACTIVA' THEN 1 ELSE 0 END) AS activas,
@@ -347,12 +347,12 @@ async function loadResumen(conn) {
       COUNT(DISTINCT tipo_instrumento) AS tipos,
       COUNT(DISTINCT publico_objetivo) AS objetivos,
       COUNT(DISTINCT escala) AS escalas
-    FROM evaluaciones`);
+    FROM evaluaciones WHERE id_institucion = ?`, [idInstitucion]);
   const base = rows?.[0] || {};
   return { total: Number(base.total || 0), activas: Number(base.activas || 0), cerradas: Number(base.cerradas || 0), borradores: Number(base.borradores || 0), canceladas: Number(base.canceladas || 0), periodos: Number(base.periodos || 0), plantillas: Number(base.plantillas || 0), tipos: Number(base.tipos || 0), objetivos: Number(base.objetivos || 0), escalas: Number(base.escalas || 0) };
 }
 
-async function insertEvaluationWithQuestions(conn, body, user, templateByCode, ip = null) {
+async function insertEvaluationWithQuestions(conn, body, user, templateByCode, ip = null, idInstitucion = 1) {
   const titulo = normalizeText(body.titulo);
   const descripcion = normalizeText(body.descripcion);
   const fechaInicio = toMysqlDatetime(body.fecha_inicio);
@@ -370,9 +370,9 @@ async function insertEvaluationWithQuestions(conn, body, user, templateByCode, i
   if (!body.preguntas || !Array.isArray(body.preguntas) || body.preguntas.length === 0) throw new Error('La evaluaci\u00f3n debe incluir al menos una pregunta.');
   await conn.beginTransaction();
   const [result] = await conn.execute(
-    `INSERT INTO evaluaciones (id_periodo, id_plantilla, titulo, descripcion, fecha_inicio, fecha_fin, estado, creado_por, tipo_instrumento, publico_objetivo, escala, ponderacion_total)
-     VALUES (?, ?, ?, ?, ?, ?, 'BORRADOR', ?, ?, ?, ?, ?)`,
-    [idPeriodo, idPlantilla, titulo, descripcion || null, fechaInicio, fechaFin, Number(user?.id_usuario || 0), tipoInstrumento, publicoObjetivo, escala, ponderacionTotal]);
+    `INSERT INTO evaluaciones (id_periodo, id_plantilla, titulo, descripcion, fecha_inicio, fecha_fin, estado, creado_por, tipo_instrumento, publico_objetivo, escala, ponderacion_total, id_institucion)
+     VALUES (?, ?, ?, ?, ?, ?, 'BORRADOR', ?, ?, ?, ?, ?, ?)`,
+    [idPeriodo, idPlantilla, titulo, descripcion || null, fechaInicio, fechaFin, Number(user?.id_usuario || 0), tipoInstrumento, publicoObjetivo, escala, ponderacionTotal, idInstitucion]);
   const idEvaluacion = result.insertId;
   for (let i = 0; i < body.preguntas.length; i += 1) {
     const q = body.preguntas[i] || {};
@@ -383,8 +383,8 @@ async function insertEvaluationWithQuestions(conn, body, user, templateByCode, i
     const ordenPregunta = Number(q.orden_pregunta || i + 1);
     const idPreguntaPlantilla = Number(q.id_pregunta_plantilla || q.id_pregunta || 0) || null;
     if (!criterio) throw new Error(`La pregunta ${i + 1} no tiene criterio.`);
-    await conn.execute('INSERT INTO evaluacion_preguntas (id_evaluacion, id_pregunta_plantilla, criterio, descripcion, peso, tipo_respuesta, orden_pregunta, activo) VALUES (?, ?, ?, ?, ?, ?, ?, 1)',
-      [idEvaluacion, idPreguntaPlantilla, criterio, descripcionPregunta || null, peso, tipoRespuesta, ordenPregunta]);
+    await conn.execute('INSERT INTO evaluacion_preguntas (id_evaluacion, id_pregunta_plantilla, criterio, descripcion, peso, tipo_respuesta, orden_pregunta, activo, id_institucion) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)',
+      [idEvaluacion, idPreguntaPlantilla, criterio, descripcionPregunta || null, peso, tipoRespuesta, ordenPregunta, idInstitucion]);
   }
   await logAuditoria(conn, idEvaluacion, Number(user?.id_usuario || 0), 'CREAR', `Evaluaci\u00f3n "${titulo}" creada con ${body.preguntas.length} preguntas`, null, ip);
   await conn.commit();
@@ -396,7 +396,8 @@ async function insertEvaluationWithQuestions(conn, body, user, templateByCode, i
 router.get('/catalogos', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
-    const catalogos = await loadCatalogs(conn);
+    const idInstitucion = req.user.id_institucion || 1;
+    const catalogos = await loadCatalogs(conn, idInstitucion);
     return res.json({ ok: true, catalogos, data: catalogos });
   } catch (error) {
     console.error('ERROR /evaluaciones/catalogos:', error);
@@ -407,7 +408,8 @@ router.get('/catalogos', authFromHeader, async (req, res) => {
 router.get('/resumen', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
-    const resumen = await loadResumen(conn);
+    const idInstitucion = req.user.id_institucion || 1;
+    const resumen = await loadResumen(conn, idInstitucion);
     return res.json({ ok: true, resumen, data: resumen });
   } catch (error) {
     console.error('ERROR /evaluaciones/resumen:', error);
@@ -418,7 +420,8 @@ router.get('/resumen', authFromHeader, async (req, res) => {
 router.get('/', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
-    const rows = await loadEvaluations(conn, req.query || {});
+    const idInstitucion = req.user.id_institucion || 1;
+    const rows = await loadEvaluations(conn, req.query || {}, idInstitucion);
     return res.json({ ok: true, data: rows, evaluaciones: rows });
   } catch (error) {
     console.error('ERROR GET /evaluaciones:', error);
@@ -430,8 +433,9 @@ router.post('/', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!canAdminEvaluations(req.user)) return sendError(res, 403, 'No tienes permisos para crear evaluaciones.');
+    const idInstitucion = req.user.id_institucion || 1;
     const body = req.body || {};
-    const catalogos = await loadCatalogs(conn);
+    const catalogos = await loadCatalogs(conn, idInstitucion);
     const templateKey = normalizeUpper(body.codigo_plantilla || body.plantilla || body.template || body.tipo_instrumento || '');
     const templateByCode = catalogos.plantillas.find((tpl) => {
       const code = normalizeUpper(tpl.codigo);
@@ -440,8 +444,8 @@ router.post('/', authFromHeader, async (req, res) => {
     });
     const preguntasDesdePlantilla = Array.isArray(body.preguntas) && body.preguntas.length ? body.preguntas : templateByCode?.preguntas || [];
     if (!preguntasDesdePlantilla.length) return sendError(res, 400, 'La evaluaci\u00f3n debe incluir preguntas o una plantilla v\u00e1lida.');
-    const idEvaluacion = await insertEvaluationWithQuestions(conn, { ...body, id_plantilla: body.id_plantilla || templateByCode?.id_plantilla, tipo_instrumento: body.tipo_instrumento || templateByCode?.tipo_instrumento || 'POR_PERIODO', publico_objetivo: body.publico_objetivo || templateByCode?.publico_objetivo || 'PERIODOS', escala: body.escala || templateByCode?.escala || '1-5', ponderacion_total: body.ponderacion_total || templateByCode?.ponderacion_total || 100, preguntas: preguntasDesdePlantilla }, req.user, templateByCode, req.ip);
-    const [rows] = await conn.execute('SELECT e.id_evaluacion, e.id_periodo, e.id_plantilla, e.titulo, e.descripcion, e.fecha_inicio, e.fecha_fin, UPPER(e.estado) AS estado, e.tipo_instrumento, e.publico_objetivo, e.escala, e.ponderacion_total, p.nombre_periodo FROM evaluaciones e LEFT JOIN periodos p ON p.id_periodo = e.id_periodo WHERE e.id_evaluacion = ? LIMIT 1', [idEvaluacion]);
+    const idEvaluacion = await insertEvaluationWithQuestions(conn, { ...body, id_plantilla: body.id_plantilla || templateByCode?.id_plantilla, tipo_instrumento: body.tipo_instrumento || templateByCode?.tipo_instrumento || 'POR_PERIODO', publico_objetivo: body.publico_objetivo || templateByCode?.publico_objetivo || 'PERIODOS', escala: body.escala || templateByCode?.escala || '1-5', ponderacion_total: body.ponderacion_total || templateByCode?.ponderacion_total || 100, preguntas: preguntasDesdePlantilla }, req.user, templateByCode, req.ip, idInstitucion);
+    const [rows] = await conn.execute('SELECT e.id_evaluacion, e.id_periodo, e.id_plantilla, e.titulo, e.descripcion, e.fecha_inicio, e.fecha_fin, UPPER(e.estado) AS estado, e.tipo_instrumento, e.publico_objetivo, e.escala, e.ponderacion_total, p.nombre_periodo FROM evaluaciones e LEFT JOIN periodos p ON p.id_periodo = e.id_periodo WHERE e.id_evaluacion = ? AND e.id_institucion = ? LIMIT 1', [idEvaluacion, idInstitucion]);
     return res.status(201).json({ ok: true, message: 'Evaluaci\u00f3n creada correctamente.', data: rows?.[0] || { id_evaluacion: idEvaluacion } });
   } catch (error) {
     try { await conn.rollback(); } catch (_) {}
@@ -476,9 +480,10 @@ router.get('/resultados', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!canSuperviseEvaluations(req.user)) return sendError(res, 403, 'No tienes permisos para consultar resultados.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.query?.id_evaluacion || 0);
-    const where = [];
-    const params = [];
+    const where = ['r.id_institucion = ?'];
+    const params = [idInstitucion];
     if (idEvaluacion) { where.push('r.id_evaluacion = ?'); params.push(idEvaluacion); }
     if (req.query?.estado_validacion) { where.push('r.estado_validacion = ?'); params.push(normalizeUpper(req.query.estado_validacion)); }
     const [rows] = await conn.execute(`
@@ -503,6 +508,7 @@ router.get('/seguimiento', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!canSuperviseEvaluations(req.user)) return sendError(res, 403, 'No tienes permisos para consultar seguimiento.');
+    const idInstitucion = req.user.id_institucion || 1;
     const [rows] = await conn.execute(`
       SELECT
         e.id_evaluacion, e.titulo, UPPER(e.estado) AS estado,
@@ -521,9 +527,10 @@ router.get('/seguimiento', authFromHeader, async (req, res) => {
       LEFT JOIN respuestas_evaluacion rsp ON rsp.id_evaluacion = e.id_evaluacion
       LEFT JOIN evaluacion_resultados rr ON rr.id_evaluacion = e.id_evaluacion
       LEFT JOIN usuarios u ON u.id_usuario = e.creado_por
+      WHERE e.id_institucion = ?
       GROUP BY e.id_evaluacion
       ORDER BY e.creado_en DESC
-      LIMIT 200`, []);
+      LIMIT 200`, [idInstitucion]);
     return res.json({ ok: true, data: rows, seguimiento: rows });
   } catch (error) {
     console.error('ERROR GET /evaluaciones/seguimiento:', error);
@@ -537,9 +544,10 @@ router.get('/grupos', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!canSuperviseEvaluations(req.user)) return sendError(res, 403, 'Acceso restringido.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idPeriodo = Number(req.query?.id_periodo || 0);
-    const where = [];
-    const params = [];
+    const where = ['g.id_institucion = ?'];
+    const params = [idInstitucion];
     if (idPeriodo) { where.push('e.id_periodo = ?'); params.push(idPeriodo); }
     const [rows] = await conn.execute(`
       SELECT g.id_grupo, g.nombre_grupo, g.semestre, g.turno,
@@ -568,9 +576,10 @@ router.get('/seguimiento/grupos', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!canSuperviseEvaluations(req.user)) return sendError(res, 403, 'Acceso restringido.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idGrupo = Number(req.query?.id_grupo || 0);
-    const where = [];
-    const params = [];
+    const where = ['g.id_institucion = ?'];
+    const params = [idInstitucion];
     if (idGrupo) { where.push('g.id_grupo = ?'); params.push(idGrupo); }
     const [rows] = await conn.execute(`
       SELECT g.id_grupo, g.nombre_grupo, g.semestre,
@@ -648,10 +657,11 @@ router.get('/resultados/parciales', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!canSuperviseEvaluations(req.user)) return sendError(res, 403, 'Acceso restringido.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.query?.id_evaluacion || 0);
     const idGrupo = Number(req.query?.id_grupo || 0);
-    const where = [];
-    const params = [];
+    const where = ['e.id_institucion = ?'];
+    const params = [idInstitucion];
     if (idEvaluacion) { where.push('e.id_evaluacion = ?'); params.push(idEvaluacion); }
     if (idGrupo) { where.push('g.id_grupo = ?'); params.push(idGrupo); }
     const [rows] = await conn.execute(`
@@ -681,9 +691,10 @@ router.get('/resultados/parciales', authFromHeader, async (req, res) => {
 router.get('/:id', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.params.id || 0);
     if (!idEvaluacion) return sendError(res, 400, 'ID de evaluaci\u00f3n inv\u00e1lido.');
-    const detail = await loadEvaluationDetail(conn, idEvaluacion);
+    const detail = await loadEvaluationDetail(conn, idEvaluacion, idInstitucion);
     if (!detail) return sendError(res, 404, 'La evaluaci\u00f3n no existe.');
     return res.json({ ok: true, data: detail, evaluacion: detail });
   } catch (error) {
@@ -696,9 +707,10 @@ async function updateEvaluation(req, res) {
   const conn = await pool.getConnection();
   try {
     if (!canAdminEvaluations(req.user)) return sendError(res, 403, 'No tienes permisos para editar evaluaciones.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.params.id || 0);
     if (!idEvaluacion) return sendError(res, 400, 'ID de evaluaci\u00f3n inv\u00e1lido.');
-    const [existsRows] = await conn.execute('SELECT id_evaluacion FROM evaluaciones WHERE id_evaluacion = ? LIMIT 1', [idEvaluacion]);
+    const [existsRows] = await conn.execute('SELECT id_evaluacion FROM evaluaciones WHERE id_evaluacion = ? AND id_institucion = ? LIMIT 1', [idEvaluacion, idInstitucion]);
     if (!existsRows.length) return sendError(res, 404, 'La evaluaci\u00f3n no existe.');
     const body = req.body || {};
     const allowed = [
@@ -721,10 +733,10 @@ async function updateEvaluation(req, res) {
       params.push(value);
     }
     if (!updates.length) return sendError(res, 400, 'No se recibieron campos v\u00e1lidos para actualizar.');
-    params.push(idEvaluacion);
-    await conn.execute(`UPDATE evaluaciones SET ${updates.join(', ')} WHERE id_evaluacion = ?`, params);
+    params.push(idEvaluacion, idInstitucion);
+    await conn.execute(`UPDATE evaluaciones SET ${updates.join(', ')} WHERE id_evaluacion = ? AND id_institucion = ?`, params);
     await logAuditoria(conn, idEvaluacion, Number(req.user?.id_usuario || 0), 'EDITAR', `Evaluaci\u00f3n #${idEvaluacion} actualizada`, null, req.ip);
-    const detail = await loadEvaluationDetail(conn, idEvaluacion);
+    const detail = await loadEvaluationDetail(conn, idEvaluacion, idInstitucion);
     return res.json({ ok: true, message: 'Evaluaci\u00f3n actualizada correctamente.', data: detail });
   } catch (error) {
     console.error('ERROR UPDATE /evaluaciones/:id:', error);
@@ -738,11 +750,12 @@ router.delete('/:id', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!canAdminEvaluations(req.user)) return sendError(res, 403, 'No tienes permisos para eliminar evaluaciones.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.params.id || 0);
     if (!idEvaluacion) return sendError(res, 400, 'ID de evaluaci\u00f3n inv\u00e1lido.');
-    const [evalRow] = await conn.execute('SELECT titulo FROM evaluaciones WHERE id_evaluacion = ? LIMIT 1', [idEvaluacion]);
+    const [evalRow] = await conn.execute('SELECT titulo FROM evaluaciones WHERE id_evaluacion = ? AND id_institucion = ? LIMIT 1', [idEvaluacion, idInstitucion]);
     const titulo = evalRow?.[0]?.titulo || `#${idEvaluacion}`;
-    const [result] = await conn.execute('DELETE FROM evaluaciones WHERE id_evaluacion = ?', [idEvaluacion]);
+    const [result] = await conn.execute('DELETE FROM evaluaciones WHERE id_evaluacion = ? AND id_institucion = ?', [idEvaluacion, idInstitucion]);
     if (!result.affectedRows) return sendError(res, 404, 'La evaluaci\u00f3n no existe.');
     await logAuditoria(conn, idEvaluacion, Number(req.user?.id_usuario || 0), 'ELIMINAR', `Evaluaci\u00f3n "${titulo}" eliminada`, null, req.ip);
     return res.json({ ok: true, message: 'Evaluaci\u00f3n eliminada correctamente.' });
@@ -755,9 +768,10 @@ router.delete('/:id', authFromHeader, async (req, res) => {
 router.get('/:id/preguntas', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.params.id || 0);
     if (!idEvaluacion) return sendError(res, 400, 'ID de evaluaci\u00f3n inv\u00e1lido.');
-    const [rows] = await conn.execute('SELECT id_pregunta, id_evaluacion, id_pregunta_plantilla, criterio, descripcion, peso, tipo_respuesta, orden_pregunta, activo FROM evaluacion_preguntas WHERE id_evaluacion = ? ORDER BY orden_pregunta ASC, id_pregunta ASC', [idEvaluacion]);
+    const [rows] = await conn.execute('SELECT id_pregunta, id_evaluacion, id_pregunta_plantilla, criterio, descripcion, peso, tipo_respuesta, orden_pregunta, activo FROM evaluacion_preguntas WHERE id_evaluacion = ? AND id_institucion = ? ORDER BY orden_pregunta ASC, id_pregunta ASC', [idEvaluacion, idInstitucion]);
     return res.json({ ok: true, preguntas: rows, data: rows });
   } catch (error) {
     console.error('ERROR GET /evaluaciones/:id/preguntas:', error);
@@ -768,11 +782,12 @@ router.get('/:id/preguntas', authFromHeader, async (req, res) => {
 router.post('/responder', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
+    const idInstitucion = req.user.id_institucion || 1;
     const body = req.body || {};
     const idEvaluacion = Number(body.id_evaluacion || 0);
     const idPregunta = Number(body.id_pregunta || 0);
     if (!idEvaluacion || !idPregunta) return sendError(res, 400, 'ID de evaluaci\u00f3n e ID de pregunta son obligatorios.');
-    const [evalRow] = await conn.execute('SELECT UPPER(estado) AS estado FROM evaluaciones WHERE id_evaluacion = ? LIMIT 1', [idEvaluacion]);
+    const [evalRow] = await conn.execute('SELECT UPPER(estado) AS estado FROM evaluaciones WHERE id_evaluacion = ? AND id_institucion = ? LIMIT 1', [idEvaluacion, idInstitucion]);
     if (!evalRow.length) return sendError(res, 404, 'La evaluaci\u00f3n no existe.');
     if (evalRow[0].estado !== 'ACTIVA') return sendError(res, 400, 'Solo se pueden responder evaluaciones en estado ACTIVA.');
 
@@ -800,7 +815,7 @@ router.post('/responder', authFromHeader, async (req, res) => {
 
     const valorNumero = body.valor_numero === '' || body.valor_numero === null || typeof body.valor_numero === 'undefined' ? null : Number(body.valor_numero);
     const valorTexto = body.valor_texto === null || typeof body.valor_texto === 'undefined' ? null : normalizeText(body.valor_texto);
-    const [questionRows] = await conn.execute('SELECT id_pregunta, id_pregunta_plantilla, tipo_respuesta FROM evaluacion_preguntas WHERE id_pregunta = ? AND id_evaluacion = ? LIMIT 1', [idPregunta, idEvaluacion]);
+    const [questionRows] = await conn.execute('SELECT id_pregunta, id_pregunta_plantilla, tipo_respuesta FROM evaluacion_preguntas WHERE id_pregunta = ? AND id_evaluacion = ? AND id_institucion = ? LIMIT 1', [idPregunta, idEvaluacion, idInstitucion]);
     if (!questionRows.length) return sendError(res, 404, 'La pregunta seleccionada no existe en esta evaluaci\u00f3n.');
     const tipoRespuesta = normalizeUpper(questionRows[0].tipo_respuesta);
     let sourceQuestionId = questionRows[0].id_pregunta_plantilla ? Number(questionRows[0].id_pregunta_plantilla) : null;
@@ -848,14 +863,15 @@ router.post('/:id/activar', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!canAdminEvaluations(req.user)) return sendError(res, 403, 'No tienes permisos para activar evaluaciones.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.params.id || 0);
     if (!idEvaluacion) return sendError(res, 400, 'ID de evaluaci\u00f3n inv\u00e1lido.');
-    const [rows] = await conn.execute('SELECT UPPER(estado) AS estado, titulo FROM evaluaciones WHERE id_evaluacion = ? LIMIT 1', [idEvaluacion]);
+    const [rows] = await conn.execute('SELECT UPPER(estado) AS estado, titulo FROM evaluaciones WHERE id_evaluacion = ? AND id_institucion = ? LIMIT 1', [idEvaluacion, idInstitucion]);
     if (!rows.length) return sendError(res, 404, 'La evaluaci\u00f3n no existe.');
     if (rows[0].estado === 'ACTIVA') return sendError(res, 400, 'La evaluaci\u00f3n ya est\u00e1 activa.');
     if (rows[0].estado === 'CERRADA') return sendError(res, 400, 'No se puede activar una evaluaci\u00f3n cerrada.');
     if (rows[0].estado === 'CANCELADA') return sendError(res, 400, 'No se puede activar una evaluaci\u00f3n cancelada.');
-    await conn.execute('UPDATE evaluaciones SET estado = ? WHERE id_evaluacion = ?', ['ACTIVA', idEvaluacion]);
+    await conn.execute('UPDATE evaluaciones SET estado = ? WHERE id_evaluacion = ? AND id_institucion = ?', ['ACTIVA', idEvaluacion, idInstitucion]);
     await logAuditoria(conn, idEvaluacion, Number(req.user?.id_usuario || 0), 'ACTIVAR', `Evaluaci\u00f3n "${rows[0].titulo}" activada`, null, req.ip);
     return res.json({ ok: true, message: 'Evaluaci\u00f3n activada correctamente.' });
   } catch (error) {
@@ -868,15 +884,16 @@ router.post('/:id/cerrar', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!canAdminEvaluations(req.user)) return sendError(res, 403, 'No tienes permisos para cerrar evaluaciones.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.params.id || 0);
     if (!idEvaluacion) return sendError(res, 400, 'ID de evaluaci\u00f3n inv\u00e1lido.');
-    const [rows] = await conn.execute('SELECT UPPER(estado) AS estado, titulo FROM evaluaciones WHERE id_evaluacion = ? LIMIT 1', [idEvaluacion]);
+    const [rows] = await conn.execute('SELECT UPPER(estado) AS estado, titulo FROM evaluaciones WHERE id_evaluacion = ? AND id_institucion = ? LIMIT 1', [idEvaluacion, idInstitucion]);
     if (!rows.length) return sendError(res, 404, 'La evaluaci\u00f3n no existe.');
     if (rows[0].estado === 'CERRADA') return sendError(res, 400, 'La evaluaci\u00f3n ya est\u00e1 cerrada.');
     if (rows[0].estado === 'CANCELADA') return sendError(res, 400, 'No se puede cerrar una evaluaci\u00f3n cancelada.');
     const observaciones = normalizeText(req.body?.observaciones || req.body?.motivo || '');
-    await conn.execute('UPDATE evaluaciones SET estado = ?, cerrado_por = ?, cerrado_en = NOW(), cerrado_observaciones = ? WHERE id_evaluacion = ?',
-      ['CERRADA', Number(req.user?.id_usuario || 0), observaciones || null, idEvaluacion]);
+    await conn.execute('UPDATE evaluaciones SET estado = ?, cerrado_por = ?, cerrado_en = NOW(), cerrado_observaciones = ? WHERE id_evaluacion = ? AND id_institucion = ?',
+      ['CERRADA', Number(req.user?.id_usuario || 0), observaciones || null, idEvaluacion, idInstitucion]);
     await logAuditoria(conn, idEvaluacion, Number(req.user?.id_usuario || 0), 'CERRAR', `Evaluaci\u00f3n "${rows[0].titulo}" cerrada`, observaciones || null, req.ip);
     return res.json({ ok: true, message: 'Evaluaci\u00f3n cerrada correctamente.' });
   } catch (error) {
@@ -889,14 +906,15 @@ router.post('/:id/cancelar', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!canAdminEvaluations(req.user)) return sendError(res, 403, 'No tienes permisos para cancelar evaluaciones.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.params.id || 0);
     if (!idEvaluacion) return sendError(res, 400, 'ID de evaluaci\u00f3n inv\u00e1lido.');
-    const [rows] = await conn.execute('SELECT UPPER(estado) AS estado, titulo FROM evaluaciones WHERE id_evaluacion = ? LIMIT 1', [idEvaluacion]);
+    const [rows] = await conn.execute('SELECT UPPER(estado) AS estado, titulo FROM evaluaciones WHERE id_evaluacion = ? AND id_institucion = ? LIMIT 1', [idEvaluacion, idInstitucion]);
     if (!rows.length) return sendError(res, 404, 'La evaluaci\u00f3n no existe.');
     if (rows[0].estado === 'CANCELADA') return sendError(res, 400, 'La evaluaci\u00f3n ya est\u00e1 cancelada.');
     const motivo = normalizeText(req.body?.observaciones || req.body?.motivo || 'Sin motivo especificado');
-    await conn.execute('UPDATE evaluaciones SET estado = ?, cerrado_por = ?, cerrado_en = NOW(), cerrado_observaciones = ? WHERE id_evaluacion = ?',
-      ['CANCELADA', Number(req.user?.id_usuario || 0), motivo, idEvaluacion]);
+    await conn.execute('UPDATE evaluaciones SET estado = ?, cerrado_por = ?, cerrado_en = NOW(), cerrado_observaciones = ? WHERE id_evaluacion = ? AND id_institucion = ?',
+      ['CANCELADA', Number(req.user?.id_usuario || 0), motivo, idEvaluacion, idInstitucion]);
     await logAuditoria(conn, idEvaluacion, Number(req.user?.id_usuario || 0), 'CANCELAR', `Evaluaci\u00f3n "${rows[0].titulo}" cancelada`, motivo, req.ip);
     return res.json({ ok: true, message: 'Evaluaci\u00f3n cancelada correctamente.' });
   } catch (error) {
@@ -909,18 +927,19 @@ router.post('/:id/validar', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!canAdminEvaluations(req.user)) return sendError(res, 403, 'No tienes permisos para validar evaluaciones.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.params.id || 0);
     if (!idEvaluacion) return sendError(res, 400, 'ID de evaluaci\u00f3n inv\u00e1lido.');
-    const [rows] = await conn.execute('SELECT UPPER(estado) AS estado, titulo FROM evaluaciones WHERE id_evaluacion = ? LIMIT 1', [idEvaluacion]);
+    const [rows] = await conn.execute('SELECT UPPER(estado) AS estado, titulo FROM evaluaciones WHERE id_evaluacion = ? AND id_institucion = ? LIMIT 1', [idEvaluacion, idInstitucion]);
     if (!rows.length) return sendError(res, 404, 'La evaluaci\u00f3n no existe.');
     const idResultado = Number(req.body?.id_resultado || 0);
     if (!idResultado) return sendError(res, 400, 'ID de resultado es obligatorio.');
-    const [resRows] = await conn.execute('SELECT id_resultado FROM evaluacion_resultados WHERE id_resultado = ? AND id_evaluacion = ? LIMIT 1', [idResultado, idEvaluacion]);
+    const [resRows] = await conn.execute('SELECT id_resultado FROM evaluacion_resultados WHERE id_resultado = ? AND id_evaluacion = ? AND id_institucion = ? LIMIT 1', [idResultado, idEvaluacion, idInstitucion]);
     if (!resRows.length) return sendError(res, 404, 'El resultado no existe para esta evaluaci\u00f3n.');
     const estadoValidacion = normalizeUpper(req.body?.estado_validacion || 'VALIDADO');
     if (!['VALIDADO', 'RECHAZADO', 'NO_VALIDADO'].includes(estadoValidacion)) return sendError(res, 400, 'Estado de validaci\u00f3n inv\u00e1lido.');
-    await conn.execute('UPDATE evaluacion_resultados SET estado_validacion = ?, validado_por = ?, validado_en = NOW() WHERE id_resultado = ?',
-      [estadoValidacion, Number(req.user?.id_usuario || 0), idResultado]);
+    await conn.execute('UPDATE evaluacion_resultados SET estado_validacion = ?, validado_por = ?, validado_en = NOW() WHERE id_resultado = ? AND id_institucion = ?',
+      [estadoValidacion, Number(req.user?.id_usuario || 0), idResultado, idInstitucion]);
     await logAuditoria(conn, idEvaluacion, Number(req.user?.id_usuario || 0), 'VALIDAR',
       `Resultado #${idResultado} ${estadoValidacion === 'VALIDADO' ? 'validado' : estadoValidacion === 'RECHAZADO' ? 'rechazado' : 'reabierto'} para evaluaci\u00f3n "${rows[0].titulo}"`, null, req.ip);
     const label = estadoValidacion === 'VALIDADO' ? 'validado' : estadoValidacion === 'RECHAZADO' ? 'rechazado' : 'actualizado';
@@ -958,9 +977,10 @@ router.get('/:id/exportar', authFromHeader, async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!canAdminEvaluations(req.user)) return sendError(res, 403, 'No tienes permisos para exportar evaluaciones.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.params.id || 0);
     if (!idEvaluacion) return sendError(res, 400, 'ID de evaluaci\u00f3n inv\u00e1lido.');
-    const detail = await loadEvaluationDetail(conn, idEvaluacion);
+    const detail = await loadEvaluationDetail(conn, idEvaluacion, idInstitucion);
     if (!detail) return sendError(res, 404, 'La evaluaci\u00f3n no existe.');
     const [respuestas] = await conn.execute(`
       SELECT r.id_respuesta, r.id_pregunta, r.id_alumno, r.id_docente, r.valor_numero, r.valor_texto, r.creado_en,
@@ -969,8 +989,8 @@ router.get('/:id/exportar', authFromHeader, async (req, res) => {
       FROM respuestas_evaluacion r
       LEFT JOIN alumnos a ON a.id_alumno = r.id_alumno
       LEFT JOIN docentes d ON d.id_docente = r.id_docente
-      WHERE r.id_evaluacion = ?
-      ORDER BY r.creado_en DESC`, [idEvaluacion]);
+      WHERE r.id_evaluacion = ? AND r.id_institucion = ?
+      ORDER BY r.creado_en DESC`, [idEvaluacion, idInstitucion]);
     await logAuditoria(conn, idEvaluacion, Number(req.user?.id_usuario || 0), 'EXPORTAR', `Evaluaci\u00f3n "${detail.titulo}" exportada en JSON`, null, req.ip);
     return res.json({
       ok: true,

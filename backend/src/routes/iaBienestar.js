@@ -65,7 +65,7 @@ function authRequired(req, res, next) {
   }
 
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     return next();
   } catch (error) {
     return res.status(401).json({
@@ -449,7 +449,8 @@ Necesito una respuesta breve con:
   return text || null;
 }
 
-async function loadCatalogos(conn) {
+async function loadCatalogos(conn, id_institucion) {
+  const inst = id_institucion || 1;
   const [plantillas] = await conn.execute(
     `SELECT
       id_plantilla,
@@ -464,8 +465,9 @@ async function loadCatalogos(conn) {
       estado,
       orden_visual
      FROM ia_bienestar_plantillas
-     WHERE estado = 'ACTIVA'
-     ORDER BY orden_visual ASC, id_plantilla ASC`
+     WHERE estado = 'ACTIVA' AND id_institucion = ?
+     ORDER BY orden_visual ASC, id_plantilla ASC`,
+    [inst]
   );
 
   const [preguntas] = await conn.execute(
@@ -484,8 +486,9 @@ async function loadCatalogos(conn) {
       p.max_valor
      FROM ia_bienestar_plantilla_preguntas p
      INNER JOIN ia_bienestar_plantillas pl ON pl.id_plantilla = p.id_plantilla
-     WHERE pl.estado = 'ACTIVA'
-     ORDER BY pl.orden_visual ASC, p.orden_pregunta ASC`
+     WHERE pl.estado = 'ACTIVA' AND p.id_institucion = ?
+     ORDER BY pl.orden_visual ASC, p.orden_pregunta ASC`,
+    [inst]
   );
 
   const [recursos] = await conn.execute(
@@ -500,8 +503,9 @@ async function loadCatalogos(conn) {
       url,
       orden_visual
      FROM ia_bienestar_recursos
-     WHERE activo = 1
-     ORDER BY orden_visual ASC, id_recurso ASC`
+     WHERE activo = 1 AND id_institucion = ?
+     ORDER BY orden_visual ASC, id_recurso ASC`,
+    [inst]
   );
 
   const preguntasPorPlantilla = preguntas.reduce((acc, item) => {
@@ -519,7 +523,7 @@ async function loadCatalogos(conn) {
   };
 }
 
-async function getLatestSession(conn, userId) {
+async function getLatestSession(conn, userId, id_institucion) {
   const [rows] = await conn.execute(
     `SELECT
       id_sesion,
@@ -532,10 +536,10 @@ async function getLatestSession(conn, userId) {
       actualizado_en,
       creado_en
      FROM ia_bienestar_sesiones
-     WHERE id_usuario = ?
+     WHERE id_usuario = ? AND id_institucion = ?
      ORDER BY actualizado_en DESC, id_sesion DESC
      LIMIT 1`,
-    [userId]
+    [userId, id_institucion || 1]
   );
 
   return rows[0] || null;
@@ -548,33 +552,37 @@ async function createSession(conn, user, payload = {}) {
   const objective = normalizeText(payload.objetivo || '') ||
     'Acompañamiento preventivo y seguimiento estudiantil';
 
+  const idInstitucion = user.id_institucion || payload.id_institucion || 1;
+
   const [result] = await conn.execute(
     `INSERT INTO ia_bienestar_sesiones
-      (id_usuario, perfil_usuario, titulo, objetivo, estado, nivel_riesgo_actual, creado_en, actualizado_en)
-     VALUES (?, ?, ?, ?, 'ACTIVA', 'Bajo', NOW(), NOW())`,
+      (id_usuario, perfil_usuario, titulo, objetivo, estado, nivel_riesgo_actual, id_institucion, creado_en, actualizado_en)
+     VALUES (?, ?, ?, ?, 'ACTIVA', 'Bajo', ?, NOW(), NOW())`,
     [
       user.id_usuario,
       getRoleLabel(user),
       title,
-      objective
+      objective,
+      idInstitucion
     ]
   );
 
   return result.insertId;
 }
 
-async function saveMessage(conn, sessionId, userId, role, content, riskLevel = 'Bajo', metadata = {}) {
+async function saveMessage(conn, sessionId, userId, role, content, riskLevel = 'Bajo', metadata = {}, id_institucion) {
   await conn.execute(
     `INSERT INTO ia_bienestar_mensajes
-      (id_sesion, id_usuario, rol_mensaje, mensaje, nivel_riesgo, metadata_json, creado_en)
-     VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+      (id_sesion, id_usuario, rol_mensaje, mensaje, nivel_riesgo, metadata_json, id_institucion, creado_en)
+     VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
     [
       sessionId,
       userId,
       role,
       content,
       riskLevel,
-      JSON.stringify(metadata || {})
+      JSON.stringify(metadata || {}),
+      id_institucion || 1
     ]
   );
 }
@@ -584,8 +592,8 @@ async function saveCheckin(conn, data) {
     `INSERT INTO ia_bienestar_checkins
       (id_usuario, id_sesion, codigo_plantilla, bienestar_score, indice_riesgo, nivel_riesgo,
        animo, energia, sueno, estres, apoyo, ambiente, carga_academica, carga_laboral, enfoque,
-       observaciones, analisis_json, creado_en)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+       observaciones, analisis_json, id_institucion, creado_en)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
     [
       data.id_usuario,
       data.id_sesion,
@@ -603,7 +611,8 @@ async function saveCheckin(conn, data) {
       data.carga_laboral,
       data.enfoque,
       data.observaciones,
-      JSON.stringify(data.analisis_json || {})
+      JSON.stringify(data.analisis_json || {}),
+      data.id_institucion || 1
     ]
   );
 
@@ -614,8 +623,8 @@ async function saveAlert(conn, data) {
   const [result] = await conn.execute(
     `INSERT INTO ia_bienestar_alertas
       (id_usuario, id_sesion, codigo_plantilla, tipo_alerta, nivel_riesgo, descripcion,
-       accion_sugerida, requiere_derivacion, estado, metadata_json, creado_en)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+       accion_sugerida, requiere_derivacion, estado, metadata_json, id_institucion, creado_en)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
     [
       data.id_usuario,
       data.id_sesion,
@@ -626,7 +635,8 @@ async function saveAlert(conn, data) {
       data.accion_sugerida,
       data.requiere_derivacion ? 1 : 0,
       data.estado || 'PENDIENTE',
-      JSON.stringify(data.metadata_json || {})
+      JSON.stringify(data.metadata_json || {}),
+      data.id_institucion || 1
     ]
   );
 
@@ -734,7 +744,8 @@ router.get('/catalogos', authRequired, async (req, res) => {
   const conn = await pool.getConnection();
 
   try {
-    const catalogos = await loadCatalogos(conn);
+      const idInstitucion = req.user.id_institucion || 1;
+      const catalogos = await loadCatalogos(conn, idInstitucion);
 
     return res.json({
       ok: true,
@@ -763,6 +774,7 @@ router.get('/resumen', authRequired, async (req, res) => {
 
   try {
     const userId = Number(req.user.id_usuario || 0);
+    const idInstitucion = req.user.id_institucion || 1;
 
     const [metricsRows] = await conn.execute(
       `SELECT
@@ -772,16 +784,16 @@ router.get('/resumen', authRequired, async (req, res) => {
         COALESCE(SUM(CASE WHEN nivel_riesgo = 'Alto' THEN 1 ELSE 0 END), 0) AS alertas_altas,
         COALESCE(SUM(CASE WHEN nivel_riesgo = 'Medio' THEN 1 ELSE 0 END), 0) AS alertas_medias
        FROM ia_bienestar_checkins
-       WHERE id_usuario = ?`,
-      [userId]
+       WHERE id_usuario = ? AND id_institucion = ?`,
+      [userId, idInstitucion]
     );
 
     const [sessionRows] = await conn.execute(
       `SELECT
         COUNT(*) AS sesiones_activas
        FROM ia_bienestar_sesiones
-       WHERE id_usuario = ? AND estado = 'ACTIVA'`,
-      [userId]
+       WHERE id_usuario = ? AND estado = 'ACTIVA' AND id_institucion = ?`,
+      [userId, idInstitucion]
     );
 
     const [lastRows] = await conn.execute(
@@ -791,10 +803,10 @@ router.get('/resumen', authRequired, async (req, res) => {
         nivel_riesgo,
         creado_en
        FROM ia_bienestar_checkins
-       WHERE id_usuario = ?
+       WHERE id_usuario = ? AND id_institucion = ?
        ORDER BY creado_en DESC, id_checkin DESC
        LIMIT 1`,
-      [userId]
+      [userId, idInstitucion]
     );
 
     return res.json({
@@ -825,9 +837,10 @@ router.get('/historial', authRequired, async (req, res) => {
 
   try {
     const userId = Number(req.user.id_usuario || 0);
+    const idInstitucion = req.user.id_institucion || 1;
     const limite = clamp(Number(req.query.limite || 20), 5, 50);
 
-    const session = await getLatestSession(conn, userId);
+    const session = await getLatestSession(conn, userId, idInstitucion);
 
     if (!session) {
       return res.json({
@@ -851,10 +864,10 @@ router.get('/historial', authRequired, async (req, res) => {
         metadata_json,
         creado_en
        FROM ia_bienestar_mensajes
-       WHERE id_sesion = ?
+       WHERE id_sesion = ? AND id_institucion = ?
        ORDER BY id_mensaje DESC
        LIMIT ?`,
-      [session.id_sesion, limite]
+      [session.id_sesion, idInstitucion, limite]
     );
 
     const [checkins] = await conn.execute(
@@ -867,10 +880,10 @@ router.get('/historial', authRequired, async (req, res) => {
         observaciones,
         creado_en
        FROM ia_bienestar_checkins
-       WHERE id_sesion = ?
+       WHERE id_sesion = ? AND id_institucion = ?
        ORDER BY id_checkin DESC
        LIMIT 10`,
-      [session.id_sesion]
+      [session.id_sesion, idInstitucion]
     );
 
     const [alerts] = await conn.execute(
@@ -884,10 +897,10 @@ router.get('/historial', authRequired, async (req, res) => {
         estado,
         creado_en
        FROM ia_bienestar_alertas
-       WHERE id_sesion = ?
+       WHERE id_sesion = ? AND id_institucion = ?
        ORDER BY id_alerta DESC
        LIMIT 10`,
-      [session.id_sesion]
+      [session.id_sesion, idInstitucion]
     );
 
     return res.json({
@@ -915,6 +928,7 @@ router.post('/checkin', authRequired, async (req, res) => {
 
   try {
     const userId = Number(req.user.id_usuario || 0);
+    const idInstitucion = req.user.id_institucion || 1;
     const perfilUsuario = getRoleLabel(req.user);
     const codigoPlantilla = normalizeUpper(
       req.body?.codigo_plantilla || req.body?.plantilla || 'BIENESTAR_GENERAL'
@@ -934,9 +948,9 @@ router.post('/checkin', authRequired, async (req, res) => {
         estado,
         orden_visual
        FROM ia_bienestar_plantillas
-       WHERE codigo_plantilla = ?
+       WHERE codigo_plantilla = ? AND id_institucion = ?
        LIMIT 1`,
-      [codigoPlantilla]
+      [codigoPlantilla, idInstitucion]
     );
 
     const template = templateRows[0];
@@ -954,9 +968,9 @@ router.post('/checkin', authRequired, async (req, res) => {
       const [sessionRows] = await conn.execute(
         `SELECT id_sesion, id_usuario, perfil_usuario, estado
          FROM ia_bienestar_sesiones
-         WHERE id_sesion = ? AND id_usuario = ?
+         WHERE id_sesion = ? AND id_usuario = ? AND id_institucion = ?
          LIMIT 1`,
-        [Number(req.body.id_sesion), userId]
+        [Number(req.body.id_sesion), userId, idInstitucion]
       );
       session = sessionRows[0] || null;
     }
@@ -1002,14 +1016,15 @@ router.post('/checkin', authRequired, async (req, res) => {
         plantilla: template.nombre_plantilla,
         riesgo_crisis: crisis,
         codigo_plantilla: codigoPlantilla
-      }
+      },
+      id_institucion: idInstitucion
     });
 
     await conn.execute(
       `UPDATE ia_bienestar_sesiones
        SET nivel_riesgo_actual = ?, bienestar_score = ?, indice_riesgo = ?, actualizado_en = NOW()
-       WHERE id_sesion = ?`,
-      [nivelRiesgo, bienestarScore, indiceRiesgo, session.id_sesion]
+       WHERE id_sesion = ? AND id_institucion = ?`,
+      [nivelRiesgo, bienestarScore, indiceRiesgo, session.id_sesion, idInstitucion]
     );
 
     let alertaId = null;
@@ -1033,7 +1048,8 @@ router.post('/checkin', authRequired, async (req, res) => {
           checkin_id: checkinId,
           bienestar_score: bienestarScore,
           indice_riesgo: indiceRiesgo
-        }
+        },
+        id_institucion: idInstitucion
       });
     }
 
@@ -1066,7 +1082,8 @@ router.post('/checkin', authRequired, async (req, res) => {
         type: 'checkin',
         checkin_id: checkinId,
         codigo_plantilla: codigoPlantilla
-      }
+      },
+      idInstitucion
     );
 
     await saveMessage(
@@ -1080,7 +1097,8 @@ router.post('/checkin', authRequired, async (req, res) => {
         type: 'assistant-checkin',
         checkin_id: checkinId,
         alerta_id: alertaId
-      }
+      },
+      idInstitucion
     );
 
     return res.json({
@@ -1102,7 +1120,7 @@ router.post('/checkin', authRequired, async (req, res) => {
         recomendaciones: fallback.recomendaciones,
         ejercicios: fallback.ejercicios,
         cierre: fallback.cierre,
-        recursos: nivelRiesgo === 'Crítico' ? getCrisisResources() : (await loadCatalogos(conn)).recursos.slice(0, 4),
+        recursos: nivelRiesgo === 'Crítico' ? getCrisisResources() : (await loadCatalogos(conn, idInstitucion)).recursos.slice(0, 4),
         requiere_atencion_inmediata: crisis || nivelRiesgo === 'Crítico',
         regla_oro: template.regla_oro || null
       }
@@ -1123,6 +1141,7 @@ router.post('/chat', authRequired, async (req, res) => {
 
   try {
     const userId = Number(req.user.id_usuario || 0);
+    const idInstitucion = req.user.id_institucion || 1;
     const perfilUsuario = getRoleLabel(req.user);
     const mensaje = normalizeText(req.body?.mensaje);
 
@@ -1141,9 +1160,9 @@ router.post('/chat', authRequired, async (req, res) => {
       const [sessionRows] = await conn.execute(
         `SELECT id_sesion, id_usuario, perfil_usuario, estado
          FROM ia_bienestar_sesiones
-         WHERE id_sesion = ? AND id_usuario = ?
+         WHERE id_sesion = ? AND id_usuario = ? AND id_institucion = ?
          LIMIT 1`,
-        [Number(req.body.id_sesion), userId]
+        [Number(req.body.id_sesion), userId, idInstitucion]
       );
       session = sessionRows[0] || null;
     }
@@ -1165,9 +1184,9 @@ router.post('/chat', authRequired, async (req, res) => {
         descripcion,
         regla_oro
        FROM ia_bienestar_plantillas
-       WHERE codigo_plantilla = ?
+       WHERE codigo_plantilla = ? AND id_institucion = ?
        LIMIT 1`,
-      [codigoPlantilla]
+      [codigoPlantilla, idInstitucion]
     );
 
     const template = templateRows[0] || {
@@ -1184,17 +1203,17 @@ router.post('/chat', authRequired, async (req, res) => {
         nivel_riesgo,
         creado_en
        FROM ia_bienestar_mensajes
-       WHERE id_sesion = ?
+       WHERE id_sesion = ? AND id_institucion = ?
        ORDER BY id_mensaje DESC
        LIMIT 8`,
-      [session.id_sesion]
+      [session.id_sesion, idInstitucion]
     );
 
     const history = (recentHistory[0] || []).reverse();
 
     await saveMessage(conn, session.id_sesion, userId, 'user', mensaje, crisis ? 'Crítico' : 'Bajo', {
       type: 'chat'
-    });
+    }, idInstitucion);
 
     let responseText = '';
     let nivelRiesgo = 'Bajo';
@@ -1223,7 +1242,8 @@ router.post('/chat', authRequired, async (req, res) => {
         estado: 'PENDIENTE',
         metadata_json: {
           mensaje
-        }
+        },
+        id_institucion: idInstitucion
       });
     } else {
       try {
@@ -1258,13 +1278,13 @@ router.post('/chat', authRequired, async (req, res) => {
     await saveMessage(conn, session.id_sesion, userId, 'assistant', responseText, nivelRiesgo, {
       type: 'chat-reply',
       alerta_id: alertaId
-    });
+    }, idInstitucion);
 
     await conn.execute(
       `UPDATE ia_bienestar_sesiones
        SET nivel_riesgo_actual = ?, bienestar_score = ?, indice_riesgo = ?, actualizado_en = NOW()
-       WHERE id_sesion = ?`,
-      [nivelRiesgo, bienestarScore, indiceRiesgo, session.id_sesion]
+       WHERE id_sesion = ? AND id_institucion = ?`,
+      [nivelRiesgo, bienestarScore, indiceRiesgo, session.id_sesion, idInstitucion]
     );
 
     const fallback = buildAssistantFallback({
@@ -1275,7 +1295,7 @@ router.post('/chat', authRequired, async (req, res) => {
     });
 
     if (!resources.length) {
-      const catalogos = await loadCatalogos(conn);
+    const catalogos = await loadCatalogos(conn, req.user.id_institucion || 1);
       resources = catalogos.recursos.slice(0, 4);
     }
 
@@ -1350,6 +1370,7 @@ router.post('/escalar', authRequired, async (req, res) => {
 
   try {
     const userId = Number(req.user.id_usuario || 0);
+    const idInstitucion = req.user.id_institucion || 1;
     const motivo = normalizeText(req.body?.motivo || req.body?.descripcion || '');
     const nivelRiesgo = normalizeText(req.body?.nivel_riesgo || 'Alto');
     const codigoPlantilla = normalizeUpper(req.body?.codigo_plantilla || 'BIENESTAR_GENERAL');
@@ -1374,19 +1395,21 @@ router.post('/escalar', authRequired, async (req, res) => {
       estado: 'PENDIENTE',
       metadata_json: {
         origen: 'manual'
-      }
+      },
+      id_institucion: idInstitucion
     });
 
     await conn.execute(
       `INSERT INTO ia_bienestar_derivaciones
-        (id_alerta, id_usuario, destino, motivo, estado, observaciones, creado_en)
-       VALUES (?, ?, ?, ?, 'PENDIENTE', ?, NOW())`,
+        (id_alerta, id_usuario, destino, motivo, estado, observaciones, id_institucion, creado_en)
+       VALUES (?, ?, ?, ?, 'PENDIENTE', ?, ?, NOW())`,
       [
         alertaId,
         userId,
         'Orientación / Tutoría / Acompañamiento',
         motivo,
-        normalizeText(req.body?.observaciones || '')
+        normalizeText(req.body?.observaciones || ''),
+        idInstitucion
       ]
     );
 
@@ -1412,6 +1435,7 @@ router.post('/escalar', authRequired, async (req, res) => {
 router.get('/estado-acompanamiento', authRequired, async (req, res) => {
   try {
     const userId = Number(req.user.id_usuario || 0);
+    const idInstitucion = req.user.id_institucion || 1;
     if (!userId) return res.status(401).json({ ok: false, message: 'Usuario no identificado' });
 
     const [[alumnoRow]] = await pool.execute(`
@@ -1433,19 +1457,19 @@ router.get('/estado-acompanamiento', authRequired, async (req, res) => {
         bienestar_score, indice_riesgo,
         creado_en AS iniciada_en, DATE_ADD(creado_en, INTERVAL 30 DAY) AS expira_en
       FROM ia_bienestar_sesiones
-      WHERE id_usuario = ? AND estado = 'ACTIVA'
+      WHERE id_usuario = ? AND estado = 'ACTIVA' AND id_institucion = ?
       ORDER BY creado_en DESC
       LIMIT 1
-    `, [userId]);
+    `, [userId, idInstitucion]);
 
     const [[ultimoCheckin]] = await pool.execute(`
       SELECT id_checkin, codigo_plantilla, bienestar_score, indice_riesgo,
         nivel_riesgo, animo, energia, estres, creado_en
       FROM ia_bienestar_checkins
-      WHERE id_usuario = ?
+      WHERE id_usuario = ? AND id_institucion = ?
       ORDER BY creado_en DESC
       LIMIT 1
-    `, [userId]);
+    `, [userId, idInstitucion]);
 
     const [alertasRows] = await pool.execute(`
       SELECT COUNT(*) AS total_alertas,
@@ -1453,23 +1477,23 @@ router.get('/estado-acompanamiento', authRequired, async (req, res) => {
         SUM(CASE WHEN estado = 'PENDIENTE' THEN 1 ELSE 0 END) AS alertas_pendientes,
         SUM(CASE WHEN estado IN ('ATENDIDA','CERRADA') THEN 1 ELSE 0 END) AS alertas_atendidas
       FROM ia_bienestar_alertas
-      WHERE id_usuario = ?
-    `, [userId]);
+      WHERE id_usuario = ? AND id_institucion = ?
+    `, [userId, idInstitucion]);
 
     const [derivacionesRows] = await pool.execute(`
       SELECT COUNT(*) AS total_intervenciones
       FROM ia_bienestar_derivaciones d
       INNER JOIN ia_bienestar_alertas a ON a.id_alerta = d.id_alerta
-      WHERE a.id_usuario = ?
-    `, [userId]);
+      WHERE a.id_usuario = ? AND a.id_institucion = ?
+    `, [userId, idInstitucion]);
 
     const [checkinsRecientes] = await pool.execute(`
       SELECT creado_en, bienestar_score, nivel_riesgo
       FROM ia_bienestar_checkins
-      WHERE id_usuario = ?
+      WHERE id_usuario = ? AND id_institucion = ?
       ORDER BY creado_en DESC
       LIMIT 5
-    `, [userId]);
+    `, [userId, idInstitucion]);
 
     return res.json({
       ok: true,
@@ -1499,6 +1523,7 @@ router.get('/estado-acompanamiento', authRequired, async (req, res) => {
 router.get('/progreso', authRequired, async (req, res) => {
   try {
     const userId = Number(req.user.id_usuario || 0);
+    const idInstitucion = req.user.id_institucion || 1;
     if (!userId) return res.status(401).json({ ok: false, message: 'Usuario no identificado' });
 
     const [rows] = await pool.execute(`
@@ -1506,10 +1531,10 @@ router.get('/progreso', authRequired, async (req, res) => {
         nivel_riesgo, animo, energia, sueno, estres, apoyo, ambiente,
         carga_academica, carga_laboral, enfoque, creado_en
       FROM ia_bienestar_checkins
-      WHERE id_usuario = ?
+      WHERE id_usuario = ? AND id_institucion = ?
       ORDER BY creado_en ASC
       LIMIT 50
-    `, [userId]);
+    `, [userId, idInstitucion]);
 
     return res.json({ ok: true, data: rows });
   } catch (error) {
@@ -1522,6 +1547,7 @@ router.get('/progreso', authRequired, async (req, res) => {
 router.get('/historial-apoyo', authRequired, async (req, res) => {
   try {
     const userId = Number(req.user.id_usuario || 0);
+    const idInstitucion = req.user.id_institucion || 1;
     if (!userId) return res.status(401).json({ ok: false, message: 'Usuario no identificado' });
 
     const [rows] = await pool.execute(`
@@ -1532,10 +1558,10 @@ router.get('/historial-apoyo', authRequired, async (req, res) => {
       FROM ia_bienestar_derivaciones d
       INNER JOIN ia_bienestar_alertas a ON a.id_alerta = d.id_alerta
       LEFT JOIN usuarios u2 ON d.id_usuario = u2.id_usuario
-      WHERE a.id_usuario = ?
+      WHERE a.id_usuario = ? AND a.id_institucion = ?
       ORDER BY d.creado_en DESC
       LIMIT 30
-    `, [userId]);
+    `, [userId, idInstitucion]);
 
     return res.json({ ok: true, data: rows });
   } catch (error) {
@@ -1548,6 +1574,7 @@ router.get('/historial-apoyo', authRequired, async (req, res) => {
 router.get('/mensajes-orientacion', authRequired, async (req, res) => {
   try {
     const userId = Number(req.user.id_usuario || 0);
+    const idInstitucion = req.user.id_institucion || 1;
     if (!userId) return res.status(401).json({ ok: false, message: 'Usuario no identificado' });
 
     const [rows] = await pool.execute(`
@@ -1555,10 +1582,10 @@ router.get('/mensajes-orientacion', authRequired, async (req, res) => {
         m.metadata_json, m.creado_en
       FROM ia_bienestar_mensajes m
       INNER JOIN ia_bienestar_sesiones s ON s.id_sesion = m.id_sesion
-      WHERE s.id_usuario = ? AND m.rol_mensaje IN ('assistant','system')
+      WHERE s.id_usuario = ? AND m.rol_mensaje IN ('assistant','system') AND s.id_institucion = ?
       ORDER BY m.creado_en DESC
       LIMIT 30
-    `, [userId]);
+    `, [userId, idInstitucion]);
 
     const data = rows.map(r => ({
       ...r,
@@ -1576,25 +1603,26 @@ router.get('/mensajes-orientacion', authRequired, async (req, res) => {
 router.get('/recomendaciones-alumno', authRequired, async (req, res) => {
   try {
     const userId = Number(req.user.id_usuario || 0);
+    const idInstitucion = req.user.id_institucion || 1;
     if (!userId) return res.status(401).json({ ok: false, message: 'Usuario no identificado' });
 
     const [alertas] = await pool.execute(`
       SELECT id_alerta, tipo_alerta, nivel_riesgo, descripcion,
         accion_sugerida, estado, creado_en
       FROM ia_bienestar_alertas
-      WHERE id_usuario = ? AND estado IN ('PENDIENTE','EN_REVISION')
+      WHERE id_usuario = ? AND estado IN ('PENDIENTE','EN_REVISION') AND id_institucion = ?
       ORDER BY creado_en DESC
       LIMIT 10
-    `, [userId]);
+    `, [userId, idInstitucion]);
 
     const [ultimoCheckin] = await pool.execute(`
       SELECT bienestar_score, nivel_riesgo, animo, energia, estres,
         carga_academica, apoyo, observaciones, creado_en
       FROM ia_bienestar_checkins
-      WHERE id_usuario = ?
+      WHERE id_usuario = ? AND id_institucion = ?
       ORDER BY creado_en DESC
       LIMIT 1
-    `, [userId]);
+    `, [userId, idInstitucion]);
 
     const recomendaciones = [];
 

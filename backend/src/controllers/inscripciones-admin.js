@@ -37,6 +37,7 @@ exports.getMetrics = async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
+    const idInstitucion = req.user.id_institucion || 1;
 
     const [totales] = await conn.execute(
       `SELECT
@@ -47,7 +48,9 @@ exports.getMetrics = async (req, res) => {
         SUM(CASE WHEN i.estado = 'Cancelada' THEN 1 ELSE 0 END) AS canceladas,
         SUM(CASE WHEN i.tipo_inscripcion = 'Primera_Vez' THEN 1 ELSE 0 END) AS primera_vez,
         SUM(CASE WHEN i.tipo_inscripcion = 'Reinscripcion' THEN 1 ELSE 0 END) AS reinscripciones
-      FROM inscripciones i`
+      FROM inscripciones i
+      WHERE i.id_institucion = ?`,
+      [idInstitucion]
     );
 
     const [porPeriodo] = await conn.execute(
@@ -60,8 +63,10 @@ exports.getMetrics = async (req, res) => {
         SUM(CASE WHEN i.estado = 'Cancelada' THEN 1 ELSE 0 END) AS canceladas
       FROM inscripciones i
       INNER JOIN periodos p ON p.id_periodo = i.id_periodo
+      WHERE i.id_institucion = ?
       GROUP BY p.id_periodo, p.nombre_periodo
-      ORDER BY p.id_periodo DESC`
+      ORDER BY p.id_periodo DESC`,
+      [idInstitucion]
     );
 
     const [porTipo] = await conn.execute(
@@ -69,7 +74,9 @@ exports.getMetrics = async (req, res) => {
         i.tipo_inscripcion,
         COUNT(*) AS total
       FROM inscripciones i
-      GROUP BY i.tipo_inscripcion`
+      WHERE i.id_institucion = ?
+      GROUP BY i.tipo_inscripcion`,
+      [idInstitucion]
     );
 
     const [porCarrera] = await conn.execute(
@@ -79,8 +86,10 @@ exports.getMetrics = async (req, res) => {
       FROM inscripciones i
       INNER JOIN alumnos a ON a.id_alumno = i.id_alumno
       INNER JOIN carreras c ON c.id_carrera = a.id_carrera
+      WHERE i.id_institucion = ?
       GROUP BY c.id_carrera, c.nombre_carrera
-      ORDER BY total DESC`
+      ORDER BY total DESC`,
+      [idInstitucion]
     );
 
     const [periodosActivos] = await conn.execute(
@@ -113,8 +122,9 @@ exports.listarInscripcionesAdmin = async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
-    const params = [];
-    const conditions = [];
+    const idInstitucion = req.user.id_institucion || 1;
+    const params = [idInstitucion];
+    const conditions = ['i.id_institucion = ?'];
 
     const { periodo, carrera, estado, tipo, busqueda } = req.query;
 
@@ -150,7 +160,7 @@ exports.listarInscripcionesAdmin = async (req, res) => {
       params.push(term, term, term, term, term);
     }
 
-    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const where = `WHERE ${conditions.join(' AND ')}`;
 
     const [rows] = await conn.execute(
       `SELECT
@@ -207,10 +217,12 @@ exports.updateEstado = async (req, res) => {
 
     conn = await pool.getConnection();
 
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [actual] = await conn.execute(
       `SELECT i.id_inscripcion, i.estado AS estado_actual, i.id_alumno, i.id_periodo, i.tipo_inscripcion
-       FROM inscripciones i WHERE i.id_inscripcion = ? LIMIT 1`,
-      [Number(id)]
+       FROM inscripciones i WHERE i.id_inscripcion = ? AND i.id_institucion = ? LIMIT 1`,
+      [Number(id), idInstitucion]
     );
 
     if (!actual.length) {
@@ -275,6 +287,10 @@ exports.getAuditoria = async (req, res) => {
     const conditions = [];
 
     const { id_inscripcion, accion, limite } = req.query;
+    const idInstitucion = req.user.id_institucion || 1;
+
+    conditions.push('i.id_institucion = ?');
+    params.push(idInstitucion);
 
     if (id_inscripcion) {
       conditions.push('a.id_inscripcion = ?');
@@ -305,6 +321,7 @@ exports.getAuditoria = async (req, res) => {
         a.ip,
         a.creado_en
       FROM inscripciones_auditoria a
+      INNER JOIN inscripciones i ON i.id_inscripcion = a.id_inscripcion
       LEFT JOIN usuarios u ON u.id_usuario = a.id_usuario
       LEFT JOIN roles r ON r.id_rol = u.id_rol
       ${where}
@@ -329,8 +346,9 @@ exports.exportReport = async (req, res) => {
     const { periodo, estado, tipo, carrera } = req.query;
 
     conn = await pool.getConnection();
-    const params = [];
-    const conditions = [];
+    const idInstitucion = req.user.id_institucion || 1;
+    const params = [idInstitucion];
+    const conditions = ['i.id_institucion = ?'];
 
     if (periodo) {
       conditions.push('i.id_periodo = ?');
@@ -349,7 +367,7 @@ exports.exportReport = async (req, res) => {
       params.push(Number(carrera));
     }
 
-    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const where = `WHERE ${conditions.join(' AND ')}`;
 
     const [rows] = await conn.execute(
       `SELECT

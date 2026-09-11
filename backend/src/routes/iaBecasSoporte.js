@@ -26,7 +26,7 @@ function authRequired(req, res, next) {
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
   if (!token) return res.status(401).json({ ok: false, message: 'Token no disponible' });
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     const rn = roleName(req.user);
     if (!ROLES_SOPORTE.includes(rn) && ![1, 5].includes(roleId(req.user))) {
       return res.status(403).json({ ok: false, message: 'Acceso no autorizado' });
@@ -103,6 +103,10 @@ router.get('/soporte-becas/logs', authRequired, async (req, res) => {
 
     let where = [];
     let params = [];
+    const idInstitucion = req.user.id_institucion || 1;
+
+    where.push('a.id_institucion = ?');
+    params.push(idInstitucion);
 
     if (filtro) {
       where.push('(a.descripcion LIKE ? OR a.nombre_usuario LIKE ? OR a.accion LIKE ?)');
@@ -152,7 +156,8 @@ router.get('/soporte-becas/errores', authRequired, async (req, res) => {
 
     const [countRows] = await pool.query(
       `SELECT COUNT(*) AS total FROM ia_becas_auditoria
-       WHERE nivel IN ('ERROR','CRITICAL')`
+       WHERE nivel IN ('ERROR','CRITICAL') AND id_institucion = ?`,
+      [req.user.id_institucion || 1]
     );
     const total = countRows[0].total;
 
@@ -160,10 +165,10 @@ router.get('/soporte-becas/errores', authRequired, async (req, res) => {
       `SELECT id_auditoria, id_usuario, nombre_usuario, rol_usuario, accion,
               entidad_tipo, entidad_id, descripcion, detalle_json, nivel, created_at
        FROM ia_becas_auditoria
-       WHERE nivel IN ('ERROR','CRITICAL')
+       WHERE nivel IN ('ERROR','CRITICAL') AND id_institucion = ?
        ORDER BY created_at DESC
        LIMIT ? OFFSET ?`,
-      [limite, offset]
+      [req.user.id_institucion || 1, limite, offset]
     );
 
     return res.json({
@@ -281,16 +286,17 @@ router.get('/soporte-becas/exportaciones', authRequired, async (req, res) => {
     const limite = Math.min(100, Math.max(1, toNum(req.query.limite, 25)));
     const offset = (pagina - 1) * limite;
 
-    const [countRows] = await pool.query('SELECT COUNT(*) AS total FROM ia_becas_exportaciones');
+    const [countRows] = await pool.query('SELECT COUNT(*) AS total FROM ia_becas_exportaciones WHERE id_institucion = ?', [req.user.id_institucion || 1]);
     const total = countRows[0].total;
 
     const [rows] = await pool.query(
       `SELECT id_exportacion, id_usuario, nombre_usuario, tipo_reporte, formato,
               filtros_aplicados, total_registros, ruta_archivo, tamano_bytes, fecha_generacion
        FROM ia_becas_exportaciones
+       WHERE id_institucion = ?
        ORDER BY fecha_generacion DESC
        LIMIT ? OFFSET ?`,
-      [limite, offset]
+      [req.user.id_institucion || 1, limite, offset]
     );
 
     return res.json({
@@ -347,7 +353,8 @@ router.post('/soporte-becas/verificar', authRequired, async (req, res) => {
     }
 
     const erroresRecientes = await pool.query(
-      `SELECT COUNT(*) AS cnt FROM ia_becas_auditoria WHERE nivel IN ('ERROR','CRITICAL') AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)`
+      `SELECT COUNT(*) AS cnt FROM ia_becas_auditoria WHERE nivel IN ('ERROR','CRITICAL') AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR) AND id_institucion = ?`,
+      [req.user.id_institucion || 1]
     );
     resultados.push({
       prueba: 'Errores 24h',

@@ -83,6 +83,8 @@ async function writeQrImage(filePath, qrContent) {
 
 exports.getMyKardexAlumno = async (req, res) => {
   try {
+    const idInstitucion = req.user?.id_institucion || 1;
+
     const [rows] = await pool.execute(
       `SELECT
         k.id_kardex,
@@ -110,9 +112,9 @@ exports.getMyKardexAlumno = async (req, res) => {
       FROM kardex_alumno k
       INNER JOIN alumnos a ON a.id_alumno = k.id_alumno
       LEFT JOIN carreras c ON c.id_carrera = a.id_carrera
-      WHERE a.id_usuario = ?
+      WHERE a.id_usuario = ? AND a.id_institucion = ?
       LIMIT 1`,
-      [req.user.id_usuario]
+      [req.user.id_usuario, idInstitucion]
     );
 
     if (!rows.length) {
@@ -138,10 +140,10 @@ exports.getMyKardexAlumno = async (req, res) => {
       FROM kardex_historial_academico kh
       LEFT JOIN periodos p ON p.id_periodo = kh.id_periodo
       LEFT JOIN materias m ON m.id_materia = kh.id_materia
-      WHERE kh.id_alumno = ?
+      WHERE kh.id_alumno = ? AND kh.id_institucion = ?
       ORDER BY p.fecha_inicio DESC, m.semestre_sugerido
       `,
-      [rows[0].id_alumno]
+      [rows[0].id_alumno, idInstitucion]
     );
 
     const totalMaterias = historial.length;
@@ -175,6 +177,7 @@ exports.getMyKardexAlumno = async (req, res) => {
 exports.getKardexAlumno = async (req, res) => {
   try {
     const id = Number(req.params.id);
+    const idInstitucion = req.user?.id_institucion || 1;
 
     if (!id) {
       return res.status(400).json({
@@ -204,9 +207,9 @@ exports.getKardexAlumno = async (req, res) => {
         a.fotografia
       FROM kardex_alumno k
       INNER JOIN alumnos a ON a.id_alumno = k.id_alumno
-      WHERE a.id_alumno = ? OR a.id_usuario = ?
+      WHERE (a.id_alumno = ? OR a.id_usuario = ?) AND a.id_institucion = ?
       LIMIT 1`,
-      [id, id]
+      [id, id, idInstitucion]
     );
 
     if (!rows.length) {
@@ -234,6 +237,7 @@ exports.uploadAlumnoPhoto = async (req, res) => {
 
   try {
     const id = Number(req.params.id);
+    const idInstitucion = req.user?.id_institucion || 1;
 
     if (!id) {
       if (req.file?.path) safeUnlink(req.file.path);
@@ -253,9 +257,9 @@ exports.uploadAlumnoPhoto = async (req, res) => {
     const [alumnoRows] = await pool.execute(
       `SELECT id_alumno, fotografia
        FROM alumnos
-       WHERE id_alumno = ?
+       WHERE id_alumno = ? AND id_institucion = ?
        LIMIT 1`,
-      [id]
+      [id, idInstitucion]
     );
 
     if (!alumnoRows.length) {
@@ -274,15 +278,15 @@ exports.uploadAlumnoPhoto = async (req, res) => {
     await pool.execute(
       `UPDATE alumnos
        SET fotografia = ?
-       WHERE id_alumno = ?`,
-      [relativePath, id]
+       WHERE id_alumno = ? AND id_institucion = ?`,
+      [relativePath, id, idInstitucion]
     );
 
     await pool.execute(
       `UPDATE kardex_alumno
        SET foto_alumno = ?
-       WHERE id_alumno = ?`,
-      [relativePath, id]
+       WHERE id_alumno = ? AND id_institucion = ?`,
+      [relativePath, id, idInstitucion]
     );
 
     safeUnlink(oldFilePath);
@@ -308,9 +312,9 @@ exports.uploadAlumnoPhoto = async (req, res) => {
         a.fotografia
       FROM kardex_alumno k
       INNER JOIN alumnos a ON a.id_alumno = k.id_alumno
-      WHERE a.id_alumno = ?
+      WHERE a.id_alumno = ? AND a.id_institucion = ?
       LIMIT 1`,
-      [id]
+      [id, idInstitucion]
     );
 
     return res.json({
@@ -421,6 +425,7 @@ exports.generateQrAlumno = async (req, res) => {
 
   try {
     const id = Number(req.params.id);
+    const idInstitucion = req.user?.id_institucion || 1;
 
     if (!id) {
       return res.status(400).json({
@@ -433,9 +438,9 @@ exports.generateQrAlumno = async (req, res) => {
       `SELECT a.id_alumno, a.nombres, a.apellido_paterno, a.apellido_materno, k.url_qr
        FROM alumnos a
        INNER JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
-       WHERE a.id_alumno = ?
+       WHERE a.id_alumno = ? AND a.id_institucion = ?
        LIMIT 1`,
-      [id]
+      [id, idInstitucion]
     );
 
     if (!rows.length) {
@@ -460,8 +465,8 @@ exports.generateQrAlumno = async (req, res) => {
     await pool.execute(
       `UPDATE kardex_alumno
        SET qr_token = ?, url_qr = ?
-       WHERE id_alumno = ?`,
-      [token, relativePath, id]
+       WHERE id_alumno = ? AND id_institucion = ?`,
+      [token, relativePath, id, idInstitucion]
     );
 
     safeUnlink(previousQrPath);
@@ -568,6 +573,7 @@ exports.generateQrGrupo = async (req, res) => {
 exports.deleteAlumnoPhoto = async (req, res) => {
   try {
     const id = Number(req.params.id);
+    const idInstitucion = req.user?.id_institucion || 1;
 
     if (!id) {
       return res.status(400).json({
@@ -582,9 +588,9 @@ exports.deleteAlumnoPhoto = async (req, res) => {
         k.foto_alumno
        FROM alumnos a
        INNER JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
-       WHERE a.id_alumno = ?
+       WHERE a.id_alumno = ? AND a.id_institucion = ?
        LIMIT 1`,
-      [id]
+      [id, idInstitucion]
     );
 
     if (!rows.length) {
@@ -604,15 +610,15 @@ exports.deleteAlumnoPhoto = async (req, res) => {
     await pool.execute(
       `UPDATE alumnos
        SET fotografia = NULL
-       WHERE id_alumno = ?`,
-      [id]
+       WHERE id_alumno = ? AND id_institucion = ?`,
+      [id, idInstitucion]
     );
 
     await pool.execute(
       `UPDATE kardex_alumno
        SET foto_alumno = NULL
-       WHERE id_alumno = ?`,
-      [id]
+       WHERE id_alumno = ? AND id_institucion = ?`,
+      [id, idInstitucion]
     );
 
     return res.json({

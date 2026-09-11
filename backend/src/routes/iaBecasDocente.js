@@ -27,7 +27,7 @@ function authRequired(req, res, next) {
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
   if (!token) return res.status(401).json({ ok: false, message: 'Token no disponible' });
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     return next();
   } catch {
     return res.status(401).json({ ok: false, message: 'Token inválido o expirado' });
@@ -234,11 +234,11 @@ router.post('/docente-becas/observaciones', authRequired, resolveDocente, async 
       .filter(Boolean).join(' ').trim() || 'Docente';
 
     const [result] = await pool.execute(
-      `INSERT INTO ia_becas_observaciones (id_solicitud, id_usuario, nombre_usuario, rol_usuario, tipo_observacion, observacion, es_interna)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO ia_becas_observaciones (id_solicitud, id_usuario, nombre_usuario, rol_usuario, tipo_observacion, observacion, es_interna, id_institucion)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id_solicitud, req.user.id_usuario, nombre, roleName(req.user) || 'DOCENTE',
-        tipo_observacion || 'ACADEMICA', observacion, es_interna ? 1 : 0
+        tipo_observacion || 'ACADEMICA', observacion, es_interna ? 1 : 0, req.user.id_institucion || 1
       ]
     );
 
@@ -298,14 +298,14 @@ router.post('/docente-becas/canalizar', authRequired, resolveDocente, async (req
       .filter(Boolean).join(' ').trim() || 'Docente';
 
     const [result] = await pool.execute(
-      `INSERT INTO ia_becas_canalizaciones (id_solicitud, id_usuario_origen, nombre_usuario_origen, area_destino, motivo, estatus_canalizacion)
-       VALUES (?, ?, ?, ?, ?, 'PENDIENTE')`,
-      [id_solicitud, req.user.id_usuario, nombre, area_destino, motivo || '']
+      `INSERT INTO ia_becas_canalizaciones (id_solicitud, id_usuario_origen, nombre_usuario_origen, area_destino, motivo, estatus_canalizacion, id_institucion)
+       VALUES (?, ?, ?, ?, ?, 'PENDIENTE', ?)`,
+      [id_solicitud, req.user.id_usuario, nombre, area_destino, motivo || '', req.user.id_institucion || 1]
     );
 
     await pool.execute(
-      `UPDATE ia_becas_solicitudes SET canalizado_a = ? WHERE id_solicitud = ?`,
-      [area_destino, id_solicitud]
+      `UPDATE ia_becas_solicitudes SET canalizado_a = ? WHERE id_solicitud = ? AND id_institucion = ?`,
+      [area_destino, id_solicitud, req.user.id_institucion || 1]
     );
 
     return res.json({

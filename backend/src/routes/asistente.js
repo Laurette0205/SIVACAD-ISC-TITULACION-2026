@@ -435,8 +435,8 @@ function requireCoord(req, res, next) {
 
 router.get('/coordinador/dashboard', authFromHeader, requireCoord, async (req, res) => {
   try {
-    const dashboard = await getCoordDashboard(pool);
-    const groups = await getCoordGroups(pool);
+    const dashboard = await getCoordDashboard(pool, req.user);
+    const groups = await getCoordGroups(pool, {}, req.user);
     return res.json({ ok: true, data: { dashboard, groups } });
   } catch (error) {
     return res.status(500).json({ ok: false, message: error.message });
@@ -449,7 +449,7 @@ router.get('/coordinador/grupos', authFromHeader, requireCoord, async (req, res)
     if (req.query.id_periodo) filters.id_periodo = Number(req.query.id_periodo);
     if (req.query.id_carrera) filters.id_carrera = Number(req.query.id_carrera);
     if (req.query.semestre) filters.semestre = Number(req.query.semestre);
-    const groups = await getCoordGroups(pool, filters);
+    const groups = await getCoordGroups(pool, filters, req.user);
     return res.json({ ok: true, data: groups });
   } catch (error) {
     return res.status(500).json({ ok: false, message: error.message });
@@ -472,7 +472,7 @@ router.get('/coordinador/seguimiento', authFromHeader, requireCoord, async (req,
     if (req.query.id_periodo) filters.id_periodo = Number(req.query.id_periodo);
     if (req.query.estatus) filters.estatus = req.query.estatus;
     if (req.query.search) filters.search = req.query.search;
-    const tracking = await getCoordStudentTracking(pool, filters);
+    const tracking = await getCoordStudentTracking(pool, filters, req.user);
     return res.json({ ok: true, data: tracking });
   } catch (error) {
     return res.status(500).json({ ok: false, message: error.message });
@@ -484,7 +484,7 @@ router.get('/coordinador/alertas', authFromHeader, requireCoord, async (req, res
     const filters = {};
     if (req.query.nivel) filters.nivel = req.query.nivel;
     if (req.query.atendida !== undefined) filters.atendida = req.query.atendida === 'true' || req.query.atendida === '1';
-    const alerts = await getCoordAlerts(pool, filters);
+    const alerts = await getCoordAlerts(pool, filters, req.user);
     return res.json({ ok: true, data: alerts });
   } catch (error) {
     return res.status(500).json({ ok: false, message: error.message });
@@ -495,7 +495,7 @@ router.get('/coordinador/reporte/grupo/:id_grupo', authFromHeader, requireCoord,
   try {
     const id_grupo = Number(req.params.id_grupo);
     if (!id_grupo) return res.status(400).json({ ok: false, message: 'ID de grupo requerido.' });
-    const report = await getCoordGroupReport(pool, id_grupo);
+    const report = await getCoordGroupReport(pool, id_grupo, req.user);
     if (!report) return res.status(404).json({ ok: false, message: 'Grupo no encontrado.' });
     return res.json({ ok: true, data: report });
   } catch (error) {
@@ -517,7 +517,7 @@ function requireAdmin(req, res, next) {
 
 router.get('/admin/stats', authFromHeader, requireAdmin, async (req, res) => {
   try {
-    const stats = await getSystemStats(pool);
+    const stats = await getSystemStats(pool, req.user);
     return res.json({ ok: true, data: stats });
   } catch (error) {
     return res.status(500).json({ ok: false, message: error.message });

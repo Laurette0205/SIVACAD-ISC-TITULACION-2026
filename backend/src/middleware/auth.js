@@ -3,12 +3,13 @@
 // ==============================
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
+const { isBlacklisted } = require('../services/sessionManager');
 
 // ==============================
 // 🔐 MIDDLEWARE: AUTENTICACIÓN JWT
 // ==============================
 // Verifica que el usuario tenga un token válido
-exports.auth = (req, res, next) => {
+exports.auth = async (req, res, next) => {
   // Obtener header Authorization
   const authHeader = req.headers.authorization;
 
@@ -29,8 +30,18 @@ exports.auth = (req, res, next) => {
     // Verificar token con clave secreta y algoritmo explícito
     const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
 
-    // Guardar datos del usuario en request
+    // Verificar blacklist (logout revoke)
+    const blacklisted = await isBlacklisted(token);
+    if (blacklisted) {
+      return res.status(401).json({
+        ok: false,
+        message: 'Sesión cerrada. Inicia sesión nuevamente.'
+      });
+    }
+
+    // Guardar datos del usuario en request (incluyendo id_institucion)
     req.user = decoded;
+    req.user.id_institucion = decoded.id_institucion || 1;
 
     // Continuar al siguiente middleware/controlador
     next();
@@ -122,4 +133,29 @@ exports.role = (...rolesPermitidos) => {
     // Usuario autorizado
     next();
   };
+};
+
+// ==============================
+// 🔐 MIDDLEWARE: REAUTENTICACIÓN PARA OPERACIONES SENSIBLES
+// ==============================
+// Requiere header X-Reauth-Token con un JWT temporal emitido por /reauthenticate
+exports.requireReauthentication = (req, res, next) => {
+  const reauthHeader = req.headers['x-reauth-token'];
+  if (!reauthHeader) {
+    return res.status(403).json({
+      ok: false,
+      message: 'Reautenticación requerida para esta operación. Envía X-Reauth-Token con un token válido de /api/auth/reauthenticate.'
+    });
+  }
+
+  try {
+    const { verifyToken } = require('../services/jwt');
+    const decoded = verifyToken(reauthHeader);
+    if (decoded.type !== 'reauth' || decoded.id_usuario !== req.user.id_usuario) {
+      return res.status(403).json({ ok: false, message: 'Token de reautenticación inválido' });
+    }
+    next();
+  } catch (_) {
+    return res.status(403).json({ ok: false, message: 'Token de reautenticación expirado o inválido' });
+  }
 };

@@ -106,7 +106,7 @@ async function getListaAlumnos(req, res) {
       FROM grupos_alumnos ga
       INNER JOIN alumnos a ON a.id_alumno = ga.id_alumno
       INNER JOIN usuarios u ON u.id_usuario = a.id_usuario
-      LEFT JOIN inscripciones i ON i.id_alumno = a.id_alumno AND i.id_periodo = ga.id_periodo AND i.id_grupo = ga.id_grupo
+      LEFT JOIN inscripciones i ON i.id_alumno = a.id_alumno AND i.id_periodo = ga.id_periodo AND i.id_grupo = ga.id_grupo AND i.id_institucion = ga.id_institucion
       WHERE ga.id_grupo = ? AND ga.id_periodo = ?
       ORDER BY u.apellido_paterno ASC, u.apellido_materno ASC, u.nombres ASC
     `, [idGrupo, idPeriodo]);
@@ -345,28 +345,28 @@ async function getInconsistencias(req, res) {
 
     if (!idGrupo || !idPeriodo) {
       const [rows] = await pool.execute(`
-        SELECT
-          ca.id_grupo,
-          g.nombre_grupo,
-          ca.id_periodo,
-          p.nombre_periodo,
-          ca.id_materia,
-          m.nombre_materia,
-          COUNT(DISTINCT ga.id_alumno) AS alumnos_asignados,
-          COUNT(DISTINCT i.id_inscripcion) AS inscripciones_formales,
-          (SELECT COUNT(*) FROM grupos_alumnos WHERE id_grupo = ca.id_grupo AND id_periodo = ca.id_periodo AND estado IN ('BAJA', 'TRANSFERIDO')) AS bajas_transferencias,
-          COALESCE(g.nombre_grupo, '') AS grupo_nombre
-        FROM cargas_academicas ca
-        INNER JOIN grupos g ON g.id_grupo = ca.id_grupo
-        INNER JOIN periodos p ON p.id_periodo = ca.id_periodo
-        INNER JOIN materias m ON m.id_materia = ca.id_materia
-        LEFT JOIN grupos_alumnos ga ON ga.id_grupo = ca.id_grupo AND ga.id_periodo = ca.id_periodo AND ga.estado = 'ACTIVO'
-        LEFT JOIN inscripciones i ON i.id_grupo = ca.id_grupo AND i.id_periodo = ca.id_periodo AND i.estado IN ('Activo', 'Aprobada', 'Validada', 'Completada')
-        WHERE ca.id_docente = ?
-        GROUP BY ca.id_grupo, g.nombre_grupo, ca.id_periodo, p.nombre_periodo, ca.id_materia, m.nombre_materia
-        HAVING alumnos_asignados != inscripciones_formales OR bajas_transferencias > 0
-        ORDER BY g.nombre_grupo, m.nombre_materia
-      `, [docente.id_docente]);
+      SELECT
+        ca.id_grupo,
+        g.nombre_grupo,
+        ca.id_periodo,
+        p.nombre_periodo,
+        ca.id_materia,
+        m.nombre_materia,
+        COUNT(DISTINCT ga.id_alumno) AS alumnos_asignados,
+        COUNT(DISTINCT i.id_inscripcion) AS inscripciones_formales,
+        (SELECT COUNT(*) FROM grupos_alumnos WHERE id_grupo = ca.id_grupo AND id_periodo = ca.id_periodo AND estado IN ('BAJA', 'TRANSFERIDO')) AS bajas_transferencias,
+        COALESCE(g.nombre_grupo, '') AS grupo_nombre
+      FROM cargas_academicas ca
+      INNER JOIN grupos g ON g.id_grupo = ca.id_grupo
+      INNER JOIN periodos p ON p.id_periodo = ca.id_periodo
+      INNER JOIN materias m ON m.id_materia = ca.id_materia
+      LEFT JOIN grupos_alumnos ga ON ga.id_grupo = ca.id_grupo AND ga.id_periodo = ca.id_periodo AND ga.estado = 'ACTIVO'
+      LEFT JOIN inscripciones i ON i.id_grupo = ca.id_grupo AND i.id_periodo = ca.id_periodo AND i.estado IN ('Activo', 'Aprobada', 'Validada', 'Completada')
+      WHERE ca.id_docente = ?
+      GROUP BY ca.id_grupo, g.nombre_grupo, ca.id_periodo, p.nombre_periodo, ca.id_materia, m.nombre_materia
+      HAVING alumnos_asignados != inscripciones_formales OR bajas_transferencias > 0
+      ORDER BY g.nombre_grupo, m.nombre_materia
+    `, [docente.id_docente]);
 
       return res.json({ ok: true, data: rows });
     }

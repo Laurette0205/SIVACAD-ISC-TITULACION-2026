@@ -47,7 +47,7 @@ exports.getGruposActualizados = async (req, res) => {
         (SELECT COUNT(*) FROM inscripciones i
          INNER JOIN reinscripciones r ON r.id_inscripcion = i.id_inscripcion
          WHERE i.id_grupo = ca.id_grupo AND i.id_periodo = ca.id_periodo
-           AND i.tipo_inscripcion = 'Reinscripcion') AS reinscritos,
+           AND i.tipo_inscripcion = 'Reinscripcion' AND i.id_institucion = ga.id_institucion) AS reinscritos,
         (SELECT COUNT(*) FROM grupos_alumnos ga2
          WHERE ga2.id_grupo = ca.id_grupo AND ga2.id_periodo = ca.id_periodo
            AND ga2.estado = 'BAJA') AS bajas
@@ -116,7 +116,7 @@ exports.getListaReinscritos = async (req, res) => {
         CASE WHEN i.tipo_inscripcion = 'Reinscripcion' THEN 'Sí' ELSE 'No' END AS es_reinscrito
       FROM grupos_alumnos ga
       INNER JOIN alumnos a ON a.id_alumno = ga.id_alumno
-      INNER JOIN inscripciones i ON i.id_alumno = a.id_alumno AND i.id_periodo = ga.id_periodo
+      INNER JOIN inscripciones i ON i.id_alumno = a.id_alumno AND i.id_periodo = ga.id_periodo AND i.id_institucion = ga.id_institucion
       LEFT JOIN reinscripciones r ON r.id_inscripcion = i.id_inscripcion
       LEFT JOIN carreras c ON c.id_carrera = COALESCE(i.id_carrera, a.id_carrera)
       WHERE ga.id_grupo = ? AND ga.id_periodo = ?
@@ -174,7 +174,7 @@ exports.getCambiosReinscripcion = async (req, res) => {
       INNER JOIN grupos g ON g.id_grupo = ga.id_grupo
       INNER JOIN periodos p ON p.id_periodo = ga.id_periodo
       INNER JOIN alumnos a ON a.id_alumno = ga.id_alumno
-      LEFT JOIN inscripciones i ON i.id_alumno = a.id_alumno AND i.id_periodo = ga.id_periodo
+      LEFT JOIN inscripciones i ON i.id_alumno = a.id_alumno AND i.id_periodo = ga.id_periodo AND i.id_institucion = ga.id_institucion
       LEFT JOIN carreras c ON c.id_carrera = COALESCE(i.id_carrera, a.id_carrera)
       WHERE EXISTS (
         SELECT 1 FROM cargas_academicas ca
@@ -321,7 +321,7 @@ exports.getResumenGrupos = async (req, res) => {
       INNER JOIN periodos p ON p.id_periodo = ca.id_periodo
       INNER JOIN materias m ON m.id_materia = ca.id_materia
       LEFT JOIN grupos_alumnos ga ON ga.id_grupo = ca.id_grupo AND ga.id_periodo = ca.id_periodo
-      LEFT JOIN inscripciones i ON i.id_alumno = ga.id_alumno AND i.id_periodo = ga.id_periodo
+      LEFT JOIN inscripciones i ON i.id_alumno = ga.id_alumno AND i.id_periodo = ga.id_periodo AND i.id_institucion = ga.id_institucion
       WHERE ca.id_docente = ?
       GROUP BY ca.id_grupo, g.nombre_grupo, g.semestre, g.turno,
                ca.id_periodo, p.nombre_periodo, ca.id_materia, m.nombre_materia, m.clave_materia

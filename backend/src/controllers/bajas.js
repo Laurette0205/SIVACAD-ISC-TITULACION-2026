@@ -2,6 +2,8 @@ const db = require('../config/db'); // ajusta esta ruta a tu conexión real
 
 const listBajas = async (req, res) => {
   try {
+    const idInstitucion = req.user?.id_institucion || 1;
+
     const [rows] = await db.query(`
       SELECT
         a.id_alumno,
@@ -37,8 +39,9 @@ const listBajas = async (req, res) => {
           GROUP BY id_alumno
         ) t2 ON t1.id_alerta = t2.id_alerta
       ) ia ON ia.id_alumno = a.id_alumno
+      WHERE a.id_institucion = ?
       ORDER BY a.apellido_paterno, a.apellido_materno, a.nombres
-    `);
+    `, [idInstitucion]);
 
     return res.json({
       ok: true,

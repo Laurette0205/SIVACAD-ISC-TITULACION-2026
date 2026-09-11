@@ -16,12 +16,12 @@ function publicUrl(req, relativePath) {
   return `${base}${cleanPath}`;
 }
 
-async function registrarLog(accion, detalle, id_usuario, ip) {
+async function registrarLog(accion, detalle, id_usuario, ip, id_institucion) {
   try {
     await pool.execute(
-      `INSERT INTO kardex_auditoria (accion, detalle, id_usuario, ip_origen, creado_en)
-       VALUES (?, ?, ?, ?, NOW())`,
-      ['SOPORTE_' + accion, detalle, id_usuario || null, ip || null]
+      `INSERT INTO kardex_auditoria (accion, detalle, id_usuario, ip_origen, id_institucion, creado_en)
+       VALUES (?, ?, ?, ?, ?, NOW())`,
+      ['SOPORTE_' + accion, detalle, id_usuario || null, ip || null, id_institucion || 1]
     );
   } catch (_) {}
 }
@@ -31,6 +31,8 @@ async function registrarLog(accion, detalle, id_usuario, ip) {
 // =====================================================
 exports.diagnostico = async (req, res) => {
   try {
+    const idInstitucion = req.user?.id_institucion || 1;
+
     const [
       [kardexCount],
       [alumnosSinKardex],
@@ -40,32 +42,35 @@ exports.diagnostico = async (req, res) => {
       [sellosCount],
       [auditoriaCount]
     ] = await Promise.all([
-      pool.execute('SELECT COUNT(*) AS total FROM kardex_alumno'),
+      pool.execute('SELECT COUNT(*) AS total FROM kardex_alumno WHERE id_institucion = ?', [idInstitucion]),
       pool.execute(
         `SELECT COUNT(*) AS total FROM alumnos a
          LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
-         WHERE k.id_alumno IS NULL`
+         WHERE k.id_alumno IS NULL AND a.id_institucion = ?`,
+        [idInstitucion]
       ),
-      pool.execute('SELECT COUNT(*) AS total FROM kardex_historial_academico'),
+      pool.execute('SELECT COUNT(*) AS total FROM kardex_historial_academico WHERE id_institucion = ?', [idInstitucion]),
       pool.execute(
         `SELECT COUNT(*) AS total FROM kardex_alumno
-         WHERE url_qr IS NULL OR url_qr = ''`
+         WHERE (url_qr IS NULL OR url_qr = '') AND id_institucion = ?`,
+        [idInstitucion]
       ),
-      pool.execute('SELECT COUNT(*) AS total FROM alumnos'),
-      pool.execute('SELECT COUNT(*) AS total FROM kardex_sellos WHERE activo = 1'),
-      pool.execute('SELECT COUNT(*) AS total FROM kardex_auditoria')
+      pool.execute('SELECT COUNT(*) AS total FROM alumnos WHERE id_institucion = ?', [idInstitucion]),
+      pool.execute('SELECT COUNT(*) AS total FROM kardex_sellos WHERE activo = 1 AND id_institucion = ?', [idInstitucion]),
+      pool.execute('SELECT COUNT(*) AS total FROM kardex_auditoria WHERE id_institucion = ?', [idInstitucion])
     ]);
 
-    // Top 5 recent auditoria entries
     const [recientes] = await pool.execute(
       `SELECT ka.accion, ka.detalle, ka.creado_en,
               u.correo_institucional
        FROM kardex_auditoria ka
        LEFT JOIN usuarios u ON u.id_usuario = ka.id_usuario
-       ORDER BY ka.creado_en DESC LIMIT 5`
+       WHERE ka.id_institucion = ?
+       ORDER BY ka.creado_en DESC LIMIT 5`,
+      [idInstitucion]
     );
 
-    await registrarLog('DIAGNOSTICO', 'Diagnóstico técnico ejecutado', req.user?.id_usuario, req.ip);
+    await registrarLog('DIAGNOSTICO', 'Diagnóstico técnico ejecutado', req.user?.id_usuario, req.ip, idInstitucion);
 
     return res.json({
       ok: true,
@@ -94,6 +99,7 @@ exports.diagnostico = async (req, res) => {
 exports.validarQR = async (req, res) => {
   try {
     const { token } = req.params;
+    const idInstitucion = req.user?.id_institucion || 1;
     if (!token) return res.status(400).json({ ok: false, message: 'Token QR requerido' });
 
     const [rows] = await pool.execute(
@@ -104,15 +110,15 @@ exports.validarQR = async (req, res) => {
        FROM kardex_alumno k
        INNER JOIN alumnos a ON a.id_alumno = k.id_alumno
        LEFT JOIN carreras c ON c.id_carrera = a.id_carrera
-       WHERE k.qr_token = ? LIMIT 1`,
-      [token]
+       WHERE k.qr_token = ? AND k.id_institucion = ? LIMIT 1`,
+      [token, idInstitucion]
     );
 
     if (!rows.length) {
       return res.status(404).json({ ok: false, message: 'QR inválido o expirado', valido: false });
     }
 
-    await registrarLog('VALIDAR_QR', 'QR validado: ' + rows[0].matricula, req.user?.id_usuario, req.ip);
+    await registrarLog('VALIDAR_QR', 'QR validado: ' + rows[0].matricula, req.user?.id_usuario, req.ip, idInstitucion);
 
     return res.json({
       ok: true, valido: true,
@@ -136,6 +142,7 @@ exports.validarQR = async (req, res) => {
 // =====================================================
 exports.verificarRutas = async (req, res) => {
   try {
+    const idInstitucion = req.user?.id_institucion || 1;
     const uploadsDir = path.resolve(process.cwd(), 'uploads');
     const subdirs = ['qrs', 'kardex', 'alumnos', 'fotos', 'kardex/fotos', 'kardex/qrs', 'logos'];
 
@@ -155,7 +162,8 @@ exports.verificarRutas = async (req, res) => {
     });
 
     const [qrFiles] = await pool.execute(
-      `SELECT url_qr FROM kardex_alumno WHERE url_qr IS NOT NULL AND url_qr != ''`
+      `SELECT url_qr FROM kardex_alumno WHERE url_qr IS NOT NULL AND url_qr != '' AND id_institucion = ?`,
+      [idInstitucion]
     );
     const archivosQr = qrFiles.map((r) => {
       const absPath = path.resolve(process.cwd(), r.url_qr.replace(/^\//, ''));
@@ -168,7 +176,7 @@ exports.verificarRutas = async (req, res) => {
     const qrExistentes = archivosQr.filter((a) => a.existe_en_disco).length;
     const qrFaltantes = archivosQr.filter((a) => !a.existe_en_disco).length;
 
-    await registrarLog('VERIFICAR_RUTAS', 'Validación de rutas completada', req.user?.id_usuario, req.ip);
+    await registrarLog('VERIFICAR_RUTAS', 'Validación de rutas completada', req.user?.id_usuario, req.ip, idInstitucion);
 
     return res.json({
       ok: true,
@@ -285,6 +293,8 @@ exports.atenderIncidencia = async (req, res) => {
 // =====================================================
 exports.monitoreoCarga = async (req, res) => {
   try {
+    const idInstitucion = req.user?.id_institucion || 1;
+
     const [historialReciente] = await pool.execute(
       `SELECT kh.id_historial, kh.creado_en, kh.estado,
               a.matricula,
@@ -295,15 +305,19 @@ exports.monitoreoCarga = async (req, res) => {
        INNER JOIN alumnos a ON a.id_alumno = kh.id_alumno
        LEFT JOIN materias m ON m.id_materia = kh.id_materia
        LEFT JOIN periodos p ON p.id_periodo = kh.id_periodo
-       ORDER BY kh.creado_en DESC LIMIT 20`
+       WHERE kh.id_institucion = ?
+       ORDER BY kh.creado_en DESC LIMIT 20`,
+      [idInstitucion]
     );
 
     const [cargasPorPeriodo] = await pool.execute(
       `SELECT p.nombre_periodo, COUNT(kh.id_historial) AS total
        FROM kardex_historial_academico kh
        INNER JOIN periodos p ON p.id_periodo = kh.id_periodo
+       WHERE kh.id_institucion = ?
        GROUP BY p.id_periodo, p.nombre_periodo
-       ORDER BY p.fecha_inicio DESC`
+       ORDER BY p.fecha_inicio DESC`,
+      [idInstitucion]
     );
 
     const [estadisticas] = await pool.execute(
@@ -313,7 +327,9 @@ exports.monitoreoCarga = async (req, res) => {
          COALESCE(SUM(CASE WHEN estado = 'No Acreditada' THEN 1 ELSE 0 END), 0) AS no_acreditadas,
          COALESCE(SUM(CASE WHEN estado = 'Cursando' THEN 1 ELSE 0 END), 0) AS cursando,
          COALESCE(SUM(CASE WHEN tipo_materia = 'Extraordinario' THEN 1 ELSE 0 END), 0) AS extraordinarios
-       FROM kardex_historial_academico`
+       FROM kardex_historial_academico
+       WHERE id_institucion = ?`,
+      [idInstitucion]
     );
 
     return res.json({
@@ -335,11 +351,14 @@ exports.monitoreoCarga = async (req, res) => {
 // =====================================================
 exports.verificarIntegridad = async (req, res) => {
   try {
+    const idInstitucion = req.user?.id_institucion || 1;
+
     const [qrRows] = await pool.execute(
       `SELECT k.id_alumno, a.matricula, k.qr_token, k.url_qr
        FROM kardex_alumno k
        INNER JOIN alumnos a ON a.id_alumno = k.id_alumno
-       WHERE k.url_qr IS NOT NULL AND k.url_qr != ''`
+       WHERE k.url_qr IS NOT NULL AND k.url_qr != '' AND k.id_institucion = ?`,
+      [idInstitucion]
     );
 
     const resultados = qrRows.map((r) => {
@@ -363,7 +382,7 @@ exports.verificarIntegridad = async (req, res) => {
     const integros = resultados.filter((r) => r.archivo_existe && r.qr_token_valido).length;
     const danados = resultados.filter((r) => !r.archivo_existe || !r.qr_token_valido).length;
 
-    await registrarLog('VERIFICAR_INTEGRIDAD', `Integridad: ${integros} ok, ${danados} dañados`, req.user?.id_usuario, req.ip);
+    await registrarLog('VERIFICAR_INTEGRIDAD', `Integridad: ${integros} ok, ${danados} dañados`, req.user?.id_usuario, req.ip, idInstitucion);
 
     return res.json({
       ok: true,

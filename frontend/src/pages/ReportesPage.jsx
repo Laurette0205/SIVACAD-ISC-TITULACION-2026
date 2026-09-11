@@ -12,7 +12,10 @@ import {
   Loader2,
   ShieldCheck,
   SlidersHorizontal,
-  ArrowLeft
+  ArrowLeft,
+  Shield,
+  AlertTriangle,
+  MonitorSmartphone
 } from 'lucide-react';
 
 function buildQueryString(filters) {
@@ -36,6 +39,14 @@ export default function ReportesPage() {
   });
   const [loadingType, setLoadingType] = React.useState('');
   const [statusMessage, setStatusMessage] = React.useState('');
+  const [loadingSecurity, setLoadingSecurity] = React.useState('');
+  const [securityMessage, setSecurityMessage] = React.useState('');
+  const [securityFilters, setSecurityFilters] = React.useState({
+    tipo: 'mfa',
+    horas: '24',
+    fechaInicio: '',
+    fechaFin: ''
+  });
 
   const query = React.useMemo(() => buildQueryString(filters), [filters]);
 
@@ -72,6 +83,49 @@ export default function ReportesPage() {
       );
     } finally {
       setLoadingType('');
+    }
+  };
+
+  const handleSecurityReport = async () => {
+    try {
+      setLoadingSecurity(securityFilters.tipo);
+      setSecurityMessage('');
+
+      let url = '';
+      const params = new URLSearchParams();
+
+      if (securityFilters.tipo === 'mfa') {
+        if (securityFilters.fechaInicio) params.set('fecha_inicio', securityFilters.fechaInicio);
+        if (securityFilters.fechaFin) params.set('fecha_fin', securityFilters.fechaFin);
+        url = `/api/reportes/seguridad/mfa?${params.toString()}`;
+      } else if (securityFilters.tipo === 'sospechosas') {
+        params.set('horas', securityFilters.horas);
+        url = `/api/reportes/seguridad/sospechosas?${params.toString()}`;
+      } else if (securityFilters.tipo === 'dispositivos') {
+        url = `/api/reportes/seguridad/dispositivos`;
+      }
+
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error('Error al generar reporte de seguridad');
+
+      const result = await response.json();
+      const blob = new Blob([JSON.stringify(result.data, null, 2)], { type: 'application/json' });
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `sivacad-reporte-seguridad-${securityFilters.tipo}.json`;
+      link.click();
+      URL.revokeObjectURL(blobUrl);
+
+      setSecurityMessage(`Reporte de seguridad generado correctamente: ${result.data.total_registros || result.data.total_dispositivos || 0} registros`);
+    } catch (error) {
+      console.error('Error al generar reporte de seguridad:', error);
+      setSecurityMessage(error?.message || 'Error al generar reporte de seguridad');
+    } finally {
+      setLoadingSecurity('');
     }
   };
 
@@ -266,9 +320,95 @@ export default function ReportesPage() {
         subtitle="Generación rápida y presentación formal"
       >
         <div className="note">
-          Para un reporte general, deja el tipo en “General” y exporta en PDF para
+          Para un reporte general, deja el tipo en "General" y exporta en PDF para
           presentación; usa Excel cuando necesites revisar o compartir los indicadores en
           formato editable.
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Reportes de Seguridad"
+        subtitle="Eventos MFA, actividad sospechosa y dispositivos conocidos"
+      >
+        <div className="form-stack">
+          <label className="field">
+            <span>Tipo de reporte de seguridad</span>
+            <select
+              value={securityFilters.tipo}
+              onChange={(e) =>
+                setSecurityFilters((prev) => ({ ...prev, tipo: e.target.value }))
+              }
+            >
+              <option value="mfa">Eventos MFA (activaciones, logins, fallos)</option>
+              <option value="sospechosas">Actividad sospechosa (últimas 24h)</option>
+              <option value="dispositivos">Dispositivos conocidos</option>
+            </select>
+          </label>
+
+          {securityFilters.tipo === 'mfa' && (
+            <div className="grid-two">
+              <label className="field">
+                <span>Fecha inicio</span>
+                <input
+                  type="date"
+                  value={securityFilters.fechaInicio}
+                  onChange={(e) =>
+                    setSecurityFilters((prev) => ({ ...prev, fechaInicio: e.target.value }))
+                  }
+                />
+              </label>
+              <label className="field">
+                <span>Fecha fin</span>
+                <input
+                  type="date"
+                  value={securityFilters.fechaFin}
+                  onChange={(e) =>
+                    setSecurityFilters((prev) => ({ ...prev, fechaFin: e.target.value }))
+                  }
+                />
+              </label>
+            </div>
+          )}
+
+          {securityFilters.tipo === 'sospechosas' && (
+            <label className="field">
+              <span>Últimas (horas)</span>
+              <select
+                value={securityFilters.horas}
+                onChange={(e) =>
+                  setSecurityFilters((prev) => ({ ...prev, horas: e.target.value }))
+                }
+              >
+                <option value="6">6 horas</option>
+                <option value="12">12 horas</option>
+                <option value="24">24 horas</option>
+                <option value="72">72 horas</option>
+                <option value="168">7 días</option>
+              </select>
+            </label>
+          )}
+
+          <div className="row gap wrap">
+            <button
+              className="btn primary"
+              type="button"
+              onClick={handleSecurityReport}
+              disabled={loadingSecurity !== ''}
+            >
+              {loadingSecurity ? (
+                <Loader2 className="animate-spin" size={18} />
+              ) : (
+                <Shield size={18} />
+              )}
+              Generar Reporte de Seguridad
+            </button>
+          </div>
+
+          {securityMessage && (
+            <div className="note" style={{ marginTop: '0.75rem' }}>
+              {securityMessage}
+            </div>
+          )}
         </div>
       </SectionCard>
 

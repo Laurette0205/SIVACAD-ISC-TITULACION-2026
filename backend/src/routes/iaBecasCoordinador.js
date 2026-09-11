@@ -17,7 +17,7 @@ function authRequired(req, res, next) {
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
   if (!token) return res.status(401).json({ ok: false, message: 'Token no disponible' });
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     return next();
   } catch {
     return res.status(401).json({ ok: false, message: 'Token inválido o expirado' });
@@ -34,9 +34,9 @@ function canAccess(req, res, next) {
 async function audit(opts = {}) {
   try {
     await pool.query(
-      `INSERT INTO ia_becas_auditoria (id_usuario, nombre_usuario, rol_usuario, accion, entidad_tipo, entidad_id, descripcion, detalle_json, nivel)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [opts.id_usuario, opts.nombre_usuario, opts.rol_usuario, opts.accion, opts.entidad_tipo, opts.entidad_id, opts.descripcion, opts.detalle ? JSON.stringify(opts.detalle) : null, opts.nivel || 'INFO']
+      `INSERT INTO ia_becas_auditoria (id_usuario, nombre_usuario, rol_usuario, accion, entidad_tipo, entidad_id, descripcion, detalle_json, nivel, id_institucion)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [opts.id_usuario, opts.nombre_usuario, opts.rol_usuario, opts.accion, opts.entidad_tipo, opts.entidad_id, opts.descripcion, opts.detalle ? JSON.stringify(opts.detalle) : null, opts.nivel || 'INFO', opts.id_institucion || 1]
     );
   } catch (e) { console.error('[iaBecasCoord] audit error:', e.message); }
 }
@@ -55,7 +55,8 @@ router.get('/bandeja', authRequired, canAccess, async (req, res) => {
     const l = Math.min(100, Math.max(10, Number(limit)));
     const offset = (p - 1) * l;
     const params = [];
-    let where = 'WHERE 1=1';
+    let where = 'WHERE s.id_institucion = ?';
+    params.push(req.user.id_institucion || 1);
 
     if (estatus) { where += ' AND s.estatus_solicitud = ?'; params.push(estatus); }
     if (prioridad) { where += ' AND s.prioridad = ?'; params.push(prioridad); }
@@ -108,7 +109,8 @@ router.get('/candidatos', authRequired, canAccess, async (req, res) => {
     const l = Math.min(100, Math.max(10, Number(limit)));
     const offset = (p - 1) * l;
     const params = [];
-    let where = 'WHERE 1=1';
+    let where = 'WHERE c.id_institucion = ?';
+    params.push(req.user.id_institucion || 1);
 
     if (id_carrera) { where += ' AND c.id_carrera = ?'; params.push(Number(id_carrera)); }
     if (semestre) { where += ' AND c.semestre_actual = ?'; params.push(Number(semestre)); }
@@ -197,7 +199,8 @@ router.get('/observaciones', authRequired, canAccess, async (req, res) => {
     const l = Math.min(100, Math.max(10, Number(limit)));
     const offset = (p - 1) * l;
     const params = [];
-    let where = 'WHERE 1=1';
+    let where = 'WHERE o.id_institucion = ?';
+    params.push(req.user.id_institucion || 1);
 
     if (id_solicitud) { where += ' AND o.id_solicitud = ?'; params.push(Number(id_solicitud)); }
 
@@ -227,12 +230,12 @@ router.post('/observaciones', authRequired, canAccess, async (req, res) => {
 
     const nombre = coordName(req.user);
     const result = await pool.query(
-      `INSERT INTO ia_becas_observaciones (id_solicitud, id_usuario, nombre_usuario, rol_usuario, tipo_observacion, observacion, es_interna)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [Number(id_solicitud), req.user?.id_usuario, nombre, req.user?.rol_nombre || req.user?.rol, tipo_observacion || 'GENERAL', observacion, es_interna ? 1 : 0]
+      `INSERT INTO ia_becas_observaciones (id_solicitud, id_usuario, nombre_usuario, rol_usuario, tipo_observacion, observacion, es_interna, id_institucion)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [Number(id_solicitud), req.user?.id_usuario, nombre, req.user?.rol_nombre || req.user?.rol, tipo_observacion || 'GENERAL', observacion, es_interna ? 1 : 0, req.user.id_institucion || 1]
     );
 
-    await audit({ id_usuario: req.user?.id_usuario, nombre_usuario: nombre, rol_usuario: req.user?.rol_nombre || req.user?.rol, accion: 'AGREGAR_OBSERVACION', entidad_tipo: 'ia_becas_observaciones', entidad_id: result?.[0]?.insertId, descripcion: `Observación [${tipo_observacion || 'GENERAL'}] en solicitud #${id_solicitud}`, detalle: { id_solicitud, tipo_observacion, es_interna } });
+    await audit({ id_usuario: req.user?.id_usuario, nombre_usuario: nombre, rol_usuario: req.user?.rol_nombre || req.user?.rol, accion: 'AGREGAR_OBSERVACION', entidad_tipo: 'ia_becas_observaciones', entidad_id: result?.[0]?.insertId, descripcion: `Observación [${tipo_observacion || 'GENERAL'}] en solicitud #${id_solicitud}`, detalle: { id_solicitud, tipo_observacion, es_interna }, id_institucion: req.user.id_institucion || 1 });
 
     return res.status(201).json({ ok: true, message: 'Observación registrada.', data: { id_observacion: result?.[0]?.insertId } });
   } catch (error) {
@@ -257,15 +260,15 @@ router.post('/canalizar', authRequired, canAccess, async (req, res) => {
 
     const nombre = coordName(req.user);
     const result = await pool.query(
-      `INSERT INTO ia_becas_canalizaciones (id_solicitud, id_usuario_origen, nombre_usuario_origen, id_usuario_destino, area_destino, motivo)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [Number(id_solicitud), req.user?.id_usuario, nombre, id_usuario_destino || null, area_destino, motivo || null]
+      `INSERT INTO ia_becas_canalizaciones (id_solicitud, id_usuario_origen, nombre_usuario_origen, id_usuario_destino, area_destino, motivo, id_institucion)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [Number(id_solicitud), req.user?.id_usuario, nombre, id_usuario_destino || null, area_destino, motivo || null, req.user.id_institucion || 1]
     );
 
     // Update solicitud with canalizacion info
-    await pool.query('UPDATE ia_becas_solicitudes SET canalizado_a = ?, fecha_canalizacion = NOW() WHERE id_solicitud = ?', [area_destino, Number(id_solicitud)]);
+    await pool.query('UPDATE ia_becas_solicitudes SET canalizado_a = ?, fecha_canalizacion = NOW() WHERE id_solicitud = ? AND id_institucion = ?', [area_destino, Number(id_solicitud), req.user.id_institucion || 1]);
 
-    await audit({ id_usuario: req.user?.id_usuario, nombre_usuario: nombre, rol_usuario: req.user?.rol_nombre || req.user?.rol, accion: 'CANALIZAR_CASO', entidad_tipo: 'ia_becas_canalizaciones', entidad_id: result?.[0]?.insertId, descripcion: `Caso #${id_solicitud} canalizado a ${area_destino}`, detalle: { id_solicitud, area_destino, id_usuario_destino, motivo } });
+    await audit({ id_usuario: req.user?.id_usuario, nombre_usuario: nombre, rol_usuario: req.user?.rol_nombre || req.user?.rol, accion: 'CANALIZAR_CASO', entidad_tipo: 'ia_becas_canalizaciones', entidad_id: result?.[0]?.insertId, descripcion: `Caso #${id_solicitud} canalizado a ${area_destino}`, detalle: { id_solicitud, area_destino, id_usuario_destino, motivo }, id_institucion: req.user.id_institucion || 1 });
 
     return res.status(201).json({ ok: true, message: `Caso canalizado a ${area_destino}.`, data: { id_canalizacion: result?.[0]?.insertId } });
   } catch (error) {
@@ -292,15 +295,15 @@ router.post('/dictamen-preliminar', authRequired, canAccess, async (req, res) =>
     const nombre = coordName(req.user);
 
     await pool.query(
-      `INSERT INTO ia_becas_dictamenes (id_solicitud, id_convocatoria, id_alumno, tipo_dictamen, fundamento, observaciones, monto_asignado, validado_por_ia, id_usuario_dictamina, nombre_dictamina)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [Number(id_solicitud), sol[0].id_convocatoria, sol[0].id_alumno, tipo_dictamen, fundamento || null, observaciones || null, monto_sugerido || null, 0, req.user?.id_usuario, nombre]
+      `INSERT INTO ia_becas_dictamenes (id_solicitud, id_convocatoria, id_alumno, tipo_dictamen, fundamento, observaciones, monto_asignado, validado_por_ia, id_usuario_dictamina, nombre_dictamina, id_institucion)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [Number(id_solicitud), sol[0].id_convocatoria, sol[0].id_alumno, tipo_dictamen, fundamento || null, observaciones || null, monto_sugerido || null, 0, req.user?.id_usuario, nombre, req.user.id_institucion || 1]
     );
 
     const nuevoEstatus = tipo_dictamen === 'APROBADA' ? 'APROBADA' : tipo_dictamen === 'RECHAZADA' ? 'RECHAZADA' : 'VALIDADA';
-    await pool.query('UPDATE ia_becas_solicitudes SET estatus_solicitud = ?, fecha_resolucion = NOW(), id_usuario_revisor = ?, nombre_revisor = ? WHERE id_solicitud = ?', [nuevoEstatus, req.user?.id_usuario, nombre, Number(id_solicitud)]);
+    await pool.query('UPDATE ia_becas_solicitudes SET estatus_solicitud = ?, fecha_resolucion = NOW(), id_usuario_revisor = ?, nombre_revisor = ? WHERE id_solicitud = ? AND id_institucion = ?', [nuevoEstatus, req.user?.id_usuario, nombre, Number(id_solicitud), req.user.id_institucion || 1]);
 
-    await audit({ id_usuario: req.user?.id_usuario, nombre_usuario: nombre, rol_usuario: req.user?.rol_nombre || req.user?.rol, accion: 'DICTAMEN_PRELIMINAR', entidad_tipo: 'ia_becas_dictamenes', entidad_id: null, descripcion: `Dictamen preliminar "${tipo_dictamen}" para solicitud #${id_solicitud}`, detalle: { id_solicitud, tipo_dictamen, fundamento, monto_sugerido } });
+    await audit({ id_usuario: req.user?.id_usuario, nombre_usuario: nombre, rol_usuario: req.user?.rol_nombre || req.user?.rol, accion: 'DICTAMEN_PRELIMINAR', entidad_tipo: 'ia_becas_dictamenes', entidad_id: null, descripcion: `Dictamen preliminar "${tipo_dictamen}" para solicitud #${id_solicitud}`, detalle: { id_solicitud, tipo_dictamen, fundamento, monto_sugerido }, id_institucion: req.user.id_institucion || 1 });
 
     return res.json({ ok: true, message: `Dictamen preliminar "${tipo_dictamen}" emitido para solicitud #${id_solicitud}.` });
   } catch (error) {
@@ -319,7 +322,8 @@ router.get('/seguimiento', authRequired, canAccess, async (req, res) => {
     const l = Math.min(100, Math.max(10, Number(limit)));
     const offset = (p - 1) * l;
     const params = [];
-    let where = 'WHERE 1=1';
+    let where = 'WHERE s.id_institucion = ?';
+    params.push(req.user.id_institucion || 1);
 
     if (estatus) { where += ' AND s.estatus_solicitud = ?'; params.push(estatus); }
     if (id_coordinador) { where += ' AND s.id_coordinador_asignado = ?'; params.push(Number(id_coordinador)); }
@@ -354,9 +358,9 @@ router.put('/solicitudes/:id/asignar', authRequired, canAccess, async (req, res)
     const [sol] = await pool.query('SELECT id_solicitud FROM ia_becas_solicitudes WHERE id_solicitud = ? LIMIT 1', [id]);
     if (!sol?.length) return res.status(404).json({ ok: false, message: 'Solicitud no encontrada.' });
 
-    await pool.query('UPDATE ia_becas_solicitudes SET id_coordinador_asignado = ?, nombre_coordinador_asignado = ?, fecha_asignacion = NOW() WHERE id_solicitud = ?', [req.user?.id_usuario, nombre, id]);
+    await pool.query('UPDATE ia_becas_solicitudes SET id_coordinador_asignado = ?, nombre_coordinador_asignado = ?, fecha_asignacion = NOW() WHERE id_solicitud = ? AND id_institucion = ?', [req.user?.id_usuario, nombre, id, req.user.id_institucion || 1]);
 
-    await audit({ id_usuario: req.user?.id_usuario, nombre_usuario: nombre, rol_usuario: req.user?.rol_nombre || req.user?.rol, accion: 'ASIGNAR_COORDINADOR', entidad_tipo: 'ia_becas_solicitudes', entidad_id: id, descripcion: `Coordinador ${nombre} asignado a solicitud #${id}` });
+    await audit({ id_usuario: req.user?.id_usuario, nombre_usuario: nombre, rol_usuario: req.user?.rol_nombre || req.user?.rol, accion: 'ASIGNAR_COORDINADOR', entidad_tipo: 'ia_becas_solicitudes', entidad_id: id, descripcion: `Coordinador ${nombre} asignado a solicitud #${id}`, id_institucion: req.user.id_institucion || 1 });
 
     return res.json({ ok: true, message: `Te has asignado a la solicitud #${id}.` });
   } catch (error) {
@@ -374,7 +378,7 @@ router.put('/solicitudes/:id/prioridad', authRequired, canAccess, async (req, re
     const { prioridad } = req.body;
     if (!['BAJA', 'NORMAL', 'ALTA', 'URGENTE'].includes(prioridad)) return res.status(400).json({ ok: false, message: 'Prioridad inválida.' });
 
-    await pool.query('UPDATE ia_becas_solicitudes SET prioridad = ? WHERE id_solicitud = ?', [prioridad, id]);
+    await pool.query('UPDATE ia_becas_solicitudes SET prioridad = ? WHERE id_solicitud = ? AND id_institucion = ?', [prioridad, id, req.user.id_institucion || 1]);
     return res.json({ ok: true, message: `Prioridad actualizada a "${prioridad}".` });
   } catch (error) {
     console.error('[iaBecasCoord] prioridad error:', error);

@@ -148,9 +148,13 @@ function isNetworkError(error) {
   );
 }
 
-function emitAuthError(status, message) {
+function emitAuthError(status, message, path) {
   if (status !== 401) return;
   if (typeof window === 'undefined') return;
+
+  const publicPaths = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password'];
+  const isPublic = publicPaths.some((p) => String(path || '').includes(p));
+  if (isPublic) return;
 
   window.dispatchEvent(
     new CustomEvent('sivacad:auth-error', {
@@ -165,8 +169,14 @@ async function request(path, { token, method = 'GET', body, form = false, timeou
 
   const headers = {};
 
-  if (token) {
+  const publicPaths = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password', '/auth/login-mfa', '/auth/refresh'];
+  const isPublic = publicPaths.some((p) => String(path || '').includes(p));
+
+  if (token && token.trim()) {
     headers.Authorization = `Bearer ${token}`;
+  } else if (!isPublic) {
+    clearTimeout(timeoutId);
+    return { ok: false, message: 'Sesión no disponible. Inicia sesión nuevamente.', status: 401 };
   }
 
   if (!form && body !== undefined) {
@@ -189,7 +199,7 @@ async function request(path, { token, method = 'GET', body, form = false, timeou
       clearTimeout(timeoutId);
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        emitAuthError(response.status, errData?.message || errData?.error);
+        emitAuthError(response.status, errData?.message || errData?.error, path);
         throw new Error(errData?.message || errData?.error || `Error ${response.status}`);
       }
       return response.blob();
@@ -198,7 +208,7 @@ async function request(path, { token, method = 'GET', body, form = false, timeou
     const data = await parseResponse(response);
 
     if (!response.ok) {
-      emitAuthError(response.status, data?.message || data?.error);
+      emitAuthError(response.status, data?.message || data?.error, path);
 
       const error = new Error(
         data?.message ||
@@ -282,6 +292,12 @@ const api = {
       body
     }),
 
+  loginMFA: (body) =>
+    request('/auth/login-mfa', {
+      method: 'POST',
+      body
+    }),
+
   register: (body) =>
     request('/auth/register', {
       method: 'POST',
@@ -295,6 +311,12 @@ const api = {
     request('/auth/refresh', {
       method: 'POST',
       body: { refreshToken }
+    }),
+
+  logout: (token) =>
+    request('/auth/logout', {
+      token,
+      method: 'POST'
     }),
 
   forgotPassword: (body) =>
@@ -2326,7 +2348,54 @@ iaBienestarSoporteRutas: (token) =>
     request(`/soporte-tramites/tramites?${new URLSearchParams(params).toString()}`, { token }),
 
   soporteTramitesEspeciales: (token) =>
-    request('/soporte-tramites/tramites-especiales', { token })
+    request('/soporte-tramites/tramites-especiales', { token }),
+
+  alumnoPerfil: (token) =>
+    request('/alumno-perfil', { token }),
+
+  alumnoPerfilActualizar: (token, body) =>
+    request('/alumno-perfil', { token, method: 'PUT', body }),
+
+  alumnoPerfilKardex: (token) =>
+    request('/alumno-perfil/kardex', { token }),
+
+  alumnoPerfilEstadisticas: (token) =>
+    request('/alumno-perfil/estadisticas', { token }),
+
+  // ==============================
+  // INFORMACIÓN MÉDICA
+  // ==============================
+  alumnoInfoMedica: (token) =>
+    request('/alumno-info-medica', { token }),
+
+  alumnoInfoMedicaActualizar: (token, body) =>
+    request('/alumno-info-medica', { token, method: 'PUT', body }),
+
+  // ==============================
+  // INFORMACIÓN LABORAL
+  // ==============================
+  alumnoInfoLaboral: (token) =>
+    request('/alumno-info-laboral', { token }),
+
+  alumnoInfoLaboralActualizar: (token, body) =>
+    request('/alumno-info-laboral', { token, method: 'PUT', body }),
+
+  // ==============================
+  // DOCUMENTOS SENSIBLES
+  // ==============================
+  alumnoDocumentos: (token) =>
+    request('/alumno-documentos', { token }),
+
+  alumnoDocumentoSubir: (token, formData) =>
+    request('/alumno-documentos', {
+      token,
+      method: 'POST',
+      body: formData,
+      form: true
+    }),
+
+  alumnoDocumentoEliminar: (token, id) =>
+    request(`/alumno-documentos/${id}`, { token, method: 'DELETE' })
 };
 
 export { api, canAccessDesercionIA, canAccessDesercionDocenteIA, canAccessDesercionAlumnoIA, canAccessDesercionSoporteIA, canAccessBienestarAdminIA, canAccessBienestarDocenteIA, canAccessBecasSoporteIA };

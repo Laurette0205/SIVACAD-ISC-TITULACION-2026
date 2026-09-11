@@ -40,8 +40,8 @@ exports.getMiInformacion = async (req, res) => {
     const [reinscripcionesActivas] = await conn.execute(
       `SELECT COUNT(*) AS total FROM reinscripciones r
        INNER JOIN inscripciones i ON i.id_inscripcion = r.id_inscripcion
-       WHERE i.id_alumno = ? AND i.estado IN ('Pendiente','Validada')`,
-      [alumno.id_alumno]
+       WHERE i.id_alumno = ? AND i.estado IN ('Pendiente','Validada') AND i.id_institucion = ?`,
+      [alumno.id_alumno, req.user.id_institucion || 1]
     );
 
     const [carreras] = await conn.execute(
@@ -96,8 +96,9 @@ exports.solicitarReinscripcion = async (req, res) => {
        WHERE i.id_alumno = ? AND i.id_periodo = ?
          AND i.tipo_inscripcion = 'Reinscripcion'
          AND i.estado IN ('Pendiente','Validada')
+         AND i.id_institucion = ?
        LIMIT 1`,
-      [alumno.id_alumno, periodoFinal]
+      [alumno.id_alumno, periodoFinal, req.user.id_institucion || 1]
     );
     if (duplicado.length) {
       await conn.rollback();
@@ -105,9 +106,9 @@ exports.solicitarReinscripcion = async (req, res) => {
     }
 
     const [insResult] = await conn.execute(
-      `INSERT INTO inscripciones (id_alumno, id_periodo, fecha_inscripcion, tipo_inscripcion, estado, observaciones)
-       VALUES (?, ?, NOW(), 'Reinscripcion', 'Pendiente', ?)`,
-      [alumno.id_alumno, periodoFinal, observaciones?.trim() || null]
+      `INSERT INTO inscripciones (id_alumno, id_periodo, id_institucion, fecha_inscripcion, tipo_inscripcion, estado, observaciones)
+       VALUES (?, ?, ?, NOW(), 'Reinscripcion', 'Pendiente', ?)`,
+      [alumno.id_alumno, periodoFinal, req.user.id_institucion || 1, observaciones?.trim() || null]
     );
     const id_inscripcion = insResult.insertId;
 
@@ -170,9 +171,9 @@ exports.getMiEstatus = async (req, res) => {
          INNER JOIN inscripciones i ON i.id_inscripcion = r.id_inscripcion
          INNER JOIN periodos p ON p.id_periodo = i.id_periodo
          LEFT JOIN grupos g ON g.id_grupo = i.id_grupo
-         WHERE i.id_alumno = ?
+         WHERE i.id_alumno = ? AND i.id_institucion = ?
          ORDER BY r.id_reinscripcion DESC`,
-        [alumno.id_alumno]
+        [alumno.id_alumno, req.user.id_institucion || 1]
       );
       rows = r;
     } catch (e) {
@@ -187,9 +188,9 @@ exports.getMiEstatus = async (req, res) => {
            FROM reinscripciones r
            INNER JOIN inscripciones i ON i.id_inscripcion = r.id_inscripcion
            INNER JOIN periodos p ON p.id_periodo = i.id_periodo
-           WHERE i.id_alumno = ?
+           WHERE i.id_alumno = ? AND i.id_institucion = ?
            ORDER BY r.id_reinscripcion DESC`,
-          [alumno.id_alumno]
+          [alumno.id_alumno, req.user.id_institucion || 1]
         );
         rows = r2;
       } catch (e2) {
@@ -232,9 +233,9 @@ exports.getMiHistorial = async (req, res) => {
          FROM reinscripciones r
          INNER JOIN inscripciones i ON i.id_inscripcion = r.id_inscripcion
          INNER JOIN periodos p ON p.id_periodo = i.id_periodo
-         WHERE i.id_alumno = ?
+         WHERE i.id_alumno = ? AND i.id_institucion = ?
          ORDER BY r.id_reinscripcion DESC`,
-        [alumno.id_alumno]
+        [alumno.id_alumno, req.user.id_institucion || 1]
       );
       historial = h;
     } catch (e) {
@@ -249,10 +250,10 @@ exports.getMiHistorial = async (req, res) => {
          WHERE ra.id_inscripcion IN (
            SELECT i.id_inscripcion FROM reinscripciones r
            INNER JOIN inscripciones i ON i.id_inscripcion = r.id_inscripcion
-           WHERE i.id_alumno = ?
+           WHERE i.id_alumno = ? AND i.id_institucion = ?
          )
          ORDER BY ra.creado_en DESC`,
-        [alumno.id_alumno]
+        [alumno.id_alumno, req.user.id_institucion || 1]
       );
       auditoria = a;
     } catch (e) {
@@ -265,9 +266,9 @@ exports.getMiHistorial = async (req, res) => {
          FROM reinscripcion_requisitos rr
          INNER JOIN reinscripciones r ON r.id_reinscripcion = rr.id_reinscripcion
          INNER JOIN inscripciones i ON i.id_inscripcion = r.id_inscripcion
-         WHERE i.id_alumno = ?
+         WHERE i.id_alumno = ? AND i.id_institucion = ?
          ORDER BY rr.requisito`,
-        [alumno.id_alumno]
+        [alumno.id_alumno, req.user.id_institucion || 1]
       );
       requisitos = r;
     } catch (e) {
@@ -312,9 +313,9 @@ exports.descargarComprobante = async (req, res) => {
        INNER JOIN periodos p ON p.id_periodo = i.id_periodo
        LEFT JOIN grupos g ON g.id_grupo = i.id_grupo
        LEFT JOIN carreras c ON c.id_carrera = COALESCE(i.id_carrera, alumno.id_carrera)
-       WHERE r.id_reinscripcion = ? AND i.id_alumno = ?
+       WHERE r.id_reinscripcion = ? AND i.id_alumno = ? AND i.id_institucion = ?
        LIMIT 1`,
-      [Number(id), alumno.id_alumno]
+      [Number(id), alumno.id_alumno, req.user.id_institucion || 1]
     );
 
     if (!rows.length) {

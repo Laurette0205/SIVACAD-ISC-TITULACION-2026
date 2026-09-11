@@ -303,6 +303,46 @@ export function AuthProvider({ children }) {
     }
 
     const response = await api.login(payload);
+
+    // Si MFA es requerido, retornar al LoginPage para pedir código
+    if (response?.mfaRequired) {
+      return { mfaRequired: true, mfaToken: response.mfaToken, message: response.message };
+    }
+
+    const normalizedUser = extractUserFromResponse(response);
+    const jwtToken = response?.token || '';
+    const refresh = response?.refreshToken || '';
+
+    if (!jwtToken) {
+      throw new Error('Token no recibido del servidor');
+    }
+
+    localStorage.setItem(STORAGE_TOKEN, jwtToken);
+    setToken(jwtToken);
+
+    if (refresh) {
+      localStorage.setItem(STORAGE_REFRESH_TOKEN, refresh);
+      setRefreshToken(refresh);
+    }
+
+    if (normalizedUser) {
+      localStorage.setItem(STORAGE_USER, JSON.stringify(normalizedUser));
+      setUser(normalizedUser);
+    }
+
+    return {
+      ...response,
+      usuario: normalizedUser,
+      redirectTo: getHomeRouteByUser(normalizedUser)
+    };
+  };
+
+  const loginMFA = async (mfaToken, codigo) => {
+    if (!mfaToken || !codigo) {
+      throw new Error('Token MFA y código son requeridos');
+    }
+
+    const response = await api.loginMFA({ mfaToken, codigo });
     const normalizedUser = extractUserFromResponse(response);
     const jwtToken = response?.token || '';
     const refresh = response?.refreshToken || '';
@@ -386,9 +426,18 @@ export function AuthProvider({ children }) {
     return api.resetPassword(resetToken, password);
   };
 
-  const logout = React.useCallback(() => {
-    clearSession();
-  }, [clearSession]);
+  const logout = React.useCallback(async () => {
+    const currentToken = token || localStorage.getItem(STORAGE_TOKEN);
+    try {
+      if (currentToken) {
+        await api.logout(currentToken);
+      }
+    } catch (_) {
+      // Resilient: continue even if the server call fails
+    } finally {
+      clearSession();
+    }
+  }, [clearSession, token]);
 
   const refreshMe = React.useCallback(async () => {
     try {
@@ -424,10 +473,10 @@ export function AuthProvider({ children }) {
   const value = React.useMemo(() => ({
     user, token, refreshToken, loading,
     isAuthenticated: Boolean(token && user),
-    login, register, forgotPassword, resetPassword,
+    login, loginMFA, register, forgotPassword, resetPassword,
     logout, refreshMe, refreshSession, setUser, setToken,
     getHomeRouteByUser, clearSession
-  }), [user, token, refreshToken, loading, login, register, forgotPassword, resetPassword, logout, refreshMe, refreshSession, setUser, setToken, getHomeRouteByUser, clearSession]);
+  }), [user, token, refreshToken, loading, login, loginMFA, register, forgotPassword, resetPassword, logout, refreshMe, refreshSession, setUser, setToken, getHomeRouteByUser, clearSession]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

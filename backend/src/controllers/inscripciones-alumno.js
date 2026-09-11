@@ -44,9 +44,9 @@ exports.getMiInformacion = async (req, res) => {
        FROM inscripciones i
        INNER JOIN periodos p ON p.id_periodo = i.id_periodo
        LEFT JOIN grupos g ON g.id_grupo = i.id_grupo
-       WHERE i.id_alumno = ?
+       WHERE i.id_alumno = ? AND i.id_institucion = ?
        ORDER BY i.fecha_inscripcion DESC`,
-      [alumno.id_alumno]
+      [alumno.id_alumno, req.user.id_institucion || 1]
     );
 
     return res.json({
@@ -89,8 +89,8 @@ exports.solicitarInscripcion = async (req, res) => {
 
     const [duplicado] = await conn.execute(
       `SELECT id_inscripcion, estado FROM inscripciones
-       WHERE id_alumno = ? AND id_periodo = ? LIMIT 1`,
-      [alumno.id_alumno, periodoFinal]
+       WHERE id_alumno = ? AND id_periodo = ? AND id_institucion = ? LIMIT 1`,
+      [alumno.id_alumno, periodoFinal, req.user.id_institucion || 1]
     );
 
     if (duplicado.length) {
@@ -106,9 +106,9 @@ exports.solicitarInscripcion = async (req, res) => {
     await conn.beginTransaction();
 
     const [result] = await conn.execute(
-      `INSERT INTO inscripciones (id_alumno, id_periodo, fecha_inscripcion, tipo_inscripcion, estado, observaciones)
-       VALUES (?, ?, NOW(), ?, 'Pendiente', 'Solicitud registrada por el alumno')`,
-      [alumno.id_alumno, periodoFinal, tipo]
+      `INSERT INTO inscripciones (id_alumno, id_periodo, id_institucion, fecha_inscripcion, tipo_inscripcion, estado, observaciones)
+       VALUES (?, ?, ?, NOW(), ?, 'Pendiente', 'Solicitud registrada por el alumno')`,
+      [alumno.id_alumno, periodoFinal, req.user.id_institucion || 1, tipo]
     );
 
     await conn.execute(
@@ -154,10 +154,10 @@ exports.getMiEstatus = async (req, res) => {
        INNER JOIN periodos p ON p.id_periodo = i.id_periodo
        LEFT JOIN grupos g ON g.id_grupo = i.id_grupo
        LEFT JOIN carreras c ON c.id_carrera = i.id_carrera
-       WHERE i.id_alumno = ?
+       WHERE i.id_alumno = ? AND i.id_institucion = ?
        ORDER BY i.fecha_inscripcion DESC
        LIMIT 20`,
-      [alumno.id_alumno]
+      [alumno.id_alumno, req.user.id_institucion || 1]
     );
 
     const totalDocs = 5;
@@ -210,10 +210,10 @@ exports.getDocumentosRequeridos = async (req, res) => {
       `SELECT i.id_inscripcion, i.id_periodo, p.nombre_periodo, i.estado
        FROM inscripciones i
        INNER JOIN periodos p ON p.id_periodo = i.id_periodo
-       WHERE i.id_alumno = ?
+       WHERE i.id_alumno = ? AND i.id_institucion = ?
        ORDER BY i.fecha_inscripcion DESC
        LIMIT 5`,
-      [alumno.id_alumno]
+      [alumno.id_alumno, req.user.id_institucion || 1]
     );
 
     const docsPorTipo = tiposDocumento.map(td => ({
@@ -261,8 +261,8 @@ exports.subirDocumento = async (req, res) => {
     let idPeriodo = null;
     if (id_inscripcion) {
       const [ins] = await conn.execute(
-        `SELECT id_periodo FROM inscripciones WHERE id_inscripcion = ? AND id_alumno = ? LIMIT 1`,
-        [Number(id_inscripcion), alumno.id_alumno]
+        `SELECT id_periodo FROM inscripciones WHERE id_inscripcion = ? AND id_alumno = ? AND id_institucion = ? LIMIT 1`,
+        [Number(id_inscripcion), alumno.id_alumno, req.user.id_institucion || 1]
       );
       if (!ins.length) {
         return res.status(404).json({ ok: false, message: 'Inscripcion no encontrada' });
@@ -341,9 +341,9 @@ exports.getMiHistorial = async (req, res) => {
               i.tipo_inscripcion, i.estado, i.fecha_inscripcion, i.actualizado_en
        FROM inscripciones i
        INNER JOIN periodos p ON p.id_periodo = i.id_periodo
-       WHERE i.id_alumno = ?
+       WHERE i.id_alumno = ? AND i.id_institucion = ?
        ORDER BY i.fecha_inscripcion DESC`,
-      [alumno.id_alumno]
+      [alumno.id_alumno, req.user.id_institucion || 1]
     );
 
     return res.json({
@@ -382,9 +382,9 @@ exports.descargarComprobante = async (req, res) => {
        INNER JOIN alumnos a ON a.id_alumno = i.id_alumno
        INNER JOIN periodos p ON p.id_periodo = i.id_periodo
        LEFT JOIN carreras c ON c.id_carrera = COALESCE(i.id_carrera, a.id_carrera)
-       WHERE i.id_inscripcion = ? AND i.id_alumno = ?
+       WHERE i.id_inscripcion = ? AND i.id_alumno = ? AND i.id_institucion = ?
        LIMIT 1`,
-      [Number(id), alumno.id_alumno]
+      [Number(id), alumno.id_alumno, req.user.id_institucion || 1]
     );
 
     if (!rows.length) {

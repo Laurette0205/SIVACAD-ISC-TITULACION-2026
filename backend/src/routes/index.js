@@ -65,6 +65,7 @@ mountIfAvailable('/admin-reinscripciones', './admin-reinscripciones');
 mountIfAvailable('/admin-kardex', './admin-kardex');
 mountIfAvailable('/coordinador-reinscripciones', './coordinador-reinscripciones');
 mountIfAvailable('/alumnos', './alumnos');
+mountIfAvailable('/alumno-perfil', './alumnoPerfil');
 mountIfAvailable('/docentes', './docentes');
 mountIfAvailable('/periodos', './periodos');
 mountIfAvailable('/grupos', './grupos');
@@ -107,6 +108,20 @@ mountIfAvailable('/ia/bienestar', './iaBienestarDocente');
 mountIfAvailable('/ia/bienestar', './iaBienestarSoporte');
 
 mountIfAvailable('/derechos-autor', './derechos_autor');
+
+// =====================================================
+// NUEVAS RUTAS: SEGURIDAD Y PRIVACIDAD
+// =====================================================
+mountIfAvailable('/instituciones', './instituciones');
+mountIfAvailable('/break-glass', './breakGlass');
+mountIfAvailable('/sync', './offlineSync');
+mountIfAvailable('/privacy', './privacy');
+mountIfAvailable('/contactos-emergencia', './contactosEmergencia');
+mountIfAvailable('/ia/prompts', './iaPrompts');
+mountIfAvailable('/mfa', './mfa');
+mountIfAvailable('/alumno-info-medica', './alumnoInfoMedica');
+mountIfAvailable('/alumno-info-laboral', './alumnoInfoLaboral');
+mountIfAvailable('/alumno-documentos', './alumnoDocumentos');
 
 // =====================================================
 // EXPORTAR

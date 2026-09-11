@@ -67,11 +67,11 @@ function getTzInfo() {
 
 async function registrarAuditoria(conn, datos) {
   await conn.execute(
-    `INSERT INTO kardex_auditoria (id_kardex, id_alumno, accion, campo_modificado, valor_anterior, valor_nuevo, detalle, id_usuario, ip_origen)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO kardex_auditoria (id_kardex, id_alumno, accion, campo_modificado, valor_anterior, valor_nuevo, detalle, id_usuario, ip_origen, id_institucion)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [datos.id_kardex || null, datos.id_alumno || null, datos.accion, datos.campo || null,
      datos.valor_anterior || null, datos.valor_nuevo || null, datos.detalle || null,
-     datos.id_usuario || null, datos.ip_origen || null]
+     datos.id_usuario || null, datos.ip_origen || null, datos.id_institucion || 1]
   );
 }
 
@@ -85,9 +85,12 @@ exports.getKardexGeneral = async (req, res) => {
     const offset = (page - 1) * limit;
     const search = req.query.search || '';
     const estatus = req.query.estatus || '';
+    const idInstitucion = req.user?.id_institucion || 1;
 
     const where = [];
     const params = [];
+    where.push('a.id_institucion = ?');
+    params.push(idInstitucion);
     if (search) {
       where.push('(a.matricula LIKE ? OR a.nombres LIKE ? OR a.apellido_paterno LIKE ? OR a.apellido_materno LIKE ? OR k.folio_kardex LIKE ?)');
       const s = `%${search}%`;
@@ -135,6 +138,7 @@ exports.getKardexGeneral = async (req, res) => {
 exports.getKardexIndividual = async (req, res) => {
   try {
     const id = Number(req.params.id);
+    const idInstitucion = req.user?.id_institucion || 1;
     if (!id) return res.status(400).json({ ok: false, message: 'ID inválido' });
 
     const [kardexRows] = await pool.execute(
@@ -147,9 +151,9 @@ exports.getKardexIndividual = async (req, res) => {
        INNER JOIN alumnos a ON a.id_alumno = k.id_alumno
        LEFT JOIN carreras c ON c.id_carrera = COALESCE(a.id_carrera, 1)
        LEFT JOIN usuarios u ON u.id_usuario = a.id_usuario
-       WHERE a.id_alumno = ? OR a.id_usuario = ? OR k.id_kardex = ?
+       WHERE (a.id_alumno = ? OR a.id_usuario = ? OR k.id_kardex = ?) AND a.id_institucion = ?
        LIMIT 1`,
-      [id, id, id]
+      [id, id, id, idInstitucion]
     );
     if (!kardexRows.length) return res.status(404).json({ ok: false, message: 'Kardex no encontrado' });
 
@@ -163,9 +167,9 @@ exports.getKardexIndividual = async (req, res) => {
          LEFT JOIN periodos p ON p.id_periodo = kh.id_periodo
          LEFT JOIN materias m ON m.id_materia = kh.id_materia
          LEFT JOIN grupos g ON g.id_grupo = kh.id_grupo
-         WHERE kh.id_alumno = ?
+         WHERE kh.id_alumno = ? AND kh.id_institucion = ?
          ORDER BY kh.creado_en DESC`,
-        [k.id_alumno]
+        [k.id_alumno, idInstitucion]
       );
     } catch (e) {
       if (e.code !== 'ER_NO_SUCH_TABLE') throw e;
@@ -177,9 +181,9 @@ exports.getKardexIndividual = async (req, res) => {
         `SELECT ka.*, CONCAT(u.nombres, ' ', u.apellido_paterno) AS usuario_nombre
          FROM kardex_auditoria ka
          LEFT JOIN usuarios u ON u.id_usuario = ka.id_usuario
-         WHERE ka.id_alumno = ? OR ka.id_kardex = ?
+         WHERE (ka.id_alumno = ? OR ka.id_kardex = ?) AND ka.id_institucion = ?
          ORDER BY ka.creado_en DESC LIMIT 50`,
-        [k.id_alumno, k.id_kardex]
+        [k.id_alumno, k.id_kardex, idInstitucion]
       );
     } catch (e) {
       if (e.code !== 'ER_NO_SUCH_TABLE') throw e;
@@ -187,7 +191,7 @@ exports.getKardexIndividual = async (req, res) => {
 
     let sellos = [];
     try {
-      [sellos] = await pool.execute('SELECT * FROM kardex_sellos WHERE activo = 1');
+      [sellos] = await pool.execute('SELECT * FROM kardex_sellos WHERE activo = 1 AND id_institucion = ?', [idInstitucion]);
     } catch (e) {
       if (e.code !== 'ER_NO_SUCH_TABLE') throw e;
     }
@@ -234,29 +238,30 @@ exports.cargarFotoInstitucional = async (req, res) => {
   let oldFilePath = null;
   try {
     const id = Number(req.params.id);
+    const idInstitucion = req.user?.id_institucion || 1;
     if (!id) { if (req.file?.path) safeUnlink(req.file.path); return res.status(400).json({ ok: false, message: 'ID inválido' }); }
     if (!req.file) return res.status(400).json({ ok: false, message: 'No se recibió imagen' });
 
-    const [alumnoRows] = await pool.execute('SELECT id_alumno, fotografia FROM alumnos WHERE id_alumno = ? LIMIT 1', [id]);
+    const [alumnoRows] = await pool.execute('SELECT id_alumno, fotografia FROM alumnos WHERE id_alumno = ? AND id_institucion = ? LIMIT 1', [id, idInstitucion]);
     if (!alumnoRows.length) { safeUnlink(req.file.path); return res.status(404).json({ ok: false, message: 'Alumno no encontrado' }); }
 
-    const [kardexRow] = await pool.execute('SELECT id_kardex, foto_institucional FROM kardex_alumno WHERE id_alumno = ? LIMIT 1', [id]);
+    const [kardexRow] = await pool.execute('SELECT id_kardex, foto_institucional FROM kardex_alumno WHERE id_alumno = ? AND id_institucion = ? LIMIT 1', [id, idInstitucion]);
     oldFilePath = absoluteFromRelative(kardexRow[0]?.foto_institucional || alumnoRows[0]?.fotografia);
 
     const relativePath = `/uploads/kardex/fotos/${req.file.filename}`;
     await fs.promises.mkdir(path.dirname(absoluteFromRelative(relativePath)), { recursive: true });
 
     await pool.execute(
-      `UPDATE kardex_alumno SET foto_institucional = ?, foto_autorizada_por = ?, foto_autorizada_en = NOW() WHERE id_alumno = ?`,
-      [relativePath, req.user.id_usuario, id]
+      `UPDATE kardex_alumno SET foto_institucional = ?, foto_autorizada_por = ?, foto_autorizada_en = NOW() WHERE id_alumno = ? AND id_institucion = ?`,
+      [relativePath, req.user.id_usuario, id, idInstitucion]
     );
-    await pool.execute(`UPDATE alumnos SET fotografia = ? WHERE id_alumno = ?`, [relativePath, id]);
+    await pool.execute(`UPDATE alumnos SET fotografia = ? WHERE id_alumno = ? AND id_institucion = ?`, [relativePath, id, idInstitucion]);
 
     await registrarAuditoria(pool, {
       id_kardex: kardexRow[0]?.id_kardex, id_alumno: id,
       accion: 'CARGAR_FOTO_INSTITUCIONAL', campo: 'foto_institucional',
       detalle: `Fotografía institucional cargada por ${req.user.id_usuario}`,
-      id_usuario: req.user.id_usuario, ip_origen: req.ip
+      id_usuario: req.user.id_usuario, ip_origen: req.ip, id_institucion: idInstitucion
     });
 
     safeUnlink(oldFilePath);
@@ -274,6 +279,7 @@ exports.cargarFotoInstitucional = async (req, res) => {
 exports.validarQR = async (req, res) => {
   try {
     const { token } = req.params;
+    const idInstitucion = req.user?.id_institucion || 1;
     if (!token) return res.status(400).json({ ok: false, message: 'Token QR requerido' });
 
     const [rows] = await pool.execute(
@@ -283,8 +289,8 @@ exports.validarQR = async (req, res) => {
        FROM kardex_alumno k
        INNER JOIN alumnos a ON a.id_alumno = k.id_alumno
        LEFT JOIN carreras c ON c.id_carrera = COALESCE(a.id_carrera, 1)
-       WHERE k.qr_token = ? LIMIT 1`,
-      [token]
+       WHERE k.qr_token = ? AND k.id_institucion = ? LIMIT 1`,
+      [token, idInstitucion]
     );
 
     if (!rows.length) {
@@ -314,10 +320,11 @@ exports.generarQR = async (req, res) => {
   let previousQrPath = null;
   try {
     const id = Number(req.params.id);
+    const idInstitucion = req.user?.id_institucion || 1;
     if (!id) return res.status(400).json({ ok: false, message: 'ID inválido' });
 
     const [rows] = await pool.execute(
-      'SELECT id_alumno, qr_token, url_qr FROM kardex_alumno WHERE id_alumno = ? LIMIT 1', [id]
+      'SELECT id_alumno, qr_token, url_qr FROM kardex_alumno WHERE id_alumno = ? AND id_institucion = ? LIMIT 1', [id, idInstitucion]
     );
     if (!rows.length) return res.status(404).json({ ok: false, message: 'Alumno no encontrado' });
 
@@ -330,12 +337,12 @@ exports.generarQR = async (req, res) => {
     await fs.promises.mkdir(path.dirname(absolutePath), { recursive: true });
     await QRCode.toFile(absolutePath, qrContent, { type: 'png', width: 520, margin: 1, errorCorrectionLevel: 'H' });
 
-    await pool.execute('UPDATE kardex_alumno SET qr_token = ?, url_qr = ? WHERE id_alumno = ?', [token, relativePath, id]);
+    await pool.execute('UPDATE kardex_alumno SET qr_token = ?, url_qr = ? WHERE id_alumno = ? AND id_institucion = ?', [token, relativePath, id, idInstitucion]);
     safeUnlink(previousQrPath);
 
     await registrarAuditoria(pool, {
       id_alumno: id, accion: 'GENERAR_QR', detalle: 'QR institucional generado',
-      id_usuario: req.user.id_usuario, ip_origen: req.ip
+      id_usuario: req.user.id_usuario, ip_origen: req.ip, id_institucion: idInstitucion
     });
 
     return res.json({ ok: true, message: 'QR generado', data: { qr_token: token, url_qr: publicUrl(req, relativePath) } });
@@ -351,6 +358,7 @@ exports.generarQR = async (req, res) => {
 exports.getHistorialAcademico = async (req, res) => {
   try {
     const id = Number(req.params.id);
+    const idInstitucion = req.user?.id_institucion || 1;
     if (!id) return res.status(400).json({ ok: false, message: 'ID inválido' });
 
     let rows = [];
@@ -364,9 +372,9 @@ exports.getHistorialAcademico = async (req, res) => {
        LEFT JOIN materias m ON m.id_materia = kh.id_materia
        LEFT JOIN grupos g ON g.id_grupo = kh.id_grupo
        LEFT JOIN usuarios u ON u.id_usuario = kh.registrado_por
-       WHERE kh.id_alumno = ?
+       WHERE kh.id_alumno = ? AND kh.id_institucion = ?
        ORDER BY p.fecha_inicio DESC, kh.creado_en DESC`,
-      [id]
+      [id, idInstitucion]
     );
     } catch (e) {
       if (e.code !== 'ER_NO_SUCH_TABLE') throw e;
@@ -391,18 +399,19 @@ exports.getHistorialAcademico = async (req, res) => {
 exports.agregarHistorialAcademico = async (req, res) => {
   try {
     const { id_alumno, id_periodo, id_materia, id_grupo, calificacion, creditos, tipo_materia, estado, observaciones } = req.body;
+    const idInstitucion = req.user?.id_institucion || 1;
     if (!id_alumno || !id_periodo) return res.status(400).json({ ok: false, message: 'Alumno y período requeridos' });
 
     const [result] = await pool.execute(
-      `INSERT INTO kardex_historial_academico (id_alumno, id_periodo, id_materia, id_grupo, calificacion, creditos, tipo_materia, estado, observaciones, registrado_por)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO kardex_historial_academico (id_alumno, id_periodo, id_materia, id_grupo, calificacion, creditos, tipo_materia, estado, observaciones, registrado_por, id_institucion)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [id_alumno, id_periodo, id_materia || null, id_grupo || null, calificacion || null, creditos || 0,
-       tipo_materia || 'Ordinaria', estado || 'Cursando', observaciones || null, req.user.id_usuario]
+       tipo_materia || 'Ordinaria', estado || 'Cursando', observaciones || null, req.user.id_usuario, idInstitucion]
     );
 
     await registrarAuditoria(pool, {
       id_alumno, accion: 'AGREGAR_HISTORIAL', detalle: `Materia registrada en historial académico`,
-      id_usuario: req.user.id_usuario, ip_origen: req.ip
+      id_usuario: req.user.id_usuario, ip_origen: req.ip, id_institucion: idInstitucion
     });
 
     return res.status(201).json({ ok: true, message: 'Registro académico agregado', data: { id_historial: result.insertId } });
@@ -422,9 +431,12 @@ exports.getAuditoria = async (req, res) => {
     const offset = (page - 1) * limit;
     const idAlumno = req.query.id_alumno || '';
     const accion = req.query.accion || '';
+    const idInstitucion = req.user?.id_institucion || 1;
 
     const where = [];
     const params = [];
+    where.push('ka.id_institucion = ?');
+    params.push(idInstitucion);
     if (idAlumno) { where.push('ka.id_alumno = ?'); params.push(Number(idAlumno)); }
     if (accion) { where.push('ka.accion = ?'); params.push(accion); }
 
@@ -473,6 +485,7 @@ exports.getAuditoria = async (req, res) => {
 exports.limpiarAuditoria = async (req, res) => {
   try {
     const { dias, hasta, confirmacion } = req.query;
+    const idInstitucion = req.user?.id_institucion || 1;
 
     if (confirmacion !== 'SI_LIMPIAR') {
       return res.status(400).json({
@@ -485,26 +498,26 @@ exports.limpiarAuditoria = async (req, res) => {
     let beforeCount = 0;
 
     try {
-      const [[{ cnt }]] = await pool.execute('SELECT COUNT(*) AS cnt FROM kardex_auditoria');
+      const [[{ cnt }]] = await pool.execute('SELECT COUNT(*) AS cnt FROM kardex_auditoria WHERE id_institucion = ?', [idInstitucion]);
       beforeCount = cnt;
     } catch (e) { /* no table */ }
 
     if (hasta) {
       const [result] = await pool.execute(
-        'DELETE FROM kardex_auditoria WHERE creado_en <= ?',
-        [hasta]
+        'DELETE FROM kardex_auditoria WHERE creado_en <= ? AND id_institucion = ?',
+        [hasta, idInstitucion]
       );
       registroEliminados = result.affectedRows;
     } else if (dias) {
       const limite = new Date();
       limite.setDate(limite.getDate() - Number(dias));
       const [result] = await pool.execute(
-        'DELETE FROM kardex_auditoria WHERE creado_en <= ?',
-        [limite]
+        'DELETE FROM kardex_auditoria WHERE creado_en <= ? AND id_institucion = ?',
+        [limite, idInstitucion]
       );
       registroEliminados = result.affectedRows;
     } else {
-      const [result] = await pool.execute('DELETE FROM kardex_auditoria');
+      const [result] = await pool.execute('DELETE FROM kardex_auditoria WHERE id_institucion = ?', [idInstitucion]);
       registroEliminados = result.affectedRows;
     }
 
@@ -525,9 +538,10 @@ exports.limpiarAuditoria = async (req, res) => {
 
 exports.getSellos = async (req, res) => {
   try {
+    const idInstitucion = req.user?.id_institucion || 1;
     let rows = [];
     try {
-      [rows] = await pool.execute('SELECT * FROM kardex_sellos WHERE activo = 1');
+      [rows] = await pool.execute('SELECT * FROM kardex_sellos WHERE activo = 1 AND id_institucion = ?', [idInstitucion]);
     } catch (e) {
       if (e.code !== 'ER_NO_SUCH_TABLE') throw e;
     }
@@ -545,6 +559,7 @@ exports.exportPDF = async (req, res) => {
   let doc;
   try {
     const id = Number(req.params.id);
+    const idInstitucion = req.user?.id_institucion || 1;
     if (!id) return res.status(400).json({ ok: false, message: 'ID inválido' });
 
     const [rows] = await pool.execute(
@@ -556,23 +571,23 @@ exports.exportPDF = async (req, res) => {
        INNER JOIN alumnos a ON a.id_alumno = k.id_alumno
        LEFT JOIN carreras c ON c.id_carrera = COALESCE(a.id_carrera, 1)
        LEFT JOIN usuarios u ON u.id_usuario = a.id_usuario
-       WHERE k.id_kardex = ? OR a.id_alumno = ?
+       WHERE (k.id_kardex = ? OR a.id_alumno = ?) AND k.id_institucion = ?
        LIMIT 1`,
-      [id, id]
+      [id, id, idInstitucion]
     );
     if (!rows.length) return res.status(404).json({ ok: false, message: 'Kardex no encontrado' });
 
     const k = rows[0];
     const folio = k.folio_kardex || generarFolio();
     if (!k.folio_kardex) {
-      await pool.execute('UPDATE kardex_alumno SET folio_kardex = ? WHERE id_kardex = ?', [folio, k.id_kardex]);
+      await pool.execute('UPDATE kardex_alumno SET folio_kardex = ? WHERE id_kardex = ? AND id_institucion = ?', [folio, k.id_kardex, idInstitucion]);
     }
 
     const creditosCubiertos = Number(k.creditos_acumulados || 0);
 
     let sellos = [];
     try {
-      [sellos] = await pool.execute('SELECT * FROM kardex_sellos WHERE activo = 1');
+      [sellos] = await pool.execute('SELECT * FROM kardex_sellos WHERE activo = 1 AND id_institucion = ?', [idInstitucion]);
     } catch (e) {
       if (e.code !== 'ER_NO_SUCH_TABLE') throw e;
     }
@@ -588,8 +603,8 @@ exports.exportPDF = async (req, res) => {
     const firmaHash = crypto.createHash('sha256').update(firmaData).digest('hex');
 
     await pool.execute(
-      `UPDATE kardex_alumno SET firma_electronica = ?, ultima_actualizacion = NOW(), actualizado_por = ? WHERE id_kardex = ?`,
-      [firmaHash, req.user.id_usuario, k.id_kardex]
+      `UPDATE kardex_alumno SET firma_electronica = ?, ultima_actualizacion = NOW(), actualizado_por = ? WHERE id_kardex = ? AND id_institucion = ?`,
+      [firmaHash, req.user.id_usuario, k.id_kardex, idInstitucion]
     );
 
     const PDFDocument = require('pdfkit');
@@ -769,7 +784,7 @@ exports.exportPDF = async (req, res) => {
     await registrarAuditoria(pool, {
       id_kardex: k.id_kardex, id_alumno: k.id_alumno,
       accion: 'EXPORTAR_PDF', detalle: `PDF exportado con folio ${folio}`,
-      id_usuario: req.user.id_usuario, ip_origen: req.ip
+      id_usuario: req.user.id_usuario, ip_origen: req.ip, id_institucion: idInstitucion
     });
   } catch (error) {
     console.error('exportPDF:', error);
@@ -788,6 +803,7 @@ exports.exportPDF = async (req, res) => {
 exports.exportExcel = async (req, res) => {
   try {
     const id = Number(req.params.id);
+    const idInstitucion = req.user?.id_institucion || 1;
     if (!id) return res.status(400).json({ ok: false, message: 'ID inválido' });
 
     const [rows] = await pool.execute(
@@ -797,8 +813,8 @@ exports.exportExcel = async (req, res) => {
        FROM kardex_alumno k
        INNER JOIN alumnos a ON a.id_alumno = k.id_alumno
        LEFT JOIN carreras c ON c.id_carrera = COALESCE(a.id_carrera, 1)
-       WHERE k.id_kardex = ? OR a.id_alumno = ? LIMIT 1`,
-      [id, id]
+       WHERE (k.id_kardex = ? OR a.id_alumno = ?) AND k.id_institucion = ? LIMIT 1`,
+      [id, id, idInstitucion]
     );
     if (!rows.length) return res.status(404).json({ ok: false, message: 'Kardex no encontrado' });
 
@@ -808,7 +824,7 @@ exports.exportExcel = async (req, res) => {
 
     let sellos = [];
     try {
-      [sellos] = await pool.execute('SELECT * FROM kardex_sellos WHERE activo = 1');
+      [sellos] = await pool.execute('SELECT * FROM kardex_sellos WHERE activo = 1 AND id_institucion = ?', [idInstitucion]);
     } catch (e) {
       if (e.code !== 'ER_NO_SUCH_TABLE') throw e;
     }

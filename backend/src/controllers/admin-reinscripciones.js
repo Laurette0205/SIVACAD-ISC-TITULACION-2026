@@ -39,6 +39,7 @@ exports.getMetrics = async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
+    const idInstitucion = req.user.id_institucion || 1;
 
     const [totales] = await conn.execute(`
       SELECT
@@ -49,8 +50,8 @@ exports.getMetrics = async (req, res) => {
         SUM(CASE WHEN i.estado = 'Cancelada' THEN 1 ELSE 0 END) AS canceladas,
         SUM(CASE WHEN i.estado IN ('Activo','Aprobada','Completada') THEN 1 ELSE 0 END) AS activas
       FROM inscripciones i
-      WHERE i.tipo_inscripcion = 'Reinscripcion'
-    `);
+      WHERE i.tipo_inscripcion = 'Reinscripcion' AND i.id_institucion = ?
+    `, [idInstitucion]);
 
     const [porPeriodo] = await conn.execute(`
       SELECT
@@ -63,10 +64,10 @@ exports.getMetrics = async (req, res) => {
         SUM(CASE WHEN i.estado IN ('Activo','Aprobada','Completada') THEN 1 ELSE 0 END) AS activas
       FROM inscripciones i
       INNER JOIN periodos p ON p.id_periodo = i.id_periodo
-      WHERE i.tipo_inscripcion = 'Reinscripcion'
+      WHERE i.tipo_inscripcion = 'Reinscripcion' AND i.id_institucion = ?
       GROUP BY p.id_periodo, p.nombre_periodo
       ORDER BY p.id_periodo DESC
-    `);
+    `, [idInstitucion]);
 
     const [porCarrera] = await conn.execute(`
       SELECT
@@ -75,10 +76,10 @@ exports.getMetrics = async (req, res) => {
       FROM inscripciones i
       INNER JOIN alumnos a ON a.id_alumno = i.id_alumno
       INNER JOIN carreras c ON c.id_carrera = a.id_carrera
-      WHERE i.tipo_inscripcion = 'Reinscripcion'
+      WHERE i.tipo_inscripcion = 'Reinscripcion' AND i.id_institucion = ?
       GROUP BY c.id_carrera, c.nombre_carrera
       ORDER BY total DESC
-    `);
+    `, [idInstitucion]);
 
     const [porGrupo] = await conn.execute(`
       SELECT
@@ -86,11 +87,11 @@ exports.getMetrics = async (req, res) => {
         COUNT(*) AS total
       FROM inscripciones i
       INNER JOIN grupos g ON g.id_grupo = i.id_grupo
-      WHERE i.tipo_inscripcion = 'Reinscripcion' AND i.id_grupo IS NOT NULL
+      WHERE i.tipo_inscripcion = 'Reinscripcion' AND i.id_grupo IS NOT NULL AND i.id_institucion = ?
       GROUP BY g.id_grupo, g.nombre_grupo
       ORDER BY total DESC
       LIMIT 20
-    `);
+    `, [idInstitucion]);
 
     const [tendenciaMensual] = await conn.execute(`
       SELECT
@@ -101,9 +102,10 @@ exports.getMetrics = async (req, res) => {
       FROM inscripciones i
       WHERE i.tipo_inscripcion = 'Reinscripcion'
         AND i.fecha_inscripcion >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+        AND i.id_institucion = ?
       GROUP BY DATE_FORMAT(i.fecha_inscripcion, '%Y-%m')
       ORDER BY mes ASC
-    `);
+    `, [idInstitucion]);
 
     const [periodosActivos] = await conn.execute(`
       SELECT id_periodo, nombre_periodo, fecha_inicio, fecha_fin
@@ -116,7 +118,8 @@ exports.getMetrics = async (req, res) => {
       FROM inscripciones i
       WHERE i.tipo_inscripcion = 'Reinscripcion'
         AND i.estado IN ('Validada', 'Activo', 'Aprobada', 'Completada')
-    `);
+        AND i.id_institucion = ?
+    `, [idInstitucion]);
 
     return res.json({
       ok: true,
@@ -152,8 +155,9 @@ exports.listarReinscripciones = async (req, res) => {
     const pagina = Math.max(Number(req.query.pagina || 1), 1);
     const offset = (pagina - 1) * limite;
 
-    const where = ["i.tipo_inscripcion = 'Reinscripcion'"];
-    const params = [];
+    const idInstitucion = req.user.id_institucion || 1;
+    const where = ["i.tipo_inscripcion = 'Reinscripcion'", 'i.id_institucion = ?'];
+    const params = [idInstitucion];
 
     if (idPeriodo) { where.push('i.id_periodo = ?'); params.push(idPeriodo); }
     if (idCarrera) {
@@ -236,8 +240,9 @@ exports.getIncidencias = async (req, res) => {
       WHERE i.tipo_inscripcion = 'Reinscripcion'
         AND i.id_grupo IS NULL
         AND i.estado IN ('Pendiente', 'Validada')
+        AND i.id_institucion = ?
       ORDER BY i.fecha_inscripcion DESC
-    `);
+    `, [req.user.id_institucion || 1]);
 
     const [rechazadasRecientes] = await conn.execute(`
       SELECT i.id_inscripcion, i.id_alumno, i.estado, i.motivo_rechazo, i.fecha_inscripcion,
@@ -253,8 +258,9 @@ exports.getIncidencias = async (req, res) => {
       WHERE i.tipo_inscripcion = 'Reinscripcion'
         AND i.estado = 'Rechazada'
         AND i.fecha_inscripcion >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        AND i.id_institucion = ?
       ORDER BY i.fecha_inscripcion DESC
-    `);
+    `, [req.user.id_institucion || 1]);
 
     const [sinReinscripcionRegistro] = await conn.execute(`
       SELECT i.id_inscripcion, i.id_alumno, i.estado, i.fecha_inscripcion,
@@ -270,8 +276,9 @@ exports.getIncidencias = async (req, res) => {
       LEFT JOIN reinscripciones r ON r.id_inscripcion = i.id_inscripcion
       WHERE i.tipo_inscripcion = 'Reinscripcion'
         AND r.id_reinscripcion IS NULL
+        AND i.id_institucion = ?
       ORDER BY i.fecha_inscripcion DESC
-    `);
+    `, [req.user.id_institucion || 1]);
 
     const [duplicadas] = await conn.execute(`
       SELECT i.id_alumno, i.id_periodo, COUNT(*) AS total,
@@ -285,10 +292,11 @@ exports.getIncidencias = async (req, res) => {
       INNER JOIN usuarios u ON u.id_usuario = a.id_usuario
       INNER JOIN periodos p ON p.id_periodo = i.id_periodo
       WHERE i.tipo_inscripcion = 'Reinscripcion'
+        AND i.id_institucion = ?
       GROUP BY i.id_alumno, i.id_periodo
       HAVING COUNT(*) > 1
       ORDER BY total DESC
-    `);
+    `, [req.user.id_institucion || 1]);
 
     const incidencias = [
       ...sinGrupo.map(r => ({ ...r, tipo: 'sin_grupo' })),
@@ -326,10 +334,12 @@ exports.getBitacora = async (req, res) => {
     const limite = Math.min(Math.max(Number(req.query.limite || 200), 10), 1000);
     const accion = req.query.accion || '';
 
+    const idInstitucion = req.user.id_institucion || 1;
     const where = [
-      'i.tipo_inscripcion = \'Reinscripcion\''
+      'i.tipo_inscripcion = \'Reinscripcion\'',
+      'i.id_institucion = ?'
     ];
-    const params = [];
+    const params = [idInstitucion];
 
     if (accion) { where.push('a.accion = ?'); params.push(accion); }
 
@@ -359,9 +369,9 @@ exports.getBitacora = async (req, res) => {
       INNER JOIN inscripciones i ON i.id_inscripcion = a.id_inscripcion
       LEFT JOIN usuarios u ON u.id_usuario = a.id_usuario
       LEFT JOIN roles r ON r.id_rol = u.id_rol
-      WHERE i.tipo_inscripcion = 'Reinscripcion'
+      WHERE i.tipo_inscripcion = 'Reinscripcion' AND i.id_institucion = ?
       ORDER BY a.accion
-    `);
+    `, [req.user.id_institucion || 1]);
 
     return res.json({
       ok: true,
@@ -392,9 +402,10 @@ exports.getHistorialInstitucional = async (req, res) => {
         SUM(CASE WHEN i.estado IN ('Activo','Aprobada','Completada') THEN 1 ELSE 0 END) AS activas
       FROM periodos p
       LEFT JOIN inscripciones i ON i.id_periodo = p.id_periodo AND i.tipo_inscripcion = 'Reinscripcion'
+        AND i.id_institucion = ?
       GROUP BY p.id_periodo, p.nombre_periodo, p.fecha_inicio, p.fecha_fin
       ORDER BY p.id_periodo DESC
-    `);
+    `, [req.user.id_institucion || 1]);
 
     const [totalGeneral] = await conn.execute(`
       SELECT
@@ -404,8 +415,8 @@ exports.getHistorialInstitucional = async (req, res) => {
         MIN(fecha_inscripcion) AS primera_reinscripcion,
         MAX(fecha_inscripcion) AS ultima_reinscripcion
       FROM inscripciones
-      WHERE tipo_inscripcion = 'Reinscripcion'
-    `);
+      WHERE tipo_inscripcion = 'Reinscripcion' AND id_institucion = ?
+    `, [req.user.id_institucion || 1]);
 
     return res.json({
       ok: true,
@@ -466,8 +477,9 @@ exports.exportReport = async (req, res) => {
     const idGrupo = Number(req.query.id_grupo) || 0;
     const estado = req.query.estado || '';
 
-    const where = ["i.tipo_inscripcion = 'Reinscripcion'"];
-    const params = [];
+    const idInstitucion = req.user.id_institucion || 1;
+    const where = ["i.tipo_inscripcion = 'Reinscripcion'", 'i.id_institucion = ?'];
+    const params = [idInstitucion];
 
     if (idPeriodo) { where.push('i.id_periodo = ?'); params.push(idPeriodo); }
     if (idCarrera) { where.push('a.id_carrera = ?'); params.push(idCarrera); }

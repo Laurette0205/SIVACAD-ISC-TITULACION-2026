@@ -84,6 +84,13 @@ const AdminKardexPage = React.lazy(() => import('./pages/AdminKardexPage'));
 const CoordinadorKardexPage = React.lazy(() => import('./pages/CoordinadorKardexPage'));
 const SoporteKardexPage = React.lazy(() => import('./pages/SoporteKardexPage'));
 const SoporteTramitesPage = React.lazy(() => import('./pages/SoporteTramitesPage'));
+const MFAPage = React.lazy(() => import('./pages/MFAPage'));
+const EmergencyContactsPage = React.lazy(() => import('./pages/EmergencyContactsPage'));
+const AlumnoInfoMedicaPage = React.lazy(() => import('./pages/AlumnoInfoMedicaPage'));
+const AlumnoInfoLaboralPage = React.lazy(() => import('./pages/AlumnoInfoLaboralPage'));
+const AlumnoDocumentosPage = React.lazy(() => import('./pages/AlumnoDocumentosPage'));
+const ConsentPage = React.lazy(() => import('./pages/ConsentPage'));
+const AlumnoPerfilPage = React.lazy(() => import('./pages/AlumnoPerfilPage'));
 
 const ROLE_NAMES = {
   ADMINISTRADOR: 'ADMINISTRADOR',
@@ -459,6 +466,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={[ROLE_NAMES.ALUMNO, 4]}>
               <AlumnoPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="alumno/perfil"
+          element={
+            <ProtectedRoute allowedRoles={[ROLE_NAMES.ALUMNO, 4]}>
+              <AlumnoPerfilPage />
             </ProtectedRoute>
           }
         />
@@ -954,6 +970,60 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={ADMIN_COORD_ROLES}>
               <UsuariosPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="mfa"
+          element={
+            <ProtectedRoute allowedRoles={ALL_ROLES}>
+              <MFAPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="contactos-emergencia"
+          element={
+            <ProtectedRoute allowedRoles={ALL_ROLES}>
+              <EmergencyContactsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="alumno-info-medica"
+          element={
+            <ProtectedRoute allowedRoles={ALL_ROLES}>
+              <AlumnoInfoMedicaPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="alumno-info-laboral"
+          element={
+            <ProtectedRoute allowedRoles={ALL_ROLES}>
+              <AlumnoInfoLaboralPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="alumno-documentos"
+          element={
+            <ProtectedRoute allowedRoles={ALL_ROLES}>
+              <AlumnoDocumentosPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="privacidad"
+          element={
+            <ProtectedRoute allowedRoles={ALL_ROLES}>
+              <ConsentPage />
             </ProtectedRoute>
           }
         />

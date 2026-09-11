@@ -26,7 +26,7 @@ import '../styles/global.css';
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, loginMFA } = useAuth();
   const { toggleTheme } = useTheme();
 
   const [form, setForm] = React.useState({
@@ -38,6 +38,11 @@ export default function LoginPage() {
   const [sessionMessage, setSessionMessage] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
+
+  // MFA state
+  const [mfaRequired, setMfaRequired] = React.useState(false);
+  const [mfaToken, setMfaToken] = React.useState('');
+  const [mfaCodigo, setMfaCodigo] = React.useState('');
 
   React.useEffect(() => {
     const msg = sessionStorage.getItem('sivacad_auth_error');
@@ -58,6 +63,14 @@ export default function LoginPage() {
         contrasena: form.contrasena
       });
 
+      // Si MFA es requerido
+      if (result?.mfaRequired) {
+        setMfaRequired(true);
+        setMfaToken(result.mfaToken);
+        setLoading(false);
+        return;
+      }
+
       await playSuccessSound();
 
       const redirectTo =
@@ -73,6 +86,33 @@ export default function LoginPage() {
         err?.response?.data?.message ||
         err?.message ||
         'Error al iniciar sesión'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMfaSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const result = await loginMFA(mfaToken, mfaCodigo);
+      await playSuccessSound();
+
+      const redirectTo =
+        location.state?.from ||
+        result?.redirectTo ||
+        '/app';
+
+      navigate(redirectTo, { replace: true });
+    } catch (err) {
+      await playErrorSound();
+      setError(
+        err?.response?.data?.message ||
+        err?.message ||
+        'Código MFA inválido'
       );
     } finally {
       setLoading(false);
@@ -164,6 +204,59 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {mfaRequired ? (
+          <form onSubmit={handleMfaSubmit} className="form-stack">
+            <div className="auth-note" style={{ marginBottom: '0.5rem', border: '1 solid #3b82f6', background: '#eff6ff', color: '#1e40af' }}>
+              <div className="eyebrow" style={{ color: '#1e40af' }}>Verificación de dos factores</div>
+              <p style={{ margin: '0.35rem 0 0', lineHeight: 1.6 }}>
+                Ingresa el código de 6 dígitos de tu app de autenticación.
+              </p>
+            </div>
+
+            <label className="field">
+              <span>Código MFA</span>
+              <input
+                type="text"
+                placeholder="000000"
+                value={mfaCodigo}
+                onChange={(e) => setMfaCodigo(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                maxLength={6}
+                pattern="[0-9]{6}"
+                required
+                autoFocus
+                style={{ letterSpacing: '0.5em', textAlign: 'center', fontSize: '1.25rem' }}
+              />
+            </label>
+
+            {error && (
+              <div className="alert error">
+                {error}
+              </div>
+            )}
+
+            <button className="btn primary full" disabled={loading || mfaCodigo.length !== 6}>
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin" size={18} />
+                  Verificando...
+                </>
+              ) : (
+                <>
+                  <ShieldCheck size={18} />
+                  Verificar código
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              className="btn link full"
+              onClick={() => { setMfaRequired(false); setMfaToken(''); setMfaCodigo(''); setError(''); }}
+            >
+              Volver al login
+            </button>
+          </form>
+        ) : (
         <form onSubmit={handleSubmit} className="form-stack">
           <label className="field">
             <span>Correo institucional</span>
@@ -267,6 +360,7 @@ export default function LoginPage() {
             <ArrowRight size={16} />
           </button>
         </form>
+        )}
       </div>
 
       <div className="auth-footer">

@@ -4,7 +4,7 @@
 
 **Autoras:** Bárcenas González Laura Casandra & Morales Ibarra Sandivel  
 **Institución:** TESI Ixtapaluca — Ingeniería en Sistemas Computacionales  
-**Versión:** 1.0 — Julio 2026
+**Versión:** 3.0 — Septiembre 2026
 
 ---
 
@@ -23,6 +23,7 @@
 11. [Relación Frontend-Backend](#11-relación-frontend-backend)
 12. [Política Centralizada de Contraseñas](#12-política-centralizada-de-contraseñas)
 13. [Dependencias y Librerías](#13-dependencias-y-librerías)
+14. [Arquitectura de Seguridad Detallada](#14-arquitectura-de-seguridad-detallada)
 
 ---
 
@@ -89,7 +90,7 @@ SIVACAD sigue una **arquitectura de tres capas** (presentación, lógica de nego
 | Documentos     | PDFKit             | —       | PDF alternativo desde Node.js      |
 | Documentos     | ExcelJS            | —       | Excel desde Node.js                |
 | IA             | Gemini API         | —       | OCR, chatbot, bienestar, asistente |
-| BD             | MySQL              | 8.0     | Base de datos relacional (67 tablas)|
+| BD             | MySQL              | 8.0     | Base de datos relacional (70 tablas)|
 | Otros          | QRCode (qrcode)    | —       | Generación de códigos QR           |
 | Otros          | Puppeteer          | —       | PDF avanzado desde HTML             |
 
@@ -105,13 +106,17 @@ SIVACAD-ISC/
 │   │   ├── app.js                 # Configuración Express
 │   │   ├── config/db.js           # Pool de conexiones MySQL2
 │   │   ├── middleware/
-│   │   │   ├── auth.js            # JWT + RBAC + dominio email
-│   │   │   ├── auditoria.js       # Log de operaciones
+│   │   │   ├── auth.js            # JWT + RBAC + verifyRoleAgainstDB + requireReauthentication
+│   │   │   ├── auditoria.js       # Log de operaciones + hash SHA-256 de tokens
+│   │   │   ├── seguridad.js       # Rate limiter, XSS, IP block, device tracking
+│   │   │   ├── institution.js     # Multi-institución, resolveInstitution
 │   │   │   └── upload.js          # Multer config
 │   │   ├── routes/
 │   │   │   ├── index.js           # mountIfAvailable() central
-│   │   │   ├── auth.js            # Login, Register, Forgot/Reset
+│   │   │   ├── auth.js            # Login, Register, Forgot/Reset, LoginMFA, Reauthenticate
+│   │   │   ├── mfa.js             # MFA: setup, enable, disable, verify, status
 │   │   │   ├── alumnos.js         # CRUD alumnos
+│   │   │   ├── alumnoPerfil.js    # Perfil, kardex, estadísticas del alumno
 │   │   │   ├── docentes.js        # CRUD docentes
 │   │   │   ├── periodos.js        # CRUD periodos
 │   │   │   ├── grupos.js          # CRUD grupos
@@ -126,13 +131,17 @@ SIVACAD-ISC/
 │   │   │   ├── iaBienestar.js     # Check-in, chat, escalación
 │   │   │   ├── bienestarAdmin.js  # Supervisión admin
 │   │   │   ├── iaBecas.js         # Becas, búsqueda, elegibilidad
-│   │   │   ├── reportes.js        # PDF/Excel
+│   │   │   ├── reportes.js        # PDF/Excel + reportes seguridad
 │   │   │   ├── dashboard.js       # Resumen por rol
 │   │   │   ├── usuarios.js        # CRUD usuarios (solo admin)
+│   │   │   ├── instituciones.js   # Gestión multi-institución
+│   │   │   ├── breakGlass.js      # Acceso de emergencia
 │   │   │   └── otros.js           # Utilidades
 │   │   ├── controllers/           # Lógica de negocio
-│   │   ├── services/              # mailer.js, jwt.js, mlBridge.js
+│   │   ├── services/              # mailer.js, jwt.js, mlBridge.js, mfa.js, breakGlass.js, privacyManager.js
 │   │   └── templates/             # Handlebars para PDF
+│   ├── scripts/
+│   │   └── backup.sh              # Script de backup automático
 │   ├── ml/                        # Flask ML + modelos .pkl
 │   ├── php-kardex/                # PHP Dompdf/PhpSpreadsheet
 │   └── uploads/                   # Archivos subidos
@@ -256,21 +265,57 @@ Esto permite habilitar/deshabilitar módulos agregando o quitando archivos.
 
 ### 6.4 Middleware de autenticación (middleware/auth.js)
 
-- **authenticateToken:** Verifica JWT, extrae `id_usuario`, `correo`, `rol`.
-- **validateInstitutionalEmail:** Valida dominio del correo contra lista blanca.
-- **checkRole('admin', 'coordinador'):** Middleware de autorización RBAC.
+- **auth (authenticateToken):** Verifica JWT con HS256, extrae `id_usuario`, `correo`, `rol`, `id_institucion`. Verifica que el token no esté en la blacklist.
+- **validateInstitutionalEmail:** Valida dominio del correo contra lista blanca (tesi.edu.mx, ixtapaluca.tecnm.mx, outlook.com, outlook.es).
+- **role(...roles):** Middleware de autorización RBAC con coincidencia case-insensitive.
+- **verifyRoleAgainstDB:** Verifica que el rol del token aún coincida con la BD (protege contra cuentas cuyo rol cambió después de emitir el token). Se aplica a rutas críticas: break-glass, instituciones, kardex admin. Falla seguro: deniega acceso si la BD no responde.
+- **requireReauthentication:** Requiere header `X-Reauth-Token` con JWT temporal de 10 minutos. Usado antes de operaciones sensibles (cambio de email, eliminación de cuenta, cambio de rol).
 - **auditLog:** Registra operaciones en `bitacora_auditoria`.
 
 ### 6.5 Seguridad
 
-- Contraseñas hasheadas con bcrypt (12 rounds).
-- Tokens JWT firmados con HMAC-SHA256.
+Los controles de seguridad implementados en SIVACAD se organizan en capas:
+
+**Autenticación y Sesión:**
+- Contraseñas hasheadas con bcrypt (12 rounds de salt).
+- Tokens JWT firmados con HMAC-SHA256, algoritmo forzado (rechaza RS256, none).
+- Secretos JWT separados: `JWT_SECRET` para tokens de acceso (8h) y `JWT_REFRESH_SECRET` para tokens de refresco (30d). Cada secret es independiente y no comparten valor.
+- Tokens de sesión hasheados con SHA-256 antes de almacenarlos en `sesiones_activas` (nunca se almacena el JWT crudo).
+- Blacklist de tokens: al cerrar sesión, el token se agrega a una blacklist invalidándolo inmediatamente.
+- Bloqueo de cuenta: 5 intentos fallidos → bloqueo de 30 minutos.
+- Autenticación Multi-Factor (MFA): TOTP (RFC 6238) con secretos cifrados AES-256-CBC, códigos de recuperación, verificación en login.
+
+**Autorización:**
+- RBAC con 5 roles: ADMINISTRADOR, COORDINADOR, DOCENTE, SOPORTE, ALUMNO.
+- `verifyRoleAgainstDB`: verifica que el rol del token coincida con la BD en rutas críticas.
+- Registro público restringido a rol ALUMNO (previene escalación de privilegios).
+- Reautenticación antes de operaciones sensibles (token temporal de 10 min).
+
+**Protección de Transporte:**
+- Headers de seguridad via Helmet: X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy.
+- Content Security Policy (CSP): scriptSrc sin `unsafe-inline`, sin `unsafe-eval`.
+- CORS con lista blanca de orígenes + regex para IPs LAN.
+- HTTPS forzado en producción (Nginx + Certbot).
+
+**Protección de Datos:**
 - Consultas parametrizadas con mysql2 (previene inyección SQL).
 - Transacciones ACID con COMMIT/ROLLBACK.
-- Headers de seguridad via Helmet.
-- CORS con origen único + regex para IPs LAN.
-- Rate limiting por ruta.
-- **Política centralizada de contraseñas:** Reglas definidas en `shared/security/password-policy.json` (12-20 caracteres, mayúscula, minúscula, número, símbolo). Validada tanto en frontend como backend.
+- XSS sanitizer: escape de HTML en body, query y params antes de procesar.
+- Rate limiting por ruta: login (10/15min), forgot-password (5/15min), register (5/1h), refresh (30/15min).
+
+**Monitoreo y Auditoría:**
+- Auditoría global con hash SHA-256 encadenado (integridad y no-repudio).
+- 9 eventos de auditoría de seguridad: MFA_ENABLED, MFA_DISABLED, MFA_ENABLE_FAILED, MFA_LOGIN_SUCCESS, MFA_LOGIN_FAILED, REAUTH_SUCCESS, REAUTH_FAILED, PROFILE_CHANGED, NEW_DEVICE_LOGIN.
+- Detección de dispositivo nuevo: al hacer login desde un dispositivo no registrado, se genera un evento de auditoría WARNING.
+- Registro de intentos sospechosos con IP, user-agent y fingerprint del dispositivo.
+
+**Acceso de Emergencia:**
+- Break-glass access: PIN numérico de 8 dígitos con expiración máxima de 24 horas.
+- Registro completo de emisión, uso y revocación de credenciales de emergencia.
+
+**Privacidad:**
+- Anonimización de datos personales con identificador aleatorio (random hex), sin exponer el ID real del usuario.
+- Eliminación de datos sensibles de bienestar y chatbot durante la anonimización.
 
 ---
 
@@ -280,7 +325,7 @@ Esto permite habilitar/deshabilitar módulos agregando o quitando archivos.
 
 - **Motor:** InnoDB (transaccional, integridad referencial).
 - **Charset:** utf8mb4_unicode_ci.
-- **Total de tablas:** 67.
+- **Total de tablas:** 70.
 - **Convención de nombres:** snake_case con prefijos modulares (`kardex_*`, `evaluacion_*`, `ia_*`, `reinscripcion_*`).
 
 ### 7.2 Grupos de tablas
@@ -298,6 +343,8 @@ Esto permite habilitar/deshabilitar módulos agregando o quitando archivos.
 | IA Bienestar        | 8 tablas (sesiones, checkins, mensajes, alertas, derivaciones) | Bienestar estudiantil |
 | IA Becas            | `becas_fuentes`, `becas_chunks`                   | Catálogo de becas                   |
 | Auditoría           | `bitacora_auditoria`, `auditoria_global`, `sesiones_activas` | Trazabilidad |
+| Seguridad           | `mfa_config`, `dispositivos_conocidos`, `tokens_blacklist`, `intentos_sospechosos`, `break_glass_credentials` | Control de acceso, MFA, sesiones |
+| Datos Personales    | `informacion_medica`, `informacion_laboral`, `documentos_sensibles`, `contactos_emergencia` | Panel del alumno |
 
 ### 7.3 Conexión (config/db.js)
 
@@ -376,6 +423,15 @@ const pool = mysql2.createPool({
 | `/reportes/*`         | Reportes               | Todos                          |
 | `/usuarios/*`         | Usuarios               | Admin                          |
 | `/auditoria/*`        | Auditoría              | Admin, Soporte                 |
+| `/mfa/*`              | MFA (setup, enable, disable, verify, status) | Todos autenticados |
+| `/alumno-perfil/*`    | Perfil del alumno      | Alumno                         |
+| `/instituciones/*`    | Gestión multi-institución | Admin                        |
+| `/break-glass/*`      | Acceso de emergencia   | Admin, Coord                   |
+| `/contactos/*`        | Contactos de crisis    | Todos                          |
+| `/alumno-info-medica/*` | Info médica del alumno | Alumno                         |
+| `/alumno-info-laboral/*` | Info laboral del alumno | Alumno                       |
+| `/alumno-documentos/*` | Documentos sensibles del alumno | Alumno                     |
+| `/contactos-emergencia/*` | Contactos de emergencia | Todos autenticados          |
 
 ---
 
@@ -395,7 +451,8 @@ DB_NAME=sivacad_isc
 
 # JWT
 JWT_SECRET=tu_secreto_jwt_aqui
-JWT_EXPIRES_IN=24h
+JWT_REFRESH_SECRET=otro_secreto_diferente_a_jwt_secret
+JWT_EXPIRES_IN=8h
 
 # Gemini API
 GEMINI_API_KEY=tu_api_key_gemini
@@ -564,4 +621,148 @@ imbalanced-learn==0.11.0
 
 ---
 
-*Fin del Manual Técnico — SIVACAD v1.0*
+## 14. Arquitectura de Seguridad Detallada
+
+### 14.1 Flujo de Autenticación Completo
+
+```
+┌──────────┐    ┌──────────┐    ┌──────────────┐    ┌──────────────┐
+│ Usuario  │───→│ Frontend │───→│ Backend      │───→│ MySQL        │
+│ (login)  │    │ (React)  │    │ (Express)    │    │ (8.0)        │
+└──────────┘    └──────────┘    └──────────────┘    └──────────────┘
+                                     │
+                   ┌─────────────────┼─────────────────┐
+                   ▼                 ▼                  ▼
+            ┌────────────┐  ┌──────────────┐  ┌──────────────┐
+            │ 1. Validar │  │ 4. Verificar │  │ 7. Almacenar │
+            │ email inst.│  │ MFA (si      │  │ sesión con   │
+            │ 2. Buscar  │  │ activo)      │  │ hash SHA-256 │
+            │ usuario    │  │ 5. Generar   │  │              │
+            │ 3. Verificar│  │ JWT + Refresh│  │              │
+            │ password   │  │ 6. Verificar │  │              │
+            │ bcrypt     │  │ dispositivo  │  │              │
+            │            │  │ nuevo        │  │              │
+            └────────────┘  └──────────────┘  └──────────────┘
+```
+
+**Pasos detallados:**
+
+1. **Validación de email institucional:** El middleware `validateInstitutionalEmail` verifica que el dominio del correo esté en la lista blanca (tesi.edu.mx, ixtapaluca.tecnm.mx, outlook.com, outlook.es).
+
+2. **Búsqueda de usuario:** Se consulta la tabla `usuarios` con `correo_institucional` normalizado (lowercase, trim).
+
+3. **Verificación de password:** `bcrypt.compare(contrasena, hash)` con los 12 rounds de salt. Si falla, se registra intento fallido en `intentos_login` y se verifica si alcanza el umbral de bloqueo (5 intentos → 30 min).
+
+4. **Verificación MFA (si está activo):** Si el usuario tiene `mfa_config.activo = 1`, se retorna `mfaRequired: true` con un token temporal de 5 minutos (`type: 'mfa_pending'`). El frontend muestra el formulario de código de 6 dígitos.
+
+5. **Generación de tokens:** `signToken()` genera el JWT de acceso (expiración 8h, payload: id_usuario, correo, rol, rol_id, id_institucion). `signRefreshToken()` genera el token de refresco (expiración 30d, payload: id_usuario, type: 'refresh') con `JWT_REFRESH_SECRET` separado.
+
+6. **Verificación de dispositivo:** `trackDevice()` compara el fingerprint del dispositivo (UA + IP + Accept-Language hasheado con SHA-256) contra la tabla `dispositivos_conocidos`. Si es nuevo, registra evento `NEW_DEVICE_LOGIN` en auditoría.
+
+7. **Almacenamiento de sesión:** El token JWT se hashea con SHA-256 antes de insertarlo en `sesiones_activas`. Nunca se almacena el JWT crudo.
+
+### 14.2 Flujo MFA (Multi-Factor Authentication)
+
+```
+SETUP:  POST /api/mfa/setup → genera secreto TOTP + QR code + recovery codes
+ENABLE: POST /api/mfa/enable { token } → verifica TOTP, activa MFA
+LOGIN:  POST /api/auth/login → retorna { mfaRequired: true, mfaToken }
+        POST /api/auth/login-mfa { mfaToken, codigo } → verifica TOTP, retorna JWT completo
+STATUS: GET /api/mfa/status → { configured, active, recoveryCodesRemaining }
+DISABLE: POST /api/mfa/disable { token } → desactiva MFA
+```
+
+**Detalles técnicos:**
+- El secreto TOTP se genera con `speakeasy.generateSecret()` y se cifra con AES-256-CBC antes de almacenarlo en `mfa_config.secret_encrypted`.
+- Los códigos de recuperación se generan como hashes SHA-256 (nunca se almacenan en texto plano).
+- La verificación usa `speakeasy.totp.verify()` con ventana de ±1 шаг (30 segundos).
+- Los secretos se cifran usando una clave derivada de `JWT_SECRET` + `JWT_REFRESH_SECRET` via PBKDF2.
+
+### 14.3 Separación de Secretos JWT
+
+**¿Por qué?** Si un atacante obtiene acceso al JWT de un usuario, y ambos tokens (acceso y refresco) usan el mismo secreto, podría generar tokens de refresco válidos. Con secretos separados, comprometer uno no afecta al otro.
+
+**Implementación:**
+```javascript
+// jwt.js
+const accessSecret = process.env.JWT_SECRET;        // Para tokens de acceso (8h)
+const refreshSecret = process.env.JWT_REFRESH_SECRET; // Para tokens de refresco (30d)
+
+exports.signToken = (payload, expiresIn) => 
+  jwt.sign(payload, accessSecret, { algorithm: 'HS256', expiresIn });
+
+exports.signRefreshToken = (payload) => 
+  jwt.sign({ ...payload, type: 'refresh' }, refreshSecret, { algorithm: 'HS256', expiresIn: '30d' });
+
+exports.verifyRefreshToken = (token) => 
+  jwt.verify(token, refreshSecret, { algorithms: ['HS256'] });
+```
+
+### 14.4 Hash de Tokens en BD
+
+**¿Por qué no almacenar el JWT crudo?** Si un atacante obtiene acceso a la base de datos, ver todos los tokens JWT activos le permitiría impersonar a cualquier usuario. Con hashes SHA-256, los tokens son inutilizables sin el secreto de firma.
+
+**Implementación:**
+```javascript
+// auditoria.js
+const tokenHash = crypto.createHash('sha256')
+  .update(req.headers.authorization?.replace('Bearer ', '') || '')
+  .digest('hex');
+
+await pool.execute(
+  'INSERT INTO sesiones_activas (id_usuario, token_jwt, ...) VALUES (?, ?, ...)',
+  [userId, tokenHash, ...]  // Se almacena el hash, no el JWT
+);
+```
+
+### 14.5 Break-Glass Access
+
+**Caso de uso:** Cuando todos los administradores están bloqueados o incapacitados, un COORDINADOR puede generar un PIN de emergencia para acceder.
+
+**Flujo:**
+1. Admin/Coord genera PIN: `POST /api/break-glass/grant`
+2. Se genera PIN numérico de 8 dígitos (ej: `48291037`)
+3. Se almacena como hash SHA-256 en `break_glass_credentials`
+4. El PIN expira en máximo 24 horas
+5. Para usar: `POST /api/break-glass/verify { pin }` → retorna permisos temporales
+6. Admin puede revocar: `POST /api/break-glass/revoke/:id`
+
+### 14.6 Privacidad y Anonimización
+
+**Cumplimiento ARCO:** Cuando un usuario solicita eliminación de sus datos, el sistema:
+1. **Anonimiza** nombres, apellidos, CURP y fotografía
+2. **Genera** un identificador aleatorio (random hex de 8 bytes) para el email (nunca expone el ID real)
+3. **Elimina** datos sensibles de bienestar (check-ins, mensajes) y chatbot
+4. **Conserva** registros académicos anonimizados para integridad estadística
+
+### 14.7 Tabla Resumen de Controles de Seguridad
+
+| # | Control | Capa | Implementación |
+|---|---------|------|----------------|
+| 1 | Bcrypt 12 rounds | Autenticación | `bcrypt.hash(pw, 12)` |
+| 2 | JWT HS256 | Autenticación | `jwt.sign(payload, secret, { algorithm: 'HS256' })` |
+| 3 | Secretos separados | Autenticación | `JWT_SECRET` ≠ `JWT_REFRESH_SECRET` |
+| 4 | Token hash SHA-256 | Sesiones | `crypto.createHash('sha256').update(token)` |
+| 5 | Blacklist tokens | Sesiones | `tokens_blacklist` tabla + verificación middleware |
+| 6 | Bloqueo de cuenta | Autenticación | 5 intentos → 30 min lockout |
+| 7 | MFA TOTP | Autenticación | `speakeasy` + AES-256-CBC encrypted secrets |
+| 8 | RBAC por rol | Autorización | `role('ADMIN', 'COORD')` middleware |
+| 9 | Verificación rol BD | Autorización | `verifyRoleAgainstDB` en rutas críticas |
+| 10 | Reautenticación | Autorización | `requireReauthentication` + token temporal 10min |
+| 11 | Helmet headers | Transporte | X-Frame-Options, CSP, XSS-Protection |
+| 12 | CSP sin unsafe-inline | Transporte | `scriptSrc: ["'self'"]` |
+| 13 | Rate limiting | Disponibilidad | 10 login/15min, 5 forgot/15min |
+| 14 | XSS sanitizer | Datos | Escape de HTML en body, query, params |
+| 15 | Consultas parametrizadas | Datos | `pool.execute(sql, [params])` |
+| 16 | Auditoría SHA-256 | Monitoreo | Hash encadenado en `auditoria_global` |
+| 17 | Eventos seguridad | Monitoreo | 9 tipos de eventos de seguridad |
+| 18 | Device tracking | Monitoreo | Fingerprint + alerta dispositivo nuevo |
+| 19 | Break-glass PIN | Emergencia | 8 dígitos numéricos, expiración 24h |
+| 20 | Anonimización ARCO | Privacidad | random hex, no expone ID real |
+| 21 | RBAC Panel Alumno | Autorización | `role('ALUMNO')` en medical/laboral/docs |
+| 22 | IDOR Protection | Autorización | Queries por `id_usuario` del JWT |
+| 23 | Auditoría panel | Monitoreo | `PROFILE_CHANGED`, `CONTACTO_*`, `INFORMACION_*`, `DOCUMENTO_*` |
+
+---
+
+*Fin del Manual Técnico — SIVACAD v3.0*

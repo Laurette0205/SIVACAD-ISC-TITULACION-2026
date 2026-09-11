@@ -3,9 +3,11 @@ const router = express.Router();
 const pool = require('../config/db');
 const { auth, role } = require('../middleware/auth');
 const { validateDocenteUpdate } = require('../middleware/validate');
+const { registrarAuditoria } = require('../middleware/auditoria');
 
 router.get('/', auth, async (req, res) => {
   try {
+    const idInstitucion = req.user.id_institucion || 1;
     const [rows] = await pool.execute(`
       SELECT
         d.id_docente,
@@ -25,8 +27,9 @@ router.get('/', auth, async (req, res) => {
         u.estado
       FROM docentes d
       INNER JOIN usuarios u ON u.id_usuario = d.id_usuario
+      WHERE d.id_institucion = ?
       ORDER BY u.apellido_paterno ASC, u.apellido_materno ASC, u.nombres ASC
-    `);
+    `, [idInstitucion]);
 
     return res.json({
       ok: true,
@@ -48,6 +51,7 @@ router.get('/:id', auth, async (req, res) => {
       return res.status(400).json({ ok: false, message: 'ID invalido' });
     }
 
+    const idInstitucion = req.user.id_institucion || 1;
     const [rows] = await pool.execute(`
       SELECT
         d.id_docente,
@@ -67,9 +71,9 @@ router.get('/:id', auth, async (req, res) => {
         u.estado
       FROM docentes d
       INNER JOIN usuarios u ON u.id_usuario = d.id_usuario
-      WHERE d.id_docente = ?
+      WHERE d.id_docente = ? AND d.id_institucion = ?
       LIMIT 1
-    `, [id]);
+    `, [id, idInstitucion]);
 
     if (!rows.length) {
       return res.status(404).json({ ok: false, message: 'Docente no encontrado' });
@@ -91,9 +95,10 @@ router.put('/:id', auth, role('ADMINISTRADOR', 'COORDINADOR', 'SOPORTE'), valida
 
     const { nombres, apellido_paterno, apellido_materno, clave_docente, numero_empleado, especialidad, estatus, correo_institucional, estado } = req.body;
 
+    const idInstitucion = req.user.id_institucion || 1;
     const [existing] = await pool.execute(
-      `SELECT d.id_docente, d.id_usuario FROM docentes d WHERE d.id_docente = ? LIMIT 1`,
-      [id]
+      `SELECT d.id_docente, d.id_usuario FROM docentes d WHERE d.id_docente = ? AND d.id_institucion = ? LIMIT 1`,
+      [id, idInstitucion]
     );
     if (!existing.length) {
       return res.status(404).json({ ok: false, message: 'Docente no encontrado' });
@@ -125,6 +130,17 @@ router.put('/:id', auth, role('ADMINISTRADOR', 'COORDINADOR', 'SOPORTE'), valida
       [correo_institucional || null, estado || null, id_usuario]
     );
 
+    await registrarAuditoria({
+      id_usuario: req.user.id_usuario,
+      modulo: 'USUARIOS',
+      accion: 'PROFILE_CHANGED',
+      descripcion: `Perfil de docente ID ${id} actualizado por ${req.user.id_usuario}`,
+      entidad_afectada: 'usuarios',
+      id_entidad: id_usuario,
+      valor_nuevo: { campos_modificados: Object.keys(req.body).filter(k => req.body[k] != null) },
+      req
+    });
+
     return res.json({ ok: true, message: 'Docente actualizado correctamente' });
   } catch (error) {
     console.error('Error al actualizar docente:', error);
@@ -140,9 +156,10 @@ router.delete('/:id', auth, role('ADMINISTRADOR', 'COORDINADOR', 'SOPORTE'), asy
       return res.status(400).json({ ok: false, message: 'ID invalido' });
     }
 
+    const idInstitucion = req.user.id_institucion || 1;
     const [existing] = await conn.execute(
-      `SELECT d.id_docente, d.id_usuario FROM docentes d WHERE d.id_docente = ? LIMIT 1`,
-      [id]
+      `SELECT d.id_docente, d.id_usuario FROM docentes d WHERE d.id_docente = ? AND d.id_institucion = ? LIMIT 1`,
+      [id, idInstitucion]
     );
     if (!existing.length) {
       return res.status(404).json({ ok: false, message: 'Docente no encontrado' });

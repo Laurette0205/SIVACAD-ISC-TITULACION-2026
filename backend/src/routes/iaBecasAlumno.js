@@ -18,7 +18,7 @@ function authRequired(req, res, next) {
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
   if (!token) return res.status(401).json({ ok: false, message: 'Token no disponible' });
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     return next();
   } catch {
     return res.status(401).json({ ok: false, message: 'Token inválido o expirado' });
@@ -88,9 +88,9 @@ router.get('/mis-solicitudes', authRequired, resolveAlumno, async (req, res) => 
        FROM ia_becas_solicitudes s
        LEFT JOIN ia_becas_convocatorias c ON c.id_convocatoria = s.id_convocatoria
        LEFT JOIN ia_becas_dictamenes d ON d.id_solicitud = s.id_solicitud
-       WHERE s.id_alumno = ?
+       WHERE s.id_alumno = ? AND s.id_institucion = ?
        ORDER BY s.fecha_solicitud DESC`,
-      [req.alumno.id_alumno]
+      [req.alumno.id_alumno, req.user.id_institucion || 1]
     );
 
     return res.json({ ok: true, data: { solicitudes: rows || [] } });
@@ -114,7 +114,7 @@ router.post('/solicitar', authRequired, resolveAlumno, async (req, res) => {
       return res.status(400).json({ ok: false, message: 'Selecciona una convocatoria para enviar tu solicitud.' });
     }
 
-    const [conv] = await pool.query('SELECT * FROM ia_becas_convocatorias WHERE id_convocatoria = ? AND activo = 1 LIMIT 1', [Number(id_convocatoria)]);
+    const [conv] = await pool.query('SELECT * FROM ia_becas_convocatorias WHERE id_convocatoria = ? AND activo = 1 AND id_institucion = ? LIMIT 1', [Number(id_convocatoria), req.user.id_institucion || 1]);
     if (!conv?.length) {
       return res.status(404).json({ ok: false, message: 'Convocatoria no encontrada o no activa.' });
     }
@@ -127,13 +127,13 @@ router.post('/solicitar', authRequired, resolveAlumno, async (req, res) => {
       `INSERT INTO ia_becas_solicitudes
        (id_convocatoria, codigo_solicitud, id_usuario_solicitante, id_alumno, matricula, nombre_alumno,
         correo_alumno, id_carrera, nombre_carrera, semestre_actual, promedio_actual, creditos_acumulados,
-        estatus_academico, estatus_solicitud, nota_solicitante)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDIENTE', ?)`,
+        estatus_academico, estatus_solicitud, nota_solicitante, id_institucion)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDIENTE', ?, ?)`,
       [
         c.id_convocatoria, codigo, req.user?.id_usuario, req.alumno.id_alumno, req.alumno.matricula,
         req.alumno.nombre_completo, req.alumno.correo, req.alumno.id_carrera, req.alumno.nombre_carrera,
         req.alumno.semestre_actual, average?.promedio_general || null, average?.creditos_acumulados || 0,
-        req.alumno.estatus_academico || 'Regular', nota || null
+        req.alumno.estatus_academico || 'Regular', nota || null, req.user.id_institucion || 1
       ]
     );
 
@@ -157,13 +157,14 @@ router.get('/mis-notificaciones', authRequired, resolveAlumno, async (req, res) 
 
     const [solicitudes] = await pool.query(
       `SELECT id_solicitud, codigo_solicitud, estatus_solicitud, fecha_solicitud, fecha_resolucion, nombre_revisor
-       FROM ia_becas_solicitudes WHERE id_alumno = ? ORDER BY fecha_solicitud DESC LIMIT 5`,
-      [req.alumno.id_alumno]
+       FROM ia_becas_solicitudes WHERE id_alumno = ? AND id_institucion = ? ORDER BY fecha_solicitud DESC LIMIT 5`,
+      [req.alumno.id_alumno, req.user.id_institucion || 1]
     );
 
     const [convocatorias] = await pool.query(
       `SELECT id_convocatoria, titulo, institucion, categoria, activo, destacada, fecha_publicacion, url_oficial
-       FROM ia_becas_convocatorias WHERE activo = 1 ORDER BY destacada DESC, fecha_publicacion DESC LIMIT 5`
+       FROM ia_becas_convocatorias WHERE activo = 1 AND id_institucion = ? ORDER BY destacada DESC, fecha_publicacion DESC LIMIT 5`,
+      [req.user.id_institucion || 1]
     );
 
     const notificaciones = [];
@@ -205,8 +206,9 @@ router.get('/convocatorias-activas', authRequired, resolveAlumno, async (req, re
               descripcion, resumen, requisitos, beneficios, nivel, alcance,
               vigencia_inicio, vigencia_fin, vigencia_texto, monto, activo, destacada
        FROM ia_becas_convocatorias
-       WHERE activo = 1
-       ORDER BY destacada DESC, fecha_publicacion DESC`
+       WHERE activo = 1 AND id_institucion = ?
+       ORDER BY destacada DESC, fecha_publicacion DESC`,
+      [req.user.id_institucion || 1]
     );
 
     return res.json({ ok: true, data: { convocatorias: rows || [] } });
@@ -232,8 +234,8 @@ router.get('/seguimiento/:id', authRequired, resolveAlumno, async (req, res) => 
        FROM ia_becas_solicitudes s
        LEFT JOIN ia_becas_convocatorias c ON c.id_convocatoria = s.id_convocatoria
        LEFT JOIN ia_becas_dictamenes d ON d.id_solicitud = s.id_solicitud
-       WHERE s.id_solicitud = ? AND s.id_alumno = ?
-       LIMIT 1`, [id, req.alumno.id_alumno]);
+       WHERE s.id_solicitud = ? AND s.id_alumno = ? AND s.id_institucion = ?
+       LIMIT 1`, [id, req.alumno.id_alumno, req.user.id_institucion || 1]);
 
     if (!rows?.length) {
       return res.status(404).json({ ok: false, message: 'Solicitud no encontrada o no te pertenece.' });
@@ -265,8 +267,9 @@ router.get('/recomendaciones', authRequired, resolveAlumno, async (req, res) => 
     const [activas] = await pool.query(
       `SELECT id_convocatoria, codigo, titulo, institucion, categoria, url_oficial, resumen,
               vigencia_texto, monto, destacada
-       FROM ia_becas_convocatorias WHERE activo = 1
-       ORDER BY destacada DESC, fecha_publicacion DESC LIMIT 5`
+       FROM ia_becas_convocatorias WHERE activo = 1 AND id_institucion = ?
+       ORDER BY destacada DESC, fecha_publicacion DESC LIMIT 5`,
+      [req.user.id_institucion || 1]
     );
 
     return res.json({

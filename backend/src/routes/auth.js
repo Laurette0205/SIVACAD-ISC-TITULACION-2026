@@ -7,6 +7,7 @@ const router = express.Router();
 const authCtrl = require('../controllers/auth');
 const { auth: verifyToken } = require('../middleware/auth');
 const { validateRegister, validateLogin } = require('../middleware/validate');
+const { checkBlacklistMiddleware } = require('../services/sessionManager');
 
 const forgotPasswordLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -105,10 +106,14 @@ function validateInstitutionalEmail(req, res, next) {
 }
 
 router.post('/register', registerLimiter, validateInstitutionalEmail, validateRegister, authCtrl.register);
-router.post('/login', loginLimiter, validateInstitutionalEmail, validateLogin, authCtrl.login);
-router.get('/me', verifyToken, authCtrl.me);
-router.post('/refresh', refreshLimiter, authCtrl.refresh);
+router.post('/login', loginLimiter, validateInstitutionalEmail, validateLogin, checkBlacklistMiddleware, authCtrl.login);
+router.post('/login-mfa', loginLimiter, authCtrl.loginMFA);
+router.get('/me', verifyToken, checkBlacklistMiddleware, authCtrl.me);
+router.post('/refresh', refreshLimiter, checkBlacklistMiddleware, authCtrl.refresh);
 router.post('/forgot-password', forgotPasswordLimiter, validateInstitutionalEmail, authCtrl.forgotPassword);
+router.post('/logout', verifyToken, checkBlacklistMiddleware, authCtrl.logout);
+router.post('/logout-all', verifyToken, checkBlacklistMiddleware, authCtrl.logoutAll);
+router.post('/reauthenticate', verifyToken, checkBlacklistMiddleware, authCtrl.reauthenticate);
 
 /*
   Reset por token:

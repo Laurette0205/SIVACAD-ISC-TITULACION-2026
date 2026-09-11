@@ -8,7 +8,7 @@ function authFromHeader(req, res, next) {
   if (!auth.startsWith('Bearer ')) return res.status(401).json({ ok: false, message: 'Token no disponible' });
   try {
     const token = auth.slice(7).trim();
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     req.user = decoded;
     req.token = token;
     return next();
@@ -27,6 +27,8 @@ router.get('/panel', authFromHeader, async (req, res) => {
     const alumno = await resolveAlumnoId(req.user.id_usuario);
     if (!alumno) return res.status(404).json({ ok: false, message: 'Perfil de alumno no encontrado.' });
 
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [[stats]] = await pool.execute(`
       SELECT COUNT(DISTINCT ac.id_acta_calificacion) AS total_actas,
         COUNT(acd.id_detalle_acta) AS total_calificaciones,
@@ -34,8 +36,8 @@ router.get('/panel', authFromHeader, async (req, res) => {
         MAX(ac.fecha_creacion) AS ultima_actualizacion
       FROM actas_calificaciones ac
       INNER JOIN actas_calificaciones_detalle acd ON acd.id_acta_calificacion = ac.id_acta_calificacion
-      WHERE acd.id_alumno = ?
-    `, [alumno.id_alumno]).catch(() => [[{}]]);
+      WHERE acd.id_alumno = ? AND ac.id_institucion = ?
+    `, [alumno.id_alumno, idInstitucion]).catch(() => [[{}]]);
 
     const [actasRecientes] = await pool.execute(`
       SELECT ac.id_acta_calificacion, ac.estado, ac.total_alumnos, ac.created_at,
@@ -45,9 +47,9 @@ router.get('/panel', authFromHeader, async (req, res) => {
       LEFT JOIN periodos per ON per.id_periodo = ac.id_periodo
       LEFT JOIN grupos g ON g.id_grupo = ac.id_grupo
       LEFT JOIN materias m ON m.id_materia = ac.id_materia
-      WHERE acd.id_alumno = ?
+      WHERE acd.id_alumno = ? AND ac.id_institucion = ?
       ORDER BY ac.created_at DESC LIMIT 10
-    `, [alumno.id_alumno]).catch(() => []);
+    `, [alumno.id_alumno, idInstitucion]).catch(() => []);
 
     return res.json({ ok: true, data: {
       alumno: { id_alumno: alumno.id_alumno, matricula: alumno.matricula, semestre_actual: alumno.semestre_actual },
@@ -69,6 +71,8 @@ router.get('/historial', authFromHeader, async (req, res) => {
     const alumno = await resolveAlumnoId(req.user.id_usuario);
     if (!alumno) return res.status(404).json({ ok: false, message: 'Perfil de alumno no encontrado.' });
 
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [rows] = await pool.execute(`
       SELECT acd.id_detalle_acta, acd.matricula, acd.nombre_completo, acd.calificacion, acd.created_at,
         ac.id_acta_calificacion, ac.estado AS estado_acta, ac.created_at AS fecha_acta,
@@ -78,9 +82,9 @@ router.get('/historial', authFromHeader, async (req, res) => {
       LEFT JOIN periodos per ON per.id_periodo = ac.id_periodo
       LEFT JOIN grupos g ON g.id_grupo = ac.id_grupo
       LEFT JOIN materias m ON m.id_materia = ac.id_materia
-      WHERE acd.id_alumno = ?
+      WHERE acd.id_alumno = ? AND ac.id_institucion = ?
       ORDER BY ac.created_at DESC, m.nombre_materia ASC
-    `, [alumno.id_alumno]).catch(() => []);
+    `, [alumno.id_alumno, idInstitucion]).catch(() => []);
 
     return res.json({ ok: true, data: rows });
   } catch (error) {
@@ -93,6 +97,8 @@ router.get('/resultados', authFromHeader, async (req, res) => {
     const alumno = await resolveAlumnoId(req.user.id_usuario);
     if (!alumno) return res.status(404).json({ ok: false, message: 'Perfil de alumno no encontrado.' });
 
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [porPeriodo] = await pool.execute(`
       SELECT per.id_periodo, per.nombre_periodo,
         COUNT(acd.id_detalle_acta) AS materias,
@@ -102,10 +108,10 @@ router.get('/resultados', authFromHeader, async (req, res) => {
       FROM actas_calificaciones_detalle acd
       INNER JOIN actas_calificaciones ac ON ac.id_acta_calificacion = acd.id_acta_calificacion
       INNER JOIN periodos per ON per.id_periodo = ac.id_periodo
-      WHERE acd.id_alumno = ?
+      WHERE acd.id_alumno = ? AND ac.id_institucion = ?
       GROUP BY per.id_periodo, per.nombre_periodo
       ORDER BY per.id_periodo DESC
-    `, [alumno.id_alumno]).catch(() => []);
+    `, [alumno.id_alumno, idInstitucion]).catch(() => []);
 
     const [resumen] = await pool.execute(`
       SELECT COUNT(DISTINCT per.id_periodo) AS periodos_cursados,
@@ -116,8 +122,8 @@ router.get('/resultados', authFromHeader, async (req, res) => {
       FROM actas_calificaciones_detalle acd
       INNER JOIN actas_calificaciones ac ON ac.id_acta_calificacion = acd.id_acta_calificacion
       INNER JOIN periodos per ON per.id_periodo = ac.id_periodo
-      WHERE acd.id_alumno = ?
-    `, [alumno.id_alumno]).catch(() => [[{}]]);
+      WHERE acd.id_alumno = ? AND ac.id_institucion = ?
+    `, [alumno.id_alumno, idInstitucion]).catch(() => [[{}]]);
 
     const [[mejorMateria]] = await pool.execute(`
       SELECT m.nombre_materia, acd.calificacion, per.nombre_periodo
@@ -125,9 +131,9 @@ router.get('/resultados', authFromHeader, async (req, res) => {
       INNER JOIN actas_calificaciones ac ON ac.id_acta_calificacion = acd.id_acta_calificacion
       INNER JOIN materias m ON m.id_materia = ac.id_materia
       INNER JOIN periodos per ON per.id_periodo = ac.id_periodo
-      WHERE acd.id_alumno = ?
+      WHERE acd.id_alumno = ? AND ac.id_institucion = ?
       ORDER BY acd.calificacion DESC LIMIT 1
-    `, [alumno.id_alumno]).catch(() => [[]]);
+    `, [alumno.id_alumno, idInstitucion]).catch(() => [[]]);
 
     return res.json({ ok: true, data: { porPeriodo, resumen: resumen[0] || {}, mejor_materia: mejorMateria || null } });
   } catch (error) {
@@ -140,6 +146,8 @@ router.get('/actas-validadas', authFromHeader, async (req, res) => {
     const alumno = await resolveAlumnoId(req.user.id_usuario);
     if (!alumno) return res.status(404).json({ ok: false, message: 'Perfil de alumno no encontrado.' });
 
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [rows] = await pool.execute(`
       SELECT ac.id_acta_calificacion, ac.estado, ac.total_alumnos, ac.promedio_grupal,
         ac.created_at, per.nombre_periodo, g.nombre_grupo, g.semestre, m.nombre_materia, m.clave_materia,
@@ -149,9 +157,9 @@ router.get('/actas-validadas', authFromHeader, async (req, res) => {
       LEFT JOIN periodos per ON per.id_periodo = ac.id_periodo
       LEFT JOIN grupos g ON g.id_grupo = ac.id_grupo
       LEFT JOIN materias m ON m.id_materia = ac.id_materia
-      WHERE acd.id_alumno = ? AND (ac.estado = 'VALIDADA' OR ac.estado = 'IMPORTADA')
+      WHERE acd.id_alumno = ? AND ac.id_institucion = ? AND (ac.estado = 'VALIDADA' OR ac.estado = 'IMPORTADA')
       ORDER BY ac.created_at DESC LIMIT 50
-    `, [alumno.id_alumno]).catch(() => []);
+    `, [alumno.id_alumno, idInstitucion]).catch(() => []);
 
     return res.json({ ok: true, data: rows });
   } catch (error) {

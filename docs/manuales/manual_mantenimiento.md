@@ -4,7 +4,7 @@
 
 **Autoras:** Bárcenas González Laura Casandra & Morales Ibarra Sandivel  
 **Institución:** TESI Ixtapaluca — Ingeniería en Sistemas Computacionales  
-**Versión:** 1.0 — Julio 2026
+**Versión:** 3.0 — Septiembre 2026
 
 ---
 
@@ -20,6 +20,7 @@
 8. [Diagnóstico General del Sistema](#8-diagnóstico-general-del-sistema)
 9. [Mantenimiento Preventivo](#9-mantenimiento-preventivo)
 10. [Procedimientos de Recuperación](#10-procedimientos-de-recuperación)
+11. [Verificación de Seguridad Periódica](#11-verificación-de-seguridad-periódica)
 
 ---
 
@@ -174,6 +175,8 @@ WHERE s.estado = 'activa'
 ORDER BY s.ultima_actividad DESC;
 ```
 
+> **Nota de seguridad:** El campo `token_jwt` almacena un hash SHA-256 del token JWT, no el token en texto plano. Esto garantiza que, en caso de brecha de datos, los tokens no puedan ser usados directamente.
+
 ### 4.2 Cerrar sesión forzadamente
 
 Si un usuario reporta problemas de sesión o se sospecha de acceso no autorizado:
@@ -223,11 +226,11 @@ El usuario debe usar la opción **¿Olvidaste tu contraseña?** en la pantalla d
 
 ### 5.2 Token JWT expirado
 
-El token JWT expira según `JWT_EXPIRES_IN` (default: 24h). El usuario debe iniciar sesión nuevamente. Si el problema persiste:
+El token JWT expira según `JWT_EXPIRES_IN` (default: 8h). El usuario debe iniciar sesión nuevamente o usar el refresh token. Si el problema persiste:
 
 1. Verifique que la fecha/hora del servidor sea correcta.
-2. Verifique que `JWT_SECRET` en `.env` no haya cambiado.
-3. Si cambió el `JWT_SECRET`, todos los tokens existentes serán inválidos.
+2. Verifique que `JWT_SECRET` y `JWT_REFRESH_SECRET` en `.env` **sean valores diferentes** y no hayan cambiado.
+3. Si cambió `JWT_SECRET`, todos los tokens existentes serán inválidos.
 
 ### 5.3 Cuenta bloqueada / desactivada
 
@@ -236,6 +239,45 @@ El token JWT expira según `JWT_EXPIRES_IN` (default: 24h). El usuario debe inic
    ```sql
    UPDATE usuarios SET estado = 'Activo' WHERE correo_institucional = 'admin@tesi.edu.mx';
    ```
+
+### 5.4 Recuperación de acceso MFA
+
+Si un usuario perdió acceso a su aplicación de autenticación (MFA):
+
+**Opción 1 — Código de recuperación:**
+1. El usuario selecciona "¿Perdiste el acceso a tu código?" en la pantalla de login.
+2. Ingresa uno de los códigos de recuperación (se generaron 10 al activar MFA).
+3. Si el código es válido, se completa el login sin MFA.
+4. Se recomienda reconfigurar MFA después de usar un código de recuperación.
+
+**Opción 2 — Deshabilitar MFA desde BD (administrador):**
+```sql
+-- Verificar estado MFA de un usuario
+SELECT u.nombres, m.habilitado 
+FROM mfa_secrets m 
+JOIN usuarios u ON m.id_usuario = u.id_usuario 
+WHERE u.correo_institucional = 'usuario@tesi.edu.mx';
+
+-- Deshabilitar MFA (solo si el usuario lo solicita y se verifica su identidad)
+UPDATE mfa_secrets SET habilitado = FALSE WHERE id_usuario = ?;
+```
+
+### 5.5 Cuenta bloqueada por intentos fallidos
+
+Si una cuenta está bloqueada por intentos fallidos de login (account lockout):
+
+```sql
+-- Verificar intentos fallidos recientes
+SELECT u.nombres, al.intentos_fallidos, al.bloqueado_hasta, al.ultimo_intento
+FROM account_lockouts al
+JOIN usuarios u ON al.id_usuario = u.id_usuario
+WHERE u.correo_institucional = 'usuario@tesi.edu.mx';
+
+-- Desbloquear cuenta manualmente (solo administrador)
+UPDATE account_lockouts SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE id_usuario = ?;
+```
+
+**Nota:** El bloqueo se desactiva automáticamente después del tiempo especificado en `bloqueado_hasta`.
 
 ---
 
@@ -482,13 +524,16 @@ WHERE TABLE_SCHEMA = 'sivacad_isc'
 - [ ] Verificar que los 3 servidores (backend, frontend, ML) estén funcionando.
 - [ ] Revisar el dashboard de auditoría.
 - [ ] Atender incidencias reportadas por usuarios.
+- [ ] Revisar eventos de seguridad (MFA, reautenticación, dispositivos nuevos).
 
 ### 9.2 Tareas semanales
 
-- [ ] Respaldar la base de datos.
+- [ ] Respaldar la base de datos (usar `bash backend/scripts/backup.sh`).
 - [ ] Revisar la tabla `sesiones_activas` y limpiar sesiones expiradas.
 - [ ] Verificar el espacio en disco.
 - [ ] Revisar el rendimiento de consultas lentas en MySQL.
+- [ ] Revisar intentos fallidos de login en `account_lockouts`.
+- [ ] Verificar integridad de la cadena de auditoría SHA-256.
 
 ### 9.3 Tareas mensuales
 
@@ -497,11 +542,16 @@ WHERE TABLE_SCHEMA = 'sivacad_isc'
 - [ ] Revisar la integridad de la cadena de auditoría SHA-256.
 - [ ] Realizar pruebas de carga ligeras.
 - [ ] Actualizar este manual si se agregaron nuevos módulos.
+- [ ] Ejecutar `npm audit` para detectar vulnerabilidades en dependencias.
+- [ ] Revisar y rotar secrets si es necesario (`JWT_SECRET`, `JWT_REFRESH_SECRET`).
 
 ### 9.4 Comandos de mantenimiento
 
 ```bash
 # Respaldar base de datos
+bash backend/scripts/backup.sh
+
+# Respaldar manualmente
 mysqldump -u root -p sivacad_isc > backups/sivacad_isc_$(date +%Y%m%d).sql
 
 # Limpiar archivos temporales
@@ -517,6 +567,9 @@ cd frontend && npm update
 # Verificar vulnerabilidades
 cd backend && npm audit
 cd frontend && npm audit
+
+# Verificar sesiones expiradas
+mysql -u root -p sivacad_isc -e "DELETE FROM sesiones_activas WHERE estado = 'expirada' AND fecha_fin < NOW() - INTERVAL 30 DAY;"
 ```
 
 ---
@@ -599,4 +652,117 @@ mysql -u root -p sivacad_isc < backups/sivacad_isc_anterior.sql
 
 ---
 
-*Fin del Manual de Mantenimiento y Soporte — SIVACAD v1.0*
+## 11. Verificación de Seguridad Periódica
+
+### 11.1 Auditoría de seguridad — checklist
+
+Ejecute mensualmente para verificar el estado de seguridad del sistema:
+
+```bash
+# 1. Verificar que JWT_SECRET y JWT_REFRESH_SECRET sean diferentes
+echo "JWT_SECRET: $(grep JWT_SECRET backend/.env | head -1 | cut -d= -f2)"
+echo "JWT_REFRESH_SECRET: $(grep JWT_REFRESH_SECRET backend/.env | cut -d= -f2)"
+# Si son iguales, rotar uno de los valores en .env
+
+# 2. Verificar que no haya tokens JWT en texto plano en la BD
+mysql -u root -p sivacad_isc -e "SELECT COUNT(*) AS tokens_raw FROM sesiones_activas WHERE token_jwt NOT LIKE '%hash%' AND LENGTH(token_jwt) < 100;"
+# Debe retornar 0 (todos los tokens deben ser hashes)
+
+# 3. Verificar hash SHA-256 encadenado de auditoría
+mysql -u root -p sivacad_isc -e "
+SELECT a1.id_bitacora, a1.hash_registro, a2.hash_registro AS hash_esperado
+FROM auditoria_global a1
+LEFT JOIN auditoria_global a2 ON a2.id_bitacora = a1.id_bitacora - 1
+WHERE a1.hash_anterior != a2.hash_registro
+LIMIT 5;
+"
+# Debe retornar vacío (sin discrepancias)
+
+# 4. Verificar cuentas con acceso de emergencia activo
+mysql -u root -p sivacad_isc -e "
+SELECT u.nombres, u.apellidos, b.acceso_habilitado
+FROM break_glass_access b
+JOIN usuarios u ON b.id_usuario = u.id_usuario
+WHERE b.acceso_habilitado = TRUE;
+"
+
+# 5. Verificar integridad de archivos del sistema
+cd backend && npm audit --production 2>/dev/null | tail -5
+```
+
+### 11.2 Rotación de secrets (cuando sea necesario)
+
+Si se sospecha compromiso de `JWT_SECRET` o `JWT_REFRESH_SECRET`:
+
+1. Genere nuevos valores aleatorios:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+   ```
+2. Actualice los valores en `backend/.env`.
+3. Reinicie el backend: `pm2 restart sivacad-backend`.
+4. **IMPORTANTE:** Todos los tokens JWT existentes serán inválidos. Los usuarios deberán iniciar sesión nuevamente.
+
+### 11.3 Monitoreo de integridad de archivos
+
+El sistema cuenta con una tabla `file_integrity_baseline` que almacena hashes SHA-256 de archivos críticos. Para verificar integridad:
+
+```sql
+-- Verificar archivos con hash modificado
+SELECT archivo, hash_sha256, verificado_en 
+FROM file_integrity_baseline 
+WHERE verificado_en < NOW() - INTERVAL 30 DAY;
+```
+
+### 11.4 Verificación del Panel del Alumno
+
+**Frecuencia:** Semanal
+
+**Procedimiento:**
+
+1. Verificar que las tablas `informacion_medica`, `informacion_laboral` y `documentos_sensibles` existen:
+```sql
+SHOW TABLES LIKE 'informacion_%';
+SHOW TABLES LIKE 'documentos_%';
+```
+
+2. Verificar que los endpoints responden correctamente:
+```bash
+# Login como alumno
+TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"correo":"alumno@tesi.edu.mx","contrasena":"Testing123!"}' | jq -r '.token')
+
+# Probar cada endpoint
+curl -s http://localhost:3000/api/alumno-perfil -H "Authorization: Bearer $TOKEN"
+curl -s http://localhost:3000/api/alumno-info-medica -H "Authorization: Bearer $TOKEN"
+curl -s http://localhost:3000/api/alumno-info-laboral -H "Authorization: Bearer $TOKEN"
+curl -s http://localhost:3000/api/alumno-documentos -H "Authorization: Bearer $TOKEN"
+curl -s http://localhost:3000/api/contactos-emergencia -H "Authorization: Bearer $TOKEN"
+```
+
+3. Verificar que un admin NO puede acceder a rutas de alumno (debe retornar 403):
+```bash
+ADMIN_TOKEN=$(curl -s -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"correo":"admin@tesi.edu.mx","contrasena":"Testing123!"}' | jq -r '.token')
+
+curl -s http://localhost:3000/api/alumno-info-medica -H "Authorization: Bearer $ADMIN_TOKEN"
+# Esperado: 403 Forbidden
+```
+
+4. Verificar que la auditoría registra eventos:
+```sql
+SELECT accion, COUNT(*) as total
+FROM auditoria_global
+WHERE modulo IN ('SALUD', 'LABORAL', 'DOCUMENTOS', 'EMERGENCIA')
+GROUP BY accion;
+```
+
+5. Verificar que los archivos subidos se almacenan en `uploads/sensibles/`:
+```bash
+ls -la uploads/sensibles/
+```
+
+---
+
+*Fin del Manual de Mantenimiento y Soporte — SIVACAD v3.0*

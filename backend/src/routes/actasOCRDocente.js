@@ -9,7 +9,7 @@ function authFromHeader(req, res, next) {
   if (!auth.startsWith('Bearer ')) return res.status(401).json({ ok: false, message: 'Token no disponible' });
   try {
     const token = auth.slice(7).trim();
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     req.user = decoded;
     req.token = token;
     return next();
@@ -34,6 +34,8 @@ router.get('/panel', authFromHeader, async (req, res) => {
     const docente = await resolveDocenteId(req.user.id_usuario);
     if (!docente) return res.status(404).json({ ok: false, message: 'Perfil docente no encontrado.' });
 
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [grupos] = await pool.execute(`
       SELECT DISTINCT g.id_grupo, g.nombre_grupo, g.semestre, g.turno, m.id_materia, m.nombre_materia,
         per.id_periodo, per.nombre_periodo
@@ -41,9 +43,9 @@ router.get('/panel', authFromHeader, async (req, res) => {
       INNER JOIN grupos g ON g.id_grupo = ca.id_grupo
       INNER JOIN materias m ON m.id_materia = ca.id_materia
       INNER JOIN periodos per ON per.id_periodo = ca.id_periodo
-      WHERE ca.id_docente = ? AND ca.estado = 'ACTIVA'
+      WHERE ca.id_docente = ? AND ca.estado = 'ACTIVA' AND g.id_institucion = ?
       ORDER BY per.id_periodo DESC, g.nombre_grupo ASC
-    `, [docente.id_docente]);
+    `, [docente.id_docente, idInstitucion]);
 
     const [[stats]] = await pool.execute(`
       SELECT COUNT(*) AS total_mis_actas,
@@ -52,8 +54,8 @@ router.get('/panel', authFromHeader, async (req, res) => {
         SUM(CASE WHEN c.estado IN ('RECIBIDA','EXTRACCION_PENDIENTE','VALIDACION_PENDIENTE') THEN 1 ELSE 0 END) AS pendientes,
         AVG(NULLIF(c.confianza_global, 0)) AS confianza_promedio
       FROM actas_ocr_cargas c
-      WHERE c.id_docente = ?
-    `, [docente.id_docente]);
+      WHERE c.id_docente = ? AND c.id_institucion = ?
+    `, [docente.id_docente, idInstitucion]);
 
     return res.json({ ok: true, data: {
       docente: { id_docente: docente.id_docente, clave_docente: docente.clave_docente },
@@ -77,6 +79,8 @@ router.get('/mis-grupos', authFromHeader, async (req, res) => {
     const docente = await resolveDocenteId(req.user.id_usuario);
     if (!docente) return res.status(404).json({ ok: false, message: 'Perfil docente no encontrado.' });
 
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [rows] = await pool.execute(`
       SELECT ca.id_carga_academica, g.id_grupo, g.nombre_grupo, g.semestre, g.turno,
         m.id_materia, m.nombre_materia, m.clave_materia,
@@ -86,9 +90,9 @@ router.get('/mis-grupos', authFromHeader, async (req, res) => {
       INNER JOIN grupos g ON g.id_grupo = ca.id_grupo
       INNER JOIN materias m ON m.id_materia = ca.id_materia
       INNER JOIN periodos per ON per.id_periodo = ca.id_periodo
-      WHERE ca.id_docente = ? AND ca.estado = 'ACTIVA'
+      WHERE ca.id_docente = ? AND ca.estado = 'ACTIVA' AND g.id_institucion = ?
       ORDER BY per.id_periodo DESC, g.nombre_grupo ASC, m.nombre_materia ASC
-    `, [docente.id_docente]);
+    `, [docente.id_docente, idInstitucion]);
 
     return res.json({ ok: true, data: rows });
   } catch (error) {
@@ -101,6 +105,8 @@ router.get('/mis-actas', authFromHeader, async (req, res) => {
     const docente = await resolveDocenteId(req.user.id_usuario);
     if (!docente) return res.status(404).json({ ok: false, message: 'Perfil docente no encontrado.' });
 
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [rows] = await pool.execute(`
       SELECT c.*, p.nombre_plantilla, p.codigo_plantilla,
         per.nombre_periodo, g.nombre_grupo, m.nombre_materia
@@ -109,14 +115,14 @@ router.get('/mis-actas', authFromHeader, async (req, res) => {
       LEFT JOIN periodos per ON per.id_periodo = c.id_periodo
       LEFT JOIN grupos g ON g.id_grupo = c.id_grupo
       LEFT JOIN materias m ON m.id_materia = c.id_materia
-      WHERE c.id_docente = ?
+      WHERE c.id_docente = ? AND c.id_institucion = ?
       ORDER BY c.id_carga_ocr DESC LIMIT 50
-    `, [docente.id_docente]);
+    `, [docente.id_docente, idInstitucion]);
 
     const ids = rows.map(r => r.id_carga_ocr);
     const detailsMap = new Map();
     if (ids.length) {
-      const [details] = await pool.execute(`SELECT * FROM actas_ocr_detalles WHERE id_carga_ocr IN (${ids.map(() => '?').join(',')}) ORDER BY id_detalle_ocr ASC`, ids);
+      const [details] = await pool.execute(`SELECT * FROM actas_ocr_detalles WHERE id_carga_ocr IN (${ids.map(() => '?').join(',')}) AND id_institucion = ? ORDER BY id_detalle_ocr ASC`, [...ids, idInstitucion]);
       details.forEach(d => { if (!detailsMap.has(d.id_carga_ocr)) detailsMap.set(d.id_carga_ocr, []); detailsMap.get(d.id_carga_ocr).push(d); });
     }
     const data = rows.map(row => ({ ...row, json_resultado: safeJsonParse(row.json_resultado, null), detalles: detailsMap.get(row.id_carga_ocr) || [] }));
@@ -131,6 +137,8 @@ router.get('/actas/:id', authFromHeader, async (req, res) => {
     const docente = await resolveDocenteId(req.user.id_usuario);
     if (!docente) return res.status(404).json({ ok: false, message: 'Perfil docente no encontrado.' });
 
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [rows] = await pool.execute(`
       SELECT c.*, p.nombre_plantilla, p.codigo_plantilla,
         per.nombre_periodo, g.nombre_grupo, m.nombre_materia
@@ -139,13 +147,13 @@ router.get('/actas/:id', authFromHeader, async (req, res) => {
       LEFT JOIN periodos per ON per.id_periodo = c.id_periodo
       LEFT JOIN grupos g ON g.id_grupo = c.id_grupo
       LEFT JOIN materias m ON m.id_materia = c.id_materia
-      WHERE c.id_carga_ocr = ? AND c.id_docente = ?
+      WHERE c.id_carga_ocr = ? AND c.id_docente = ? AND c.id_institucion = ?
       LIMIT 1
-    `, [req.params.id, docente.id_docente]);
+    `, [req.params.id, docente.id_docente, idInstitucion]);
 
     if (!rows.length) return res.status(404).json({ ok: false, message: 'Acta no encontrada o no autorizada.' });
 
-    const [details] = await pool.execute(`SELECT * FROM actas_ocr_detalles WHERE id_carga_ocr = ? ORDER BY id_detalle_ocr ASC`, [req.params.id]);
+    const [details] = await pool.execute(`SELECT * FROM actas_ocr_detalles WHERE id_carga_ocr = ? AND id_institucion = ? ORDER BY id_detalle_ocr ASC`, [req.params.id, idInstitucion]);
     return res.json({ ok: true, data: { ...rows[0], json_resultado: safeJsonParse(rows[0].json_resultado, null), detalles: details } });
   } catch (error) {
     return res.status(500).json({ ok: false, message: error.message || 'Error al obtener acta.' });
@@ -185,8 +193,9 @@ router.put('/actas/:id/corregir', authFromHeader, async (req, res) => {
     const docente = await resolveDocenteId(req.user.id_usuario);
     if (!docente) return res.status(404).json({ ok: false, message: 'Perfil docente no encontrado.' });
 
+    const idInstitucion = req.user.id_institucion || 1;
     const cargaId = Number(req.params.id);
-    const [rows] = await conn.execute(`SELECT id_carga_ocr, estado FROM actas_ocr_cargas WHERE id_carga_ocr = ? AND id_docente = ? LIMIT 1`, [cargaId, docente.id_docente]);
+    const [rows] = await conn.execute(`SELECT id_carga_ocr, estado FROM actas_ocr_cargas WHERE id_carga_ocr = ? AND id_docente = ? AND id_institucion = ? LIMIT 1`, [cargaId, docente.id_docente, idInstitucion]);
     if (!rows.length) return res.status(404).json({ ok: false, message: 'Acta no encontrada o no autorizada.' });
     if (rows[0].estado === 'VALIDADA') return res.status(400).json({ ok: false, message: 'No se puede corregir un acta ya validada.' });
 
@@ -199,12 +208,12 @@ router.put('/actas/:id/corregir', authFromHeader, async (req, res) => {
     for (const alumno of alumnos) {
       if (!alumno.id_detalle_ocr) continue;
       await conn.execute(
-        `UPDATE actas_ocr_detalles SET matricula = ?, nombre_completo = ?, calificacion = ?, observaciones = ?, validado = 0, error_validacion = NULL WHERE id_detalle_ocr = ? AND id_carga_ocr = ?`,
-        [String(alumno.matricula || '').trim().toUpperCase(), String(alumno.nombre_completo || '').trim(), Number(alumno.calificacion || 0), String(alumno.observaciones || '').trim() || null, alumno.id_detalle_ocr, cargaId]
+        `UPDATE actas_ocr_detalles SET matricula = ?, nombre_completo = ?, calificacion = ?, observaciones = ?, validado = 0, error_validacion = NULL WHERE id_detalle_ocr = ? AND id_carga_ocr = ? AND id_institucion = ?`,
+        [String(alumno.matricula || '').trim().toUpperCase(), String(alumno.nombre_completo || '').trim(), Number(alumno.calificacion || 0), String(alumno.observaciones || '').trim() || null, alumno.id_detalle_ocr, cargaId, idInstitucion]
       );
     }
 
-    await conn.execute(`UPDATE actas_ocr_cargas SET estado = 'VALIDACION_PENDIENTE', updated_at = NOW() WHERE id_carga_ocr = ?`, [cargaId]);
+    await conn.execute(`UPDATE actas_ocr_cargas SET estado = 'VALIDACION_PENDIENTE', updated_at = NOW() WHERE id_carga_ocr = ? AND id_institucion = ?`, [cargaId, idInstitucion]);
     await conn.execute(`INSERT INTO actas_ocr_auditoria (id_carga_ocr, id_usuario, accion, detalle, creado_en) VALUES (?, ?, 'CORRECCION_DOCENTE', ?, NOW())`, [cargaId, userId, JSON.stringify({ alumnos_corregidos: alumnos.length })]);
 
     await conn.commit();
@@ -222,15 +231,16 @@ router.post('/actas/:id/confirmar', authFromHeader, async (req, res) => {
     const docente = await resolveDocenteId(req.user.id_usuario);
     if (!docente) return res.status(404).json({ ok: false, message: 'Perfil docente no encontrado.' });
 
+    const idInstitucion = req.user.id_institucion || 1;
     const cargaId = Number(req.params.id);
-    const [rows] = await conn.execute(`SELECT id_carga_ocr, estado FROM actas_ocr_cargas WHERE id_carga_ocr = ? AND id_docente = ? LIMIT 1`, [cargaId, docente.id_docente]);
+    const [rows] = await conn.execute(`SELECT id_carga_ocr, estado FROM actas_ocr_cargas WHERE id_carga_ocr = ? AND id_docente = ? AND id_institucion = ? LIMIT 1`, [cargaId, docente.id_docente, idInstitucion]);
     if (!rows.length) return res.status(404).json({ ok: false, message: 'Acta no encontrada o no autorizada.' });
     if (rows[0].estado === 'VALIDADA') return res.status(400).json({ ok: false, message: 'El acta ya fue validada.' });
 
     const userId = service.pickUserId(req);
     await conn.beginTransaction();
 
-    await conn.execute(`UPDATE actas_ocr_cargas SET estado = 'VALIDACION_PENDIENTE', observaciones_revision = 'Enviada por docente para validación institucional.', updated_at = NOW() WHERE id_carga_ocr = ?`, [cargaId]);
+    await conn.execute(`UPDATE actas_ocr_cargas SET estado = 'VALIDACION_PENDIENTE', observaciones_revision = 'Enviada por docente para validación institucional.', updated_at = NOW() WHERE id_carga_ocr = ? AND id_institucion = ?`, [cargaId, idInstitucion]);
     await conn.execute(`INSERT INTO actas_ocr_validaciones (id_carga_ocr, id_usuario, resultado, comentario, creado_en) VALUES (?, ?, 'APROBADA', 'Confirmación docente.', NOW())`, [cargaId, userId]);
     await conn.execute(`INSERT INTO actas_ocr_auditoria (id_carga_ocr, id_usuario, accion, detalle, creado_en) VALUES (?, ?, 'CONFIRMACION_DOCENTE', ?, NOW())`, [cargaId, userId, JSON.stringify({ confirmado: true, docente: docente.id_docente })]);
 

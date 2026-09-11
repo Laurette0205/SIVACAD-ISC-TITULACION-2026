@@ -69,7 +69,7 @@ function authRequired(req, res, next) {
   }
 
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     return next();
   } catch (error) {
     return res.status(401).json({ ok: false, message: 'Token inválido o expirado' });

@@ -6,6 +6,10 @@ function getUserId(user) {
   return Number(user?.id_usuario || user?.idUser || user?.usuario_id || user?.sub || 0);
 }
 
+function getInstitucionId(user) {
+  return Number(user?.id_institucion || 1);
+}
+
 async function getStudentAverage(pool, user) {
   const idUsuario = getUserId(user);
 
@@ -61,12 +65,13 @@ async function getStudentEligibility(pool, user) {
   };
 }
 
-async function getSystemStats(pool) {
+async function getSystemStats(pool, user) {
   try {
+    const idInstitucion = getInstitucionId(user);
     const [userRows] = await pool.query('SELECT COUNT(*) AS total FROM usuarios');
     const [matRows] = await pool.query('SELECT COUNT(*) AS total FROM materias');
-    const [aluRows] = await pool.query('SELECT COUNT(*) AS total FROM alumnos');
-    const [docRows] = await pool.query('SELECT COUNT(*) AS total FROM docentes');
+    const [aluRows] = await pool.query('SELECT COUNT(*) AS total FROM alumnos WHERE id_institucion = ?', [idInstitucion]);
+    const [docRows] = await pool.query('SELECT COUNT(*) AS total FROM docentes WHERE id_institucion = ?', [idInstitucion]);
 
     return {
       usuarios: Number(userRows[0]?.total || 0),
@@ -174,18 +179,20 @@ async function getSystemConfig(pool) {
 // COORDINADOR — Tools
 // =============================================
 
-async function getCoordDashboard(pool) {
+async function getCoordDashboard(pool, user) {
   try {
-    const [alumnos] = await pool.query('SELECT COUNT(*) AS total FROM alumnos');
-    const [grupos] = await pool.query('SELECT COUNT(*) AS total FROM grupos WHERE estado = ?', ['Abierto']);
-    const [docentes] = await pool.query('SELECT COUNT(*) AS total FROM docentes');
+    const idInstitucion = getInstitucionId(user);
+    const [alumnos] = await pool.query('SELECT COUNT(*) AS total FROM alumnos WHERE id_institucion = ?', [idInstitucion]);
+    const [grupos] = await pool.query('SELECT COUNT(*) AS total FROM grupos WHERE estado = ? AND id_institucion = ?', ['Abierto', idInstitucion]);
+    const [docentes] = await pool.query('SELECT COUNT(*) AS total FROM docentes WHERE id_institucion = ?', [idInstitucion]);
     const [alertas] = await pool.query(`
-      SELECT COUNT(*) AS total FROM ia_alertas_desercion
-      WHERE atendida = 0
-    `);
+      SELECT COUNT(*) AS total FROM ia_alertas_desercion ia
+      INNER JOIN alumnos a ON a.id_alumno = ia.id_alumno
+      WHERE ia.atendida = 0 AND a.id_institucion = ?
+    `, [idInstitucion]);
     const [evaluaciones] = await pool.query(`
-      SELECT COUNT(*) AS total FROM evaluaciones WHERE estado = 'ACTIVA'
-    `);
+      SELECT COUNT(*) AS total FROM evaluaciones WHERE estado = 'ACTIVA' AND id_institucion = ?
+    `, [idInstitucion]);
     return {
       total_alumnos: Number(alumnos[0]?.total || 0),
       total_grupos_abiertos: Number(grupos[0]?.total || 0),
@@ -198,11 +205,12 @@ async function getCoordDashboard(pool) {
   }
 }
 
-async function getCoordGroups(pool, filters = {}) {
+async function getCoordGroups(pool, filters = {}, user) {
   try {
+    const idInstitucion = getInstitucionId(user);
     const { id_periodo, id_carrera, semestre } = filters;
-    let where = ['1=1'];
-    const params = [];
+    let where = ['g.id_institucion = ?'];
+    const params = [idInstitucion];
     if (id_periodo) { where.push('g.id_periodo = ?'); params.push(id_periodo); }
     if (id_carrera) { where.push('g.id_carrera = ?'); params.push(id_carrera); }
     if (semestre) { where.push('g.semestre = ?'); params.push(semestre); }
@@ -249,11 +257,12 @@ async function getCoordPeriods(pool) {
   }
 }
 
-async function getCoordStudentTracking(pool, filters = {}) {
+async function getCoordStudentTracking(pool, filters = {}, user) {
   try {
+    const idInstitucion = getInstitucionId(user);
     const { id_grupo, id_periodo, estatus, search } = filters;
-    let where = ['ga.estado = ?'];
-    const params = ['ACTIVO'];
+    let where = ['ga.estado = ?', 'a.id_institucion = ?'];
+    const params = ['ACTIVO', idInstitucion];
     if (id_grupo) { where.push('ga.id_grupo = ?'); params.push(id_grupo); }
     if (id_periodo) { where.push('ga.id_periodo = ?'); params.push(id_periodo); }
     if (estatus) { where.push('a.estatus_academico = ?'); params.push(estatus); }
@@ -288,11 +297,12 @@ async function getCoordStudentTracking(pool, filters = {}) {
   }
 }
 
-async function getCoordAlerts(pool, filters = {}) {
+async function getCoordAlerts(pool, filters = {}, user) {
   try {
+    const idInstitucion = getInstitucionId(user);
     const { nivel, atendida } = filters;
-    let where = ['1=1'];
-    const params = [];
+    let where = ['a.id_institucion = ?'];
+    const params = [idInstitucion];
     if (nivel) { where.push('ia.nivel_riesgo = ?'); params.push(nivel); }
     if (atendida !== undefined) { where.push('ia.atendida = ?'); params.push(atendida ? 1 : 0); }
 
@@ -321,15 +331,16 @@ async function getCoordAlerts(pool, filters = {}) {
   }
 }
 
-async function getCoordGroupReport(pool, id_grupo) {
+async function getCoordGroupReport(pool, id_grupo, user) {
   try {
+    const idInstitucion = getInstitucionId(user);
     const [grupo] = await pool.query(`
       SELECT g.*, p.nombre_periodo, c.nombre_carrera
       FROM grupos g
       INNER JOIN periodos p ON p.id_periodo = g.id_periodo
       INNER JOIN carreras c ON c.id_carrera = g.id_carrera
-      WHERE g.id_grupo = ?
-    `, [id_grupo]);
+      WHERE g.id_grupo = ? AND g.id_institucion = ?
+    `, [id_grupo, idInstitucion]);
 
     const [alumnos] = await pool.query(`
       SELECT a.id_alumno, a.matricula, a.nombres, a.apellido_paterno, a.apellido_materno,
@@ -339,17 +350,18 @@ async function getCoordGroupReport(pool, id_grupo) {
       FROM grupos_alumnos ga
       INNER JOIN alumnos a ON a.id_alumno = ga.id_alumno
       LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
-      WHERE ga.id_grupo = ? AND ga.estado = 'ACTIVO'
+      WHERE ga.id_grupo = ? AND ga.estado = 'ACTIVO' AND a.id_institucion = ?
       ORDER BY a.apellido_paterno, a.apellido_materno
-    `, [id_grupo]);
+    `, [id_grupo, idInstitucion]);
 
     const [alertas] = await pool.query(`
-      SELECT COUNT(*) AS total, nivel_riesgo
+      SELECT COUNT(*) AS total, ia.nivel_riesgo
       FROM ia_alertas_desercion ia
       INNER JOIN grupos_alumnos ga ON ga.id_alumno = ia.id_alumno
-      WHERE ga.id_grupo = ? AND ga.estado = 'ACTIVO'
-      GROUP BY nivel_riesgo
-    `, [id_grupo]);
+      INNER JOIN alumnos a ON a.id_alumno = ia.id_alumno
+      WHERE ga.id_grupo = ? AND ga.estado = 'ACTIVO' AND a.id_institucion = ?
+      GROUP BY ia.nivel_riesgo
+    `, [id_grupo, idInstitucion]);
 
     return {
       grupo: grupo[0] || null,
@@ -376,7 +388,8 @@ function getDocenteId(user) {
 async function getDocDashboard(pool, user) {
   try {
     const idUsuario = getUserId(user);
-    const [doc] = await pool.query('SELECT id_docente FROM docentes WHERE id_usuario = ?', [idUsuario]);
+    const idInstitucion = getInstitucionId(user);
+    const [doc] = await pool.query('SELECT id_docente FROM docentes WHERE id_usuario = ? AND id_institucion = ?', [idUsuario, idInstitucion]);
     const idDocente = doc[0]?.id_docente;
     if (!idDocente) return null;
 
@@ -410,8 +423,8 @@ async function getDocDashboard(pool, user) {
     const [evaluaciones] = await pool.query(`
       SELECT COUNT(DISTINCT e.id_evaluacion) AS total_evaluaciones
       FROM evaluaciones e
-      WHERE e.estado = 'ACTIVA'
-    `);
+      WHERE e.estado = 'ACTIVA' AND e.id_institucion = ?
+    `, [idInstitucion]);
 
     return {
       total_grupos: Number(grupos[0]?.total_grupos || 0),
@@ -428,7 +441,8 @@ async function getDocDashboard(pool, user) {
 async function getDocGroups(pool, user) {
   try {
     const idUsuario = getUserId(user);
-    const [doc] = await pool.query('SELECT id_docente FROM docentes WHERE id_usuario = ?', [idUsuario]);
+    const idInstitucion = getInstitucionId(user);
+    const [doc] = await pool.query('SELECT id_docente FROM docentes WHERE id_usuario = ? AND id_institucion = ?', [idUsuario, idInstitucion]);
     const idDocente = doc[0]?.id_docente;
     if (!idDocente) return [];
 
@@ -460,7 +474,8 @@ async function getDocGroups(pool, user) {
 async function getDocEvaluations(pool, user) {
   try {
     const idUsuario = getUserId(user);
-    const [doc] = await pool.query('SELECT id_docente FROM docentes WHERE id_usuario = ?', [idUsuario]);
+    const idInstitucion = getInstitucionId(user);
+    const [doc] = await pool.query('SELECT id_docente FROM docentes WHERE id_usuario = ? AND id_institucion = ?', [idUsuario, idInstitucion]);
     const idDocente = doc[0]?.id_docente;
     if (!idDocente) return [];
 
@@ -492,7 +507,8 @@ async function getDocEvaluations(pool, user) {
 async function getDocTracking(pool, user, filters = {}) {
   try {
     const idUsuario = getUserId(user);
-    const [doc] = await pool.query('SELECT id_docente FROM docentes WHERE id_usuario = ?', [idUsuario]);
+    const idInstitucion = getInstitucionId(user);
+    const [doc] = await pool.query('SELECT id_docente FROM docentes WHERE id_usuario = ? AND id_institucion = ?', [idUsuario, idInstitucion]);
     const idDocente = doc[0]?.id_docente;
     if (!idDocente) return [];
 
@@ -534,7 +550,8 @@ async function getDocTracking(pool, user, filters = {}) {
 async function getDocAlerts(pool, user) {
   try {
     const idUsuario = getUserId(user);
-    const [doc] = await pool.query('SELECT id_docente FROM docentes WHERE id_usuario = ?', [idUsuario]);
+    const idInstitucion = getInstitucionId(user);
+    const [doc] = await pool.query('SELECT id_docente FROM docentes WHERE id_usuario = ? AND id_institucion = ?', [idUsuario, idInstitucion]);
     const idDocente = doc[0]?.id_docente;
     if (!idDocente) return [];
 
@@ -563,7 +580,8 @@ async function getDocAlerts(pool, user) {
 async function getDocKardex(pool, user, id_alumno) {
   try {
     const idUsuario = getUserId(user);
-    const [doc] = await pool.query('SELECT id_docente FROM docentes WHERE id_usuario = ?', [idUsuario]);
+    const idInstitucion = getInstitucionId(user);
+    const [doc] = await pool.query('SELECT id_docente FROM docentes WHERE id_usuario = ? AND id_institucion = ?', [idUsuario, idInstitucion]);
     const idDocente = doc[0]?.id_docente;
     if (!idDocente) return null;
 
@@ -607,12 +625,13 @@ async function getDocKardex(pool, user, id_alumno) {
 async function getAlumDashboard(pool, user) {
   try {
     const idUsuario = getUserId(user);
+    const idInstitucion = getInstitucionId(user);
     const student = await getStudentAverage(pool, user);
     if (!student) return null;
 
     const [inscripciones] = await pool.query(`
-      SELECT COUNT(*) AS total FROM inscripciones WHERE id_alumno = ?
-    `, [student.id_alumno]);
+      SELECT COUNT(*) AS total FROM inscripciones WHERE id_alumno = ? AND id_institucion = ?
+    `, [student.id_alumno, idInstitucion]);
 
     const [periodoActual] = await pool.query(`
       SELECT id_periodo, nombre_periodo FROM periodos WHERE estado = 'Activo' LIMIT 1
@@ -623,8 +642,8 @@ async function getAlumDashboard(pool, user) {
     `, [student.id_alumno]);
 
     const [evaluacionesPend] = await pool.query(`
-      SELECT COUNT(*) AS total FROM evaluaciones WHERE estado = 'ACTIVA'
-    `);
+      SELECT COUNT(*) AS total FROM evaluaciones WHERE estado = 'ACTIVA' AND id_institucion = ?
+    `, [idInstitucion]);
 
     return {
       alumno: student,
@@ -677,7 +696,8 @@ async function getAlumKardexDetalle(pool, user) {
 async function getAlumInscripciones(pool, user) {
   try {
     const idUsuario = getUserId(user);
-    const [alum] = await pool.query('SELECT id_alumno FROM alumnos WHERE id_usuario = ?', [idUsuario]);
+    const idInstitucion = getInstitucionId(user);
+    const [alum] = await pool.query('SELECT id_alumno FROM alumnos WHERE id_usuario = ? AND id_institucion = ?', [idUsuario, idInstitucion]);
     const idAlumno = alum[0]?.id_alumno;
     if (!idAlumno) return [];
 
@@ -704,7 +724,8 @@ async function getAlumInscripciones(pool, user) {
 async function getAlumEvaluaciones(pool, user) {
   try {
     const idUsuario = getUserId(user);
-    const [alum] = await pool.query('SELECT id_alumno FROM alumnos WHERE id_usuario = ?', [idUsuario]);
+    const idInstitucion = getInstitucionId(user);
+    const [alum] = await pool.query('SELECT id_alumno FROM alumnos WHERE id_usuario = ? AND id_institucion = ?', [idUsuario, idInstitucion]);
     const idAlumno = alum[0]?.id_alumno;
     if (!idAlumno) return [];
 

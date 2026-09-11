@@ -128,13 +128,18 @@ function buildReportNarrative(metrics, query) {
   ];
 }
 
-async function getDashboardMetrics() {
+async function getDashboardMetrics(idInstitucion) {
+  const whereInstitucion = idInstitucion ? `WHERE a.id_institucion = ${Number(idInstitucion)}` : '';
+  const whereInstitucionD = idInstitucion ? `WHERE d.id_institucion = ${Number(idInstitucion)}` : '';
+  const whereInstitucionG = idInstitucion ? `WHERE g.id_institucion = ${Number(idInstitucion)}` : '';
+  const whereInstitucionE = idInstitucion ? `e.id_institucion = ${Number(idInstitucion)} AND` : '';
+
   const [[totales]] = await pool.execute(`
     SELECT
-      (SELECT COUNT(*) FROM alumnos) AS alumnos,
-      (SELECT COUNT(*) FROM docentes) AS docentes,
-      (SELECT COUNT(*) FROM grupos) AS grupos,
-      (SELECT COUNT(*) FROM evaluaciones WHERE LOWER(estado) = 'activa') AS evaluaciones,
+      (SELECT COUNT(*) FROM alumnos a ${whereInstitucion}) AS alumnos,
+      (SELECT COUNT(*) FROM docentes d ${whereInstitucionD}) AS docentes,
+      (SELECT COUNT(*) FROM grupos g ${whereInstitucionG}) AS grupos,
+      (SELECT COUNT(*) FROM evaluaciones e WHERE ${whereInstitucionE} LOWER(estado) = 'activa') AS evaluaciones,
       (SELECT COUNT(*) FROM ia_alertas_desercion WHERE atendida = 0) AS alertas_pendientes,
       (SELECT COUNT(*) FROM ia_alertas_desercion WHERE atendida = 1) AS alertas_atendidas,
       (SELECT COUNT(*) FROM ia_alertas_desercion) AS alertas_total,
@@ -174,7 +179,7 @@ async function getDashboardMetrics() {
 // ==============================
 exports.dashboard = async (req, res) => {
   try {
-    const metrics = await getDashboardMetrics();
+    const metrics = await getDashboardMetrics(req.user?.id_institucion);
 
     return res.json({
       ok: true,
@@ -224,6 +229,7 @@ exports.chatbot = async (req, res) => {
 // ==============================
 exports.listIA = async (req, res) => {
   try {
+    const idInstitucion = req.user?.id_institucion || 1;
     const query = `
       SELECT 
         ai.id_alerta,
@@ -246,10 +252,11 @@ exports.listIA = async (req, res) => {
       FROM ia_alertas_desercion ai
       INNER JOIN alumnos a ON ai.id_alumno = a.id_alumno
       INNER JOIN usuarios u ON a.id_usuario = u.id_usuario
+      WHERE a.id_institucion = ?
       ORDER BY ai.id_alerta DESC
     `;
 
-    const [rows] = await pool.execute(query);
+    const [rows] = await pool.execute(query, [idInstitucion]);
 
     return res.json({
       ok: true,
@@ -432,7 +439,7 @@ exports.genIA = async (req, res) => {
 exports.reportPdf = async (req, res) => {
   try {
     const query = getReportQuery(req);
-    const metrics = await getDashboardMetrics();
+    const metrics = await getDashboardMetrics(req.user?.id_institucion);
 
     const generatedAt = new Date();
     const generatedBy =
@@ -527,7 +534,7 @@ exports.reportPdf = async (req, res) => {
 exports.reportExcel = async (req, res) => {
   try {
     const query = getReportQuery(req);
-    const metrics = await getDashboardMetrics();
+    const metrics = await getDashboardMetrics(req.user?.id_institucion);
 
     const generatedAt = new Date();
     const generatedBy =

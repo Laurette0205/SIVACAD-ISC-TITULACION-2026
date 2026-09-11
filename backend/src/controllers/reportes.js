@@ -255,3 +255,74 @@ exports.exportMyKardexExcel = async (req, res) => {
     }
   }
 };
+
+// =====================================================
+// SECURITY REPORT CONTROLLERS
+// =====================================================
+
+exports.exportMFAEvents = async (req, res) => {
+  try {
+    const { fecha_inicio, fecha_fin } = req.query;
+    const data = await reportesService.getMFAEvents(fecha_inicio, fecha_fin);
+
+    res.json({
+      ok: true,
+      message: `Reporte de eventos MFA generado: ${data.eventos.length} registros`,
+      data: {
+        titulo: 'Reporte de Eventos MFA — SIVACAD',
+        fecha_generacion: new Date().toISOString(),
+        total_registros: data.eventos.length,
+        eventos: data.eventos,
+        resumen: data.resumen
+      }
+    });
+  } catch (error) {
+    console.error('exportMFAEvents:', error);
+    return res.status(500).json({ ok: false, message: 'Error al generar reporte de eventos MFA' });
+  }
+};
+
+exports.exportSuspiciousActivity = async (req, res) => {
+  try {
+    const { horas } = req.query;
+    const data = await reportesService.getSuspiciousActivity(horas || 24);
+
+    res.json({
+      ok: true,
+      message: `Reporte de actividad sospechosa generado: ${data.actividades.length} registros`,
+      data: {
+        titulo: 'Reporte de Actividad Sospechosa — SIVACAD',
+        fecha_generacion: new Date().toISOString(),
+        periodo_horas: Number(horas) || 24,
+        total_registros: data.actividades.length,
+        actividades: data.actividades,
+        resumen: data.resumen
+      }
+    });
+  } catch (error) {
+    console.error('exportSuspiciousActivity:', error);
+    return res.status(500).json({ ok: false, message: 'Error al generar reporte de actividad sospechosa' });
+  }
+};
+
+exports.exportKnownDevices = async (req, res) => {
+  try {
+    const { usuario_id } = req.query;
+    const data = await reportesService.getKnownDevices(usuario_id || null);
+
+    res.json({
+      ok: true,
+      message: `Reporte de dispositivos conocidos generado: ${data.dispositivos.length} registros`,
+      data: {
+        titulo: 'Reporte de Dispositivos Conocidos — SIVACAD',
+        fecha_generacion: new Date().toISOString(),
+        total_dispositivos: data.dispositivos.length,
+        dispositivos: data.dispositivos,
+        resumen: data.resumen
+      }
+    });
+  } catch (error) {
+    console.error('exportKnownDevices:', error);
+    return res.status(500).json({ ok: false, message: 'Error al generar reporte de dispositivos' });
+  }
+};

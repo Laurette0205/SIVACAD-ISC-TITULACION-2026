@@ -5,7 +5,7 @@ const router = express.Router();
 // Controladores y middlewares
 
 const kardexCtrl = require('../controllers/kardex');
-const { auth, role } = require('../middleware/auth');
+const { auth, role, verifyRoleAgainstDB } = require('../middleware/auth');
 const { uploadAlumnoFoto } = require('../middleware/upload');
 
 // Todas las rutas requieren autenticación
@@ -22,6 +22,7 @@ router.get('/grupo/:id', kardexCtrl.getKardexGrupo);
 
 router.post(
   '/alumno/:id/foto',
+  verifyRoleAgainstDB,
   role('ADMINISTRADOR'),
   uploadAlumnoFoto.single('foto'),
   kardexCtrl.uploadAlumnoPhoto
@@ -29,6 +30,7 @@ router.post(
 
 router.delete(
   '/alumno/:id/foto',
+  verifyRoleAgainstDB,
   role('ADMINISTRADOR'),
   kardexCtrl.deleteAlumnoPhoto
 );
@@ -37,6 +39,7 @@ router.delete(
 
 router.post(
   '/alumno/:id/qr',
+  verifyRoleAgainstDB,
   role('ADMINISTRADOR'),
   kardexCtrl.generateQrAlumno
 );
@@ -45,6 +48,7 @@ router.post(
 
 router.post(
   '/grupo/:id/qr',
+  verifyRoleAgainstDB,
   role('ADMINISTRADOR'),
   kardexCtrl.generateQrGrupo
 );

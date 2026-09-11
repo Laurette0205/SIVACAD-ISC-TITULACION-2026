@@ -44,12 +44,19 @@ export default function AlumnoPage() {
       setLoading(true);
       setError('');
 
-      if (!token) throw new Error('Token no disponible');
+      if (!token) {
+        navigate('/login', { replace: true });
+        return;
+      }
 
       const response = await api.dashboard(token);
       setData(response?.data || response || null);
     } catch (err) {
       console.error('Error al cargar panel del alumno:', err);
+      if (err?.status === 401) {
+        navigate('/login', { replace: true });
+        return;
+      }
       setData(null);
       setError(err?.message || 'No fue posible cargar el panel del alumno');
     } finally {

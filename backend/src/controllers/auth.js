@@ -7,6 +7,10 @@ const pool = require('../config/db');
 const { sendPasswordResetEmail } = require('../services/mailer');
 const { signToken, signRefreshToken, verifyRefreshToken } = require('../services/jwt');
 const { validatePassword } = require('../security/passwordPolicy');
+const { isAccountLocked, recordFailedAttempt, recordSuccessfulLogin } = require('../services/accountLockout');
+const { verifyMFALogin } = require('../services/mfa');
+const { resolveByDomain } = require('../services/institutionConfig');
+const { logout, trackSession, logoutAllSessions } = require('../services/sessionManager');
 
 // ==============================
 // UTILIDADES
@@ -95,7 +99,8 @@ function generateToken(user) {
       id_usuario: user.id_usuario,
       correo: user.correo,
       rol: user.rol,
-      rol_id: user.rol_id
+      rol_id: user.rol_id,
+      id_institucion: user.id_institucion || 1
     },
     process.env.JWT_SECRET,
     {
@@ -224,11 +229,8 @@ exports.register = async (req, res) => {
       apellido_materno,
       correo,
       contrasena,
-      rol = 'alumno',
       matricula = null,
       curp = null,
-      numero_empleado = null,
-      especialidad = null,
       id_carrera = 1,
       id_plan = 1,
       semestre_actual = 1
@@ -256,7 +258,6 @@ exports.register = async (req, res) => {
     }
 
     const correoNormalizado = normalizeEmail(correo);
-    const rolNormalizado = normalizeRole(rol);
 
     if (!isInstitutionalEmail(correoNormalizado)) {
       return res.status(400).json({
@@ -265,6 +266,13 @@ exports.register = async (req, res) => {
           'Solo se permiten correos institucionales autorizados: @tesi.edu.mx, @ixtapaluca.tecnm.mx, @ixtapaluca.tecnm.edu.mx, @outlook.com y @outlook.es.'
       });
     }
+
+    // SEGURIDAD: Registro solo permite rol "alumno"
+    // Otros roles deben ser creados por un administrador
+    const rolNormalizado = 'alumno';
+
+    // Resolver institución desde dominio del email
+    const idInstitucion = await resolveByDomain(correoNormalizado) || 1;
 
     const [rolRows] = await conn.execute(
       `SELECT id_rol, nombre_rol
@@ -298,45 +306,18 @@ exports.register = async (req, res) => {
       });
     }
 
-    if (rolNormalizado === 'alumno') {
-      if (!matricula) {
-        return res.status(400).json({
-          ok: false,
-          message: 'La matrícula es obligatoria para alumnos'
-        });
-      }
-      if (!curp) {
-        return res.status(400).json({
-          ok: false,
-          message: 'La CURP es obligatoria para alumnos'
-        });
-      }
+    // Validaciones para alumno (único rol permitido en registro público)
+    if (!matricula) {
+      return res.status(400).json({
+        ok: false,
+        message: 'La matrícula es obligatoria para alumnos'
+      });
     }
-
-    if (
-      rolNormalizado === 'docente' ||
-      rolNormalizado === 'coordinador' ||
-      rolNormalizado === 'administrador' ||
-      rolNormalizado === 'soporte'
-    ) {
-      if (!numero_empleado) {
-        return res.status(400).json({
-          ok: false,
-          message: 'El número de empleado es obligatorio para este perfil'
-        });
-      }
-      if (!curp) {
-        return res.status(400).json({
-          ok: false,
-          message: 'La CURP es obligatoria para este perfil'
-        });
-      }
-      if (!especialidad) {
-        return res.status(400).json({
-          ok: false,
-          message: 'La especialidad es obligatoria para este perfil'
-        });
-      }
+    if (!curp) {
+      return res.status(400).json({
+        ok: false,
+        message: 'La CURP es obligatoria para alumnos'
+      });
     }
 
     const hashedPassword = await bcrypt.hash(contrasena, 12);
@@ -345,15 +326,16 @@ exports.register = async (req, res) => {
 
     const [userResult] = await conn.execute(
       `INSERT INTO usuarios
-       (nombres, apellido_paterno, apellido_materno, correo_institucional, contrasena_hash, estado, id_rol)
-       VALUES (?, ?, ?, ?, ?, 'Activo', ?)`,
+       (nombres, apellido_paterno, apellido_materno, correo_institucional, contrasena_hash, estado, id_rol, id_institucion)
+       VALUES (?, ?, ?, ?, ?, 'Activo', ?, ?)`,
       [
         capitalizeName(nombres),
         capitalizeName(apellido_paterno),
         capitalizeName(apellido_materno),
         correoNormalizado,
         hashedPassword,
-        id_rol
+        id_rol,
+        idInstitucion
       ]
     );
 
@@ -365,8 +347,8 @@ exports.register = async (req, res) => {
 
       const [alumnoResult] = await conn.execute(
         `INSERT INTO alumnos
-         (id_usuario, apellido_paterno, apellido_materno, nombres, matricula, curp, id_carrera, id_plan, semestre_actual, fotografia, estatus_academico)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 'Regular')`,
+         (id_usuario, apellido_paterno, apellido_materno, nombres, matricula, curp, id_carrera, id_plan, semestre_actual, fotografia, estatus_academico, id_institucion)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 'Regular', ?)`,
         [
           id_usuario,
           capitalizeName(apellido_paterno),
@@ -376,7 +358,8 @@ exports.register = async (req, res) => {
           normalizeText(curp).toUpperCase(),
           Number(id_carrera || 1),
           Number(id_plan || 1),
-          Number(semestre_actual || 1)
+          Number(semestre_actual || 1),
+          idInstitucion
         ]
       );
 
@@ -392,22 +375,6 @@ exports.register = async (req, res) => {
       );
 
       extra = { id_alumno: alumnoResult.insertId };
-    }
-
-    if (rolNormalizado === 'docente') {
-      const [docenteResult] = await conn.execute(
-        `INSERT INTO docentes
-         (id_usuario, clave_docente, numero_empleado, especialidad, fotografia, estatus)
-         VALUES (?, ?, ?, ?, NULL, 'Activo')`,
-        [
-          id_usuario,
-          `DOC-${Date.now()}`,
-          capitalizeName(numero_empleado),
-          capitalizeName(especialidad)
-        ]
-      );
-
-      extra = { id_docente: docenteResult.insertId };
     }
 
     const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.connection?.remoteAddress || '0.0.0.0';
@@ -433,7 +400,8 @@ exports.register = async (req, res) => {
       id_usuario,
       correo: correoNormalizado,
       rol: rolRows[0].nombre_rol,
-      rol_id: id_rol
+      rol_id: id_rol,
+      id_institucion: idInstitucion
     });
 
     return res.status(201).json({
@@ -455,6 +423,7 @@ exports.register = async (req, res) => {
         rol: rolRows[0].nombre_rol,
         rol_nombre: rolRows[0].nombre_rol,
         rol_id: id_rol,
+        id_institucion: idInstitucion,
         ...extra
       }
     });
@@ -499,6 +468,9 @@ exports.login = async (req, res) => {
       });
     }
 
+    // Resolver institución desde dominio del email
+    const idInstitucion = await resolveByDomain(correoNormalizado) || 1;
+
     const [rows] = await pool.execute(
       `SELECT
         u.id_usuario,
@@ -537,22 +509,79 @@ exports.login = async (req, res) => {
       });
     }
 
+    // Obtener id_institucion del usuario (puede no existir la columna aún)
+    let userInstitucion = null;
+    try {
+      const [instRows] = await pool.execute(
+        `SELECT id_institucion FROM usuarios WHERE id_usuario = ? LIMIT 1`,
+        [user.id_usuario]
+      );
+      userInstitucion = instRows[0]?.id_institucion || null;
+    } catch (_) {
+      // Columna id_institucion no existe aún
+    }
+
+    // Verificar bloqueo de cuenta
+    const lockStatus = await isAccountLocked(user.id_usuario);
+    if (lockStatus && lockStatus.locked) {
+      const { logSuspiciousActivity } = require('../middleware/seguridad');
+      logSuspiciousActivity(req, 'LOGIN_ATTEMPT_LOCKED', { userId: user.id_usuario, remaining: lockStatus.remainingMinutes });
+      return res.status(423).json({
+        ok: false,
+        message: lockStatus.message
+      });
+    }
+
     const validPassword = await bcrypt.compare(pass, user.contrasena_hash);
 
     if (!validPassword) {
       const { logSuspiciousActivity } = require('../middleware/seguridad');
       logSuspiciousActivity(req, 'LOGIN_FAILED_PASSWORD', { userId: user.id_usuario, correo: correoNormalizado });
+
+      // Registrar intento fallido y posiblemente bloquear
+      const attemptResult = await recordFailedAttempt(user.id_usuario);
+      if (attemptResult.locked) {
+        return res.status(423).json({
+          ok: false,
+          message: attemptResult.message
+        });
+      }
+
       return res.status(401).json({
         ok: false,
         message: 'Credenciales incorrectas'
       });
     }
 
+    // Login exitoso — resetear contadores de bloqueo
+    await recordSuccessfulLogin(user.id_usuario);
+
+    // Verificar si MFA está activo
+    const mfaStatus = await verifyMFALogin(user.id_usuario, null);
+    if (mfaStatus.required) {
+      // MFA activo: retornar token temporal de 5 minutos para completar login
+      const mfaToken = signToken({
+        id_usuario: user.id_usuario,
+        type: 'mfa_pending',
+        id_institucion: userInstitucion || idInstitucion || 1
+      }, '5m');
+
+      return res.json({
+        ok: true,
+        mfaRequired: true,
+        mfaToken,
+        message: 'Se requiere código de autenticación de dos factores'
+      });
+    }
+
+    const institucionId = userInstitucion || idInstitucion || 1;
+
     const token = generateToken({
       id_usuario: user.id_usuario,
       correo: user.correo_institucional,
       rol: user.nombre_rol,
-      rol_id: user.id_rol
+      rol_id: user.id_rol,
+      id_institucion: institucionId
     });
 
     const refreshToken = signRefreshToken({ id_usuario: user.id_usuario });
@@ -562,6 +591,9 @@ exports.login = async (req, res) => {
     // Track device on successful login
     const { trackDevice } = require('../middleware/seguridad');
     const deviceInfo = await trackDevice(req, user.id_usuario);
+
+    // Track session
+    await trackSession(user.id_usuario, token, req);
 
     return res.json({
       ok: true,
@@ -576,7 +608,8 @@ exports.login = async (req, res) => {
         correo: user.correo_institucional,
         rol: user.nombre_rol,
         rol_nombre: user.nombre_rol,
-        rol_id: user.id_rol
+        rol_id: user.id_rol,
+        id_institucion: institucionId
       },
       device: deviceInfo.isNew ? { isNew: true, message: 'Dispositivo nuevo detectado' } : undefined
     });
@@ -590,27 +623,165 @@ exports.login = async (req, res) => {
 };
 
 // ==============================
+// COMPLETAR LOGIN CON MFA
+// ==============================
+exports.loginMFA = async (req, res) => {
+  try {
+    const { mfaToken, codigo } = req.body;
+
+    if (!mfaToken || !codigo) {
+      return res.status(400).json({ ok: false, message: 'Token MFA y código son requeridos' });
+    }
+
+    // Verificar token temporal MFA
+    let decoded;
+    try {
+      const { verifyToken } = require('../services/jwt');
+      decoded = verifyToken(mfaToken);
+    } catch (_) {
+      return res.status(401).json({ ok: false, message: 'Token MFA inválido o expirado' });
+    }
+
+    if (decoded.type !== 'mfa_pending') {
+      return res.status(401).json({ ok: false, message: 'Token no es de tipo MFA' });
+    }
+
+    const idUsuario = decoded.id_usuario;
+    const idInstitucion = decoded.id_institucion || 1;
+
+    // Verificar código MFA
+    const mfaResult = await verifyMFALogin(idUsuario, codigo);
+    if (!mfaResult.verified) {
+      const { registrarAuditoria } = require('../middleware/auditoria');
+      await registrarAuditoria({
+        id_usuario: idUsuario,
+        modulo: 'SEGURIDAD',
+        accion: 'MFA_LOGIN_FAILED',
+        descripcion: 'Código MFA inválido durante login',
+        nivel: 'WARNING',
+        req
+      });
+      return res.status(401).json({ ok: false, message: mfaResult.message || 'Código MFA inválido' });
+    }
+
+    const { registrarAuditoria } = require('../middleware/auditoria');
+    await registrarAuditoria({
+      id_usuario: idUsuario,
+      modulo: 'SEGURIDAD',
+      accion: 'MFA_LOGIN_SUCCESS',
+      descripcion: 'Login completado con MFA verificado',
+      nivel: 'INFO',
+      req
+    });
+
+    // MFA verificado: generar token completo
+    const [rows] = await pool.execute(
+      `SELECT u.id_usuario, u.nombres, u.apellido_paterno, u.apellido_materno,
+              u.correo_institucional, u.estado, u.id_rol, r.nombre_rol
+       FROM usuarios u
+       INNER JOIN roles r ON u.id_rol = r.id_rol
+       WHERE u.id_usuario = ? LIMIT 1`,
+      [idUsuario]
+    );
+
+    if (!rows.length) {
+      return res.status(401).json({ ok: false, message: 'Usuario no encontrado' });
+    }
+
+    const user = rows[0];
+
+    if (normalizeText(user.estado).toLowerCase() !== 'activo') {
+      return res.status(403).json({ ok: false, message: 'Usuario inactivo' });
+    }
+
+    const token = generateToken({
+      id_usuario: user.id_usuario,
+      correo: user.correo_institucional,
+      rol: user.nombre_rol,
+      rol_id: user.id_rol,
+      id_institucion: idInstitucion
+    });
+
+    const refreshToken = signRefreshToken({ id_usuario: user.id_usuario });
+
+    await tryUpdateLastAccess(user.id_usuario);
+
+    const { trackDevice } = require('../middleware/seguridad');
+    const deviceInfo = await trackDevice(req, user.id_usuario);
+
+    const { trackSession } = require('../services/sessionManager');
+    await trackSession(user.id_usuario, token, req);
+
+    return res.json({
+      ok: true,
+      token,
+      refreshToken,
+      usuario: {
+        id_usuario: user.id_usuario,
+        nombres: user.nombres,
+        apellido_paterno: user.apellido_paterno,
+        apellido_materno: user.apellido_materno,
+        nombre_completo: getUserFullName(user),
+        correo: user.correo_institucional,
+        rol: user.nombre_rol,
+        rol_nombre: user.nombre_rol,
+        rol_id: user.id_rol,
+        id_institucion: idInstitucion
+      },
+      device: deviceInfo.isNew ? { isNew: true, message: 'Dispositivo nuevo detectado' } : undefined
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ ok: false, message: 'Error al completar login MFA' });
+  }
+};
+
+// ==============================
 // PERFIL
 // ==============================
 exports.me = async (req, res) => {
   try {
-    const [rows] = await pool.execute(
-      `SELECT
-        u.id_usuario,
-        u.nombres,
-        u.apellido_paterno,
-        u.apellido_materno,
-        u.correo_institucional AS correo,
-        u.id_rol AS rol_id,
-        r.nombre_rol AS rol
-       FROM usuarios u
-       INNER JOIN roles r ON u.id_rol = r.id_rol
-       WHERE u.id_usuario = ?
-       LIMIT 1`,
-      [req.user.id_usuario]
-    );
+    let user = null;
 
-    const user = rows[0] || null;
+    // Intentar con id_institucion
+    try {
+      const [rows] = await pool.execute(
+        `SELECT
+          u.id_usuario,
+          u.nombres,
+          u.apellido_paterno,
+          u.apellido_materno,
+          u.correo_institucional AS correo,
+          u.id_rol AS rol_id,
+          u.id_institucion,
+          r.nombre_rol AS rol
+         FROM usuarios u
+         INNER JOIN roles r ON u.id_rol = r.id_rol
+         WHERE u.id_usuario = ?
+         LIMIT 1`,
+        [req.user.id_usuario]
+      );
+      user = rows[0] || null;
+    } catch (_) {
+      // Fallback si id_institucion no existe
+      const [rows] = await pool.execute(
+        `SELECT
+          u.id_usuario,
+          u.nombres,
+          u.apellido_paterno,
+          u.apellido_materno,
+          u.correo_institucional AS correo,
+          u.id_rol AS rol_id,
+          r.nombre_rol AS rol
+         FROM usuarios u
+         INNER JOIN roles r ON u.id_rol = r.id_rol
+         WHERE u.id_usuario = ?
+         LIMIT 1`,
+        [req.user.id_usuario]
+      );
+      user = rows[0] || null;
+      if (user) user.id_institucion = req.user.id_institucion || 1;
+    }
 
     return res.json({
       ok: true,
@@ -878,23 +1049,36 @@ exports.refresh = async (req, res) => {
       });
     }
 
-    const [rows] = await pool.execute(
-      `SELECT u.id_usuario, u.id_rol, u.estado, r.nombre_rol
-       FROM usuarios u
-       INNER JOIN roles r ON u.id_rol = r.id_rol
-       WHERE u.id_usuario = ?
-       LIMIT 1`,
-      [decoded.id_usuario]
-    );
+    let user = null;
+    try {
+      const [rows] = await pool.execute(
+        `SELECT u.id_usuario, u.id_rol, u.id_institucion, u.estado, r.nombre_rol
+         FROM usuarios u
+         INNER JOIN roles r ON u.id_rol = r.id_rol
+         WHERE u.id_usuario = ?
+         LIMIT 1`,
+        [decoded.id_usuario]
+      );
+      user = rows[0] || null;
+    } catch (_) {
+      const [rows] = await pool.execute(
+        `SELECT u.id_usuario, u.id_rol, u.estado, r.nombre_rol
+         FROM usuarios u
+         INNER JOIN roles r ON u.id_rol = r.id_rol
+         WHERE u.id_usuario = ?
+         LIMIT 1`,
+        [decoded.id_usuario]
+      );
+      user = rows[0] || null;
+      if (user) user.id_institucion = 1;
+    }
 
-    if (!rows.length) {
+    if (!user) {
       return res.status(401).json({
         ok: false,
         message: 'Usuario no encontrado'
       });
     }
-
-    const user = rows[0];
 
     if (normalizeText(user.estado).toLowerCase() !== 'activo') {
       return res.status(401).json({
@@ -907,7 +1091,8 @@ exports.refresh = async (req, res) => {
       id_usuario: user.id_usuario,
       correo: null,
       rol: user.nombre_rol,
-      rol_id: user.id_rol
+      rol_id: user.id_rol,
+      id_institucion: user.id_institucion || 1
     });
 
     const newRefreshToken = signRefreshToken({ id_usuario: user.id_usuario });
@@ -923,5 +1108,112 @@ exports.refresh = async (req, res) => {
       ok: false,
       message: 'Error al refrescar token'
     });
+  }
+};
+
+// ==============================
+// LOGOUT
+// ==============================
+exports.logout = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.split(' ')[1];
+
+    if (token) {
+      await logout(token, 'logout');
+    }
+
+    return res.json({
+      ok: true,
+      message: 'Sesión cerrada correctamente'
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al cerrar sesión'
+    });
+  }
+};
+
+// ==============================
+// LOGOUT ALL SESSIONS
+// ==============================
+exports.logoutAll = async (req, res) => {
+  try {
+    await logoutAllSessions(req.user.id_usuario, 'logout_all');
+
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.split(' ')[1];
+    if (token) {
+      await logout(token, 'logout_all');
+    }
+
+    return res.json({
+      ok: true,
+      message: 'Todas las sesiones cerradas correctamente'
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al cerrar sesiones'
+    });
+  }
+};
+
+// ==============================
+// REAUTHENTICATE — revalidar credenciales antes de ops sensibles
+// ==============================
+exports.reauthenticate = async (req, res) => {
+  try {
+    const { contrasena } = req.body;
+    if (!contrasena) {
+      return res.status(400).json({ ok: false, message: 'Contraseña requerida para reautenticación' });
+    }
+
+    const [rows] = await pool.execute(
+      `SELECT contrasena_hash FROM usuarios WHERE id_usuario = ? LIMIT 1`,
+      [req.user.id_usuario]
+    );
+
+    if (!rows.length) {
+      return res.status(401).json({ ok: false, message: 'Usuario no encontrado' });
+    }
+
+    const valid = await bcrypt.compare(contrasena, rows[0].contrasena_hash);
+    if (!valid) {
+      const { registrarAuditoria } = require('../middleware/auditoria');
+      await registrarAuditoria({
+        id_usuario: req.user.id_usuario,
+        modulo: 'SEGURIDAD',
+        accion: 'REAUTH_FAILED',
+        descripcion: 'Reautenticación fallida — contraseña incorrecta',
+        nivel: 'WARNING',
+        req
+      });
+      return res.status(401).json({ ok: false, message: 'Contraseña incorrecta' });
+    }
+
+    const { signToken } = require('../services/jwt');
+    const reauthToken = signToken(
+      { id_usuario: req.user.id_usuario, type: 'reauth' },
+      '10m'
+    );
+
+    const { registrarAuditoria } = require('../middleware/auditoria');
+    await registrarAuditoria({
+      id_usuario: req.user.id_usuario,
+      modulo: 'SEGURIDAD',
+      accion: 'REAUTH_SUCCESS',
+      descripcion: 'Reautenticación exitosa — token temporal emitido',
+      nivel: 'INFO',
+      req
+    });
+
+    return res.json({ ok: true, message: 'Reautenticación exitosa', reauthToken });
+  } catch (error) {
+    console.error('[REAUTH]', error);
+    return res.status(500).json({ ok: false, message: 'Error en reautenticación' });
   }
 };

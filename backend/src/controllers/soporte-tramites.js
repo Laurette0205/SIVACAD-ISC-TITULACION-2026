@@ -19,6 +19,7 @@ async function registrarLog(accion, descripcion, id_usuario, ip, id_incidencia =
 // =====================================================
 exports.getPanel = async (req, res) => {
   try {
+    const id_institucion = req.user?.id_institucion || 1;
     const [
       [totalTramites],
       [incidenciasAbiertas],
@@ -28,16 +29,18 @@ exports.getPanel = async (req, res) => {
       [incidenciasPorEstado],
       [monitoreoReciente]
     ] = await Promise.all([
-      pool.execute('SELECT COUNT(*) AS total FROM tramites'),
+      pool.execute('SELECT COUNT(*) AS total FROM tramites WHERE id_institucion = ?', [id_institucion]),
       pool.execute("SELECT COUNT(*) AS total FROM soporte_tramites_incidencias WHERE estado NOT IN ('CERRADO','CORREGIDO')"),
       pool.execute("SELECT COUNT(*) AS total FROM soporte_tramites_archivos WHERE estado_archivo = 'RECIBIDO' AND validado = 0"),
       pool.execute("SELECT COUNT(*) AS total FROM soporte_tramites_recuperacion WHERE estado = 'EN_PROCESO'"),
       pool.execute(
         `SELECT tt.codigo, tt.nombre, COUNT(t.id_tramite) AS total
          FROM tramites_tipos tt
-         LEFT JOIN tramites t ON t.id_tipo = tt.id_tipo
+         LEFT JOIN tramites t ON t.id_tipo = tt.id_tipo AND t.id_institucion = ?
+         WHERE tt.id_institucion = ?
          GROUP BY tt.id_tipo, tt.codigo, tt.nombre
-         ORDER BY total DESC`
+         ORDER BY total DESC`,
+        [id_institucion, id_institucion]
       ),
       pool.execute(
         `SELECT estado, COUNT(*) AS total
@@ -81,14 +84,15 @@ exports.getPanel = async (req, res) => {
 exports.getIncidencias = async (req, res) => {
   try {
     const { estado, tipo, limite } = req.query;
+    const id_institucion = req.user?.id_institucion || 1;
     let sql = `SELECT i.*, u.correo_institucional AS reportado_por_correo,
                       tt.nombre AS tipo_tramite_nombre, t.folio
                FROM soporte_tramites_incidencias i
                LEFT JOIN usuarios u ON u.id_usuario = i.reportado_por
-               LEFT JOIN tramites_tipos tt ON tt.id_tipo = i.id_tipo_tramite
-               LEFT JOIN tramites t ON t.id_tramite = i.id_tramite
+               LEFT JOIN tramites_tipos tt ON tt.id_tipo = i.id_tipo_tramite AND tt.id_institucion = ?
+               LEFT JOIN tramites t ON t.id_tramite = i.id_tramite AND t.id_institucion = ?
                WHERE 1=1`;
-    const params = [];
+    const params = [id_institucion, id_institucion];
 
     if (estado) { sql += ' AND i.estado = ?'; params.push(estado); }
     if (tipo) { sql += ' AND i.tipo_incidencia = ?'; params.push(tipo); }
@@ -280,14 +284,15 @@ exports.validarArchivo = async (req, res) => {
 exports.getRecuperacion = async (req, res) => {
   try {
     const { estado } = req.query;
+    const id_institucion = req.user?.id_institucion || 1;
     let sql = `SELECT r.*, u.correo_institucional AS realizado_por_correo,
                       i.titulo AS incidencia_titulo, t.folio
                FROM soporte_tramites_recuperacion r
                LEFT JOIN usuarios u ON u.id_usuario = r.realizado_por
                LEFT JOIN soporte_tramites_incidencias i ON i.id_incidencia = r.id_incidencia
-               LEFT JOIN tramites t ON t.id_tramite = r.id_tramite
+               LEFT JOIN tramites t ON t.id_tramite = r.id_tramite AND t.id_institucion = ?
                WHERE 1=1`;
-    const params = [];
+    const params = [id_institucion];
 
     if (estado) { sql += ' AND r.estado = ?'; params.push(estado); }
 
@@ -316,10 +321,12 @@ exports.realizarRecuperacion = async (req, res) => {
       return res.status(400).json({ ok: false, message: 'Documento origen requerido' });
     }
 
+    const id_institucion = req.user?.id_institucion || 1;
+
     const [docs] = await pool.execute(
       `SELECT id_documento, nombre_original, ruta_archivo, mime_type, peso_bytes
-       FROM tramites_documentos WHERE id_documento = ?`,
-      [id_tramite_documento]
+       FROM tramites_documentos WHERE id_documento = ? AND id_institucion = ?`,
+      [id_tramite_documento, id_institucion]
     );
     if (!docs.length) {
       return res.status(404).json({ ok: false, message: 'Documento no encontrado' });
@@ -379,12 +386,15 @@ exports.realizarRecuperacion = async (req, res) => {
 // =====================================================
 exports.validarIntegridad = async (req, res) => {
   try {
+    const id_institucion = req.user?.id_institucion || 1;
     const [documentos] = await pool.execute(
       `SELECT td.id_documento, td.id_tramite, td.nombre_original, td.ruta_archivo,
               td.mime_type, td.peso_bytes, t.folio
        FROM tramites_documentos td
-       INNER JOIN tramites t ON t.id_tramite = td.id_tramite
-       ORDER BY td.subido_en DESC LIMIT 200`
+       INNER JOIN tramites t ON t.id_tramite = td.id_tramite AND t.id_institucion = td.id_institucion
+       WHERE td.id_institucion = ?
+       ORDER BY td.subido_en DESC LIMIT 200`,
+      [id_institucion]
     );
 
     const resultados = documentos.map((d) => {
@@ -548,14 +558,15 @@ exports.reintentarProceso = async (req, res) => {
 exports.validarCompatibilidad = async (req, res) => {
   try {
     const { id_tramite } = req.body;
+    const id_institucion = req.user?.id_institucion || 1;
 
     const [documentos] = await pool.execute(
       `SELECT td.*, tt.codigo AS tipo_tramite_codigo
        FROM tramites_documentos td
-       INNER JOIN tramites t ON t.id_tramite = td.id_tramite
-       INNER JOIN tramites_tipos tt ON tt.id_tipo = t.id_tipo
-       WHERE td.id_tramite = ?`,
-      [id_tramite]
+       INNER JOIN tramites t ON t.id_tramite = td.id_tramite AND t.id_institucion = td.id_institucion
+       INNER JOIN tramites_tipos tt ON tt.id_tipo = t.id_tipo AND tt.id_institucion = t.id_institucion
+       WHERE td.id_tramite = ? AND td.id_institucion = ?`,
+      [id_tramite, id_institucion]
     );
 
     if (!documentos.length) {
@@ -618,17 +629,18 @@ exports.validarCompatibilidad = async (req, res) => {
 exports.listarTramites = async (req, res) => {
   try {
     const { tipo, estado, folio, limite } = req.query;
+    const id_institucion = req.user?.id_institucion || 1;
     let sql = `SELECT t.id_tramite, t.folio, tt.codigo AS tipo_codigo, tt.nombre AS tipo_nombre,
                       t.estado_actual, t.motivo, t.creado_en, t.actualizado_en,
                       a.matricula,
                       CONCAT(a.nombres, ' ', a.apellido_paterno, ' ', a.apellido_materno) AS alumno_nombre,
                       p.nombre_periodo
                FROM tramites t
-               INNER JOIN tramites_tipos tt ON tt.id_tipo = t.id_tipo
+               INNER JOIN tramites_tipos tt ON tt.id_tipo = t.id_tipo AND tt.id_institucion = t.id_institucion
                INNER JOIN alumnos a ON a.id_alumno = t.id_alumno
                LEFT JOIN periodos p ON p.id_periodo = t.id_periodo
-               WHERE 1=1`;
-    const params = [];
+               WHERE t.id_institucion = ?`;
+    const params = [id_institucion];
 
     if (tipo) { sql += ' AND tt.codigo = ?'; params.push(tipo); }
     if (estado) { sql += ' AND t.estado_actual = ?'; params.push(estado); }
@@ -651,6 +663,7 @@ exports.listarTramites = async (req, res) => {
 // =====================================================
 exports.getTramitesEspeciales = async (req, res) => {
   try {
+    const id_institucion = req.user?.id_institucion || 1;
     const codigos = ['BAJA', 'TRASLADO', 'CAMBIO_CARRERA'];
     const placeholders = codigos.map(() => '?').join(',');
 
@@ -661,10 +674,10 @@ exports.getTramitesEspeciales = async (req, res) => {
               SUM(t.estado_actual IN ('APROBADO','EMITIDO','CERRADO')) AS completados,
               SUM(t.estado_actual = 'RECHAZADO') AS rechazados
        FROM tramites_tipos tt
-       LEFT JOIN tramites t ON t.id_tipo = tt.id_tipo
-       WHERE tt.codigo IN (${placeholders})
+       LEFT JOIN tramites t ON t.id_tipo = tt.id_tipo AND t.id_institucion = tt.id_institucion
+       WHERE tt.codigo IN (${placeholders}) AND tt.id_institucion = ?
        GROUP BY tt.id_tipo, tt.codigo, tt.nombre`,
-      codigos
+      [...codigos, id_institucion]
     );
 
     const [recientes] = await pool.execute(
@@ -673,11 +686,11 @@ exports.getTramitesEspeciales = async (req, res) => {
               a.matricula,
               CONCAT(a.nombres, ' ', a.apellido_paterno) AS alumno_nombre
        FROM tramites t
-       INNER JOIN tramites_tipos tt ON tt.id_tipo = t.id_tipo
+       INNER JOIN tramites_tipos tt ON tt.id_tipo = t.id_tipo AND tt.id_institucion = t.id_institucion
        INNER JOIN alumnos a ON a.id_alumno = t.id_alumno
-       WHERE tt.codigo IN (${placeholders})
+       WHERE tt.codigo IN (${placeholders}) AND t.id_institucion = ?
        ORDER BY t.creado_en DESC LIMIT 20`,
-      codigos
+      [...codigos, id_institucion]
     );
 
     return res.json({

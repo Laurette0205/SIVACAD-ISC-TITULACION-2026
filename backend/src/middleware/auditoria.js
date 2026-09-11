@@ -74,13 +74,15 @@ async function registrarLogin(userId, req, exitoso = true) {
     const ip = getClientIp(req);
     const ua = req.headers['user-agent'] || '';
     const dispositivoHash = getDeviceHash(req);
+    const crypto = require('crypto');
+    const tokenHash = crypto.createHash('sha256').update(req.headers.authorization?.replace('Bearer ', '') || '').digest('hex');
     try {
         if (exitoso) {
             const [result] = await pool.execute(
                 `INSERT INTO sesiones_activas
                  (id_usuario, token_jwt, ip_origen, user_agent, dispositivo_hash)
                  VALUES (?, ?, ?, ?, ?)`,
-                [userId, req.headers.authorization?.replace('Bearer ', '') || '', ip, ua, dispositivoHash]
+                [userId, tokenHash, ip, ua, dispositivoHash]
             );
             const idSesion = result.insertId;
             await registrarAuditoria({

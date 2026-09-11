@@ -197,6 +197,19 @@ async function trackDevice(req, userId) {
 
     logSuspiciousActivity(req, 'NEW_DEVICE_LOGIN', { userId, fingerprint: fingerprint.slice(0, 8) });
 
+    // Auditoría específica para login desde dispositivo nuevo
+    try {
+      const { registrarAuditoria } = require('./auditoria');
+      await registrarAuditoria({
+        id_usuario: userId,
+        modulo: 'SEGURIDAD',
+        accion: 'NEW_DEVICE_LOGIN',
+        descripcion: `Login desde dispositivo nuevo — IP: ${ip}, UA: ${ua.slice(0, 100)}`,
+        nivel: 'WARNING',
+        req
+      });
+    } catch (_) {}
+
     return { isNew: true, isTrusted: false };
   } catch (_) {
     return { isNew: false, isTrusted: true };

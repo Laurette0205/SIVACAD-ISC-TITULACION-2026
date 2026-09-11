@@ -3,9 +3,11 @@ const router = express.Router();
 const pool = require('../config/db');
 const { auth, role } = require('../middleware/auth');
 const { validateAlumnoUpdate } = require('../middleware/validate');
+const { registrarAuditoria } = require('../middleware/auditoria');
 
 router.get('/', auth, async (req, res) => {
   try {
+    const idInstitucion = req.user.id_institucion || 1;
     const [rows] = await pool.execute(`
       SELECT
         a.id_alumno,
@@ -29,8 +31,9 @@ router.get('/', auth, async (req, res) => {
       FROM alumnos a
       INNER JOIN usuarios u ON u.id_usuario = a.id_usuario
       LEFT JOIN carreras c ON c.id_carrera = a.id_carrera
+      WHERE a.id_institucion = ?
       ORDER BY a.apellido_paterno ASC, a.apellido_materno ASC, a.nombres ASC
-    `);
+    `, [idInstitucion]);
 
     return res.json({
       ok: true,
@@ -52,6 +55,7 @@ router.get('/:id', auth, async (req, res) => {
       return res.status(400).json({ ok: false, message: 'ID invalido' });
     }
 
+    const idInstitucion = req.user.id_institucion || 1;
     const [rows] = await pool.execute(`
       SELECT
         a.id_alumno,
@@ -75,9 +79,9 @@ router.get('/:id', auth, async (req, res) => {
       FROM alumnos a
       INNER JOIN usuarios u ON u.id_usuario = a.id_usuario
       LEFT JOIN carreras c ON c.id_carrera = a.id_carrera
-      WHERE a.id_alumno = ?
+      WHERE a.id_alumno = ? AND a.id_institucion = ?
       LIMIT 1
-    `, [id]);
+    `, [id, idInstitucion]);
 
     if (!rows.length) {
       return res.status(404).json({ ok: false, message: 'Alumno no encontrado' });
@@ -99,9 +103,10 @@ router.put('/:id', auth, role('ADMINISTRADOR', 'COORDINADOR', 'SOPORTE'), valida
 
     const { nombres, apellido_paterno, apellido_materno, curp, matricula, semestre_actual, estatus_academico, correo_institucional, estado } = req.body;
 
+    const idInstitucion = req.user.id_institucion || 1;
     const [existing] = await pool.execute(
-      `SELECT a.id_alumno, a.id_usuario FROM alumnos a WHERE a.id_alumno = ? LIMIT 1`,
-      [id]
+      `SELECT a.id_alumno, a.id_usuario FROM alumnos a WHERE a.id_alumno = ? AND a.id_institucion = ? LIMIT 1`,
+      [id, idInstitucion]
     );
     if (!existing.length) {
       return res.status(404).json({ ok: false, message: 'Alumno no encontrado' });
@@ -117,7 +122,7 @@ router.put('/:id', auth, role('ADMINISTRADOR', 'COORDINADOR', 'SOPORTE'), valida
         matricula = COALESCE(?, matricula),
         semestre_actual = COALESCE(?, semestre_actual),
         estatus_academico = COALESCE(?, estatus_academico)
-      WHERE id_alumno = ?`,
+      WHERE id_alumno = ? AND id_institucion = ?`,
       [
         nombres || null,
         apellido_paterno || null,
@@ -125,7 +130,8 @@ router.put('/:id', auth, role('ADMINISTRADOR', 'COORDINADOR', 'SOPORTE'), valida
         matricula || null,
         semestre_actual || null,
         estatus_academico || null,
-        id
+        id,
+        idInstitucion
       ]
     );
 
@@ -147,6 +153,17 @@ router.put('/:id', auth, role('ADMINISTRADOR', 'COORDINADOR', 'SOPORTE'), valida
       ]
     );
 
+    await registrarAuditoria({
+      id_usuario: req.user.id_usuario,
+      modulo: 'USUARIOS',
+      accion: 'PROFILE_CHANGED',
+      descripcion: `Perfil de alumno ID ${id} actualizado por ${req.user.id_usuario}`,
+      entidad_afectada: 'usuarios',
+      id_entidad: id_usuario,
+      valor_nuevo: { campos_modificados: Object.keys(req.body).filter(k => req.body[k] != null) },
+      req
+    });
+
     return res.json({ ok: true, message: 'Alumno actualizado correctamente' });
   } catch (error) {
     console.error('Error al actualizar alumno:', error);
@@ -162,9 +179,10 @@ router.delete('/:id', auth, role('ADMINISTRADOR', 'COORDINADOR', 'SOPORTE'), asy
       return res.status(400).json({ ok: false, message: 'ID invalido' });
     }
 
+    const idInstitucion = req.user.id_institucion || 1;
     const [existing] = await conn.execute(
-      `SELECT a.id_alumno, a.id_usuario FROM alumnos a WHERE a.id_alumno = ? LIMIT 1`,
-      [id]
+      `SELECT a.id_alumno, a.id_usuario FROM alumnos a WHERE a.id_alumno = ? AND a.id_institucion = ? LIMIT 1`,
+      [id, idInstitucion]
     );
     if (!existing.length) {
       return res.status(404).json({ ok: false, message: 'Alumno no encontrado' });

@@ -37,8 +37,9 @@ exports.getBandejaSolicitudes = async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
-    const params = [];
-    const conditions = ["i.estado = 'Pendiente'"];
+    const idInstitucion = req.user.id_institucion || 1;
+    const params = [idInstitucion];
+    const conditions = ["i.estado = 'Pendiente'", 'i.id_institucion = ?'];
 
     const { periodo, carrera, tipo, busqueda } = req.query;
 
@@ -95,7 +96,8 @@ exports.getBandejaSolicitudes = async (req, res) => {
         COUNT(DISTINCT COALESCE(i.id_carrera, a.id_carrera)) AS carreras_involucradas
       FROM inscripciones i
       INNER JOIN alumnos a ON a.id_alumno = i.id_alumno
-      WHERE i.estado = 'Pendiente'`
+      WHERE i.estado = 'Pendiente' AND i.id_institucion = ?`,
+      [idInstitucion]
     );
 
     return res.json({
@@ -116,9 +118,10 @@ exports.getValidacionPorGrupo = async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
+    const idInstitucion = req.user.id_institucion || 1;
     const { id_grupo, periodo, carrera } = req.query;
-    const params = [];
-    const conditions = [];
+    const params = [idInstitucion];
+    const conditions = ['i.id_institucion = ?'];
 
     if (id_grupo) {
       conditions.push('i.id_grupo = ?');
@@ -158,8 +161,8 @@ exports.getValidacionPorGrupo = async (req, res) => {
       params
     );
 
-    let gConditions = [];
-    const gParams = [];
+    let gConditions = ['i.id_institucion = ?'];
+    const gParams = [idInstitucion];
     if (id_grupo) {
       gConditions.push('g.id_grupo = ?');
       gParams.push(Number(id_grupo));
@@ -406,11 +409,13 @@ exports.updateEstadoCoordinador = async (req, res) => {
 
     conn = await pool.getConnection();
 
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [actual] = await conn.execute(
       `SELECT i.id_inscripcion, i.estado AS estado_actual, i.id_alumno, i.id_periodo,
               i.tipo_inscripcion, i.id_grupo
-       FROM inscripciones i WHERE i.id_inscripcion = ? LIMIT 1`,
-      [Number(id)]
+       FROM inscripciones i WHERE i.id_inscripcion = ? AND i.id_institucion = ? LIMIT 1`,
+      [Number(id), idInstitucion]
     );
 
     if (!actual.length) {
@@ -524,10 +529,12 @@ exports.asignarGrupo = async (req, res) => {
 
     conn = await pool.getConnection();
 
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [actual] = await conn.execute(
       `SELECT i.id_inscripcion, i.id_grupo AS grupo_actual, i.id_periodo, i.estado
-       FROM inscripciones i WHERE i.id_inscripcion = ? LIMIT 1`,
-      [Number(id)]
+       FROM inscripciones i WHERE i.id_inscripcion = ? AND i.id_institucion = ? LIMIT 1`,
+      [Number(id), idInstitucion]
     );
 
     if (!actual.length) {
@@ -614,9 +621,11 @@ exports.registrarObservacion = async (req, res) => {
 
     conn = await pool.getConnection();
 
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [actual] = await conn.execute(
-      `SELECT id_inscripcion, observaciones FROM inscripciones WHERE id_inscripcion = ? LIMIT 1`,
-      [Number(id)]
+      `SELECT id_inscripcion, observaciones FROM inscripciones WHERE id_inscripcion = ? AND id_institucion = ? LIMIT 1`,
+      [Number(id), idInstitucion]
     );
 
     if (!actual.length) {

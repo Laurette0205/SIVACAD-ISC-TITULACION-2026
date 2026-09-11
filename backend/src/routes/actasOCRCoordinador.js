@@ -9,7 +9,7 @@ function authCoord(req, res, next) {
   if (!auth.startsWith('Bearer ')) return res.status(401).json({ ok: false, message: 'Token no disponible' });
   try {
     const token = auth.slice(7).trim();
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     const rol = String(decoded.rol || decoded.rol_nombre || '').toUpperCase();
     if (rol !== 'COORDINADOR' && rol !== 'ADMINISTRADOR' && Number(decoded.rol_id) !== 2 && Number(decoded.rol_id) !== 1) {
       return res.status(403).json({ ok: false, message: 'Acceso solo para coordinadores.' });
@@ -30,6 +30,7 @@ function safeJsonParse(value, fallback = null) {
 
 router.get('/panel', authCoord, async (req, res) => {
   try {
+    const idInstitucion = req.user.id_institucion || 1;
     const [[totales]] = await pool.execute(`
       SELECT COUNT(*) AS total_cargas,
         SUM(CASE WHEN estado = 'VALIDADA' THEN 1 ELSE 0 END) AS validadas,
@@ -38,10 +39,11 @@ router.get('/panel', authCoord, async (req, res) => {
         AVG(NULLIF(confianza_global, 0)) AS confianza_promedio,
         MAX(updated_at) AS ultima_revision
       FROM actas_ocr_cargas
-    `);
-    const [[importados]] = await pool.execute(`SELECT COUNT(*) AS total FROM actas_calificaciones_detalle`).catch(() => [[{ total: 0 }]]);
-    const [grupos] = await pool.execute(`SELECT DISTINCT g.id_grupo, g.nombre_grupo, g.semestre, c.nombre_carrera FROM actas_ocr_cargas oc INNER JOIN grupos g ON g.id_grupo = oc.id_grupo INNER JOIN carreras c ON c.id_carrera = g.id_carrera ORDER BY g.nombre_grupo`);
-    const [periodos] = await pool.execute(`SELECT DISTINCT p.id_periodo, p.nombre_periodo FROM actas_ocr_cargas oc INNER JOIN periodos p ON p.id_periodo = oc.id_periodo ORDER BY p.id_periodo DESC`);
+      WHERE id_institucion = ?
+    `, [idInstitucion]);
+    const [[importados]] = await pool.execute(`SELECT COUNT(*) AS total FROM actas_calificaciones_detalle WHERE id_institucion = ?`, [idInstitucion]).catch(() => [[{ total: 0 }]]);
+    const [grupos] = await pool.execute(`SELECT DISTINCT g.id_grupo, g.nombre_grupo, g.semestre, c.nombre_carrera FROM actas_ocr_cargas oc INNER JOIN grupos g ON g.id_grupo = oc.id_grupo INNER JOIN carreras c ON c.id_carrera = g.id_carrera WHERE oc.id_institucion = ? ORDER BY g.nombre_grupo`, [idInstitucion]);
+    const [periodos] = await pool.execute(`SELECT DISTINCT p.id_periodo, p.nombre_periodo FROM actas_ocr_cargas oc INNER JOIN periodos p ON p.id_periodo = oc.id_periodo WHERE oc.id_institucion = ? ORDER BY p.id_periodo DESC`, [idInstitucion]);
     return res.json({
       ok: true, data: {
         resumen: {
@@ -75,14 +77,16 @@ router.get('/actas-grupo', authCoord, async (req, res) => {
   try {
     const idGrupo = req.query.id_grupo ? Number(req.query.id_grupo) : null;
     let sql = `SELECT c.*, p.nombre_plantilla, p.codigo_plantilla, per.nombre_periodo, g.nombre_grupo, g.semestre, m.nombre_materia, CONCAT(u.nombres, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS nombre_usuario FROM actas_ocr_cargas c INNER JOIN actas_ocr_plantillas p ON p.id_plantilla_ocr = c.id_plantilla_ocr LEFT JOIN periodos per ON per.id_periodo = c.id_periodo LEFT JOIN grupos g ON g.id_grupo = c.id_grupo LEFT JOIN materias m ON m.id_materia = c.id_materia INNER JOIN usuarios u ON u.id_usuario = c.id_usuario_carga`;
-    const params = [];
-    if (idGrupo) { sql += ` WHERE c.id_grupo = ?`; params.push(idGrupo); }
+    const idInstitucion = req.user.id_institucion || 1;
+    const params = [idInstitucion];
+    sql += ` WHERE c.id_institucion = ?`;
+    if (idGrupo) { sql += ` AND c.id_grupo = ?`; params.push(idGrupo); }
     sql += ` ORDER BY c.id_carga_ocr DESC LIMIT 100`;
     const [rows] = await pool.execute(sql, params);
     const ids = rows.map(r => r.id_carga_ocr);
     const detailsMap = new Map();
     if (ids.length) {
-      const [details] = await pool.execute(`SELECT * FROM actas_ocr_detalles WHERE id_carga_ocr IN (${ids.map(() => '?').join(',')}) ORDER BY id_detalle_ocr ASC`, ids);
+      const [details] = await pool.execute(`SELECT * FROM actas_ocr_detalles WHERE id_carga_ocr IN (${ids.map(() => '?').join(',')}) AND id_institucion = ? ORDER BY id_detalle_ocr ASC`, [...ids, idInstitucion]);
       details.forEach(d => { if (!detailsMap.has(d.id_carga_ocr)) detailsMap.set(d.id_carga_ocr, []); detailsMap.get(d.id_carga_ocr).push(d); });
     }
     const data = rows.map(row => ({ ...row, json_resultado: safeJsonParse(row.json_resultado, null), detalles: detailsMap.get(row.id_carga_ocr) || [] }));
@@ -96,14 +100,16 @@ router.get('/actas-periodo', authCoord, async (req, res) => {
   try {
     const idPeriodo = req.query.id_periodo ? Number(req.query.id_periodo) : null;
     let sql = `SELECT c.*, p.nombre_plantilla, p.codigo_plantilla, per.nombre_periodo, g.nombre_grupo, g.semestre, m.nombre_materia, CONCAT(u.nombres, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS nombre_usuario FROM actas_ocr_cargas c INNER JOIN actas_ocr_plantillas p ON p.id_plantilla_ocr = c.id_plantilla_ocr LEFT JOIN periodos per ON per.id_periodo = c.id_periodo LEFT JOIN grupos g ON g.id_grupo = c.id_grupo LEFT JOIN materias m ON m.id_materia = c.id_materia INNER JOIN usuarios u ON u.id_usuario = c.id_usuario_carga`;
-    const params = [];
-    if (idPeriodo) { sql += ` WHERE c.id_periodo = ?`; params.push(idPeriodo); }
+    const idInstitucion = req.user.id_institucion || 1;
+    const params = [idInstitucion];
+    sql += ` WHERE c.id_institucion = ?`;
+    if (idPeriodo) { sql += ` AND c.id_periodo = ?`; params.push(idPeriodo); }
     sql += ` ORDER BY c.id_carga_ocr DESC LIMIT 100`;
     const [rows] = await pool.execute(sql, params);
     const ids = rows.map(r => r.id_carga_ocr);
     const detailsMap = new Map();
     if (ids.length) {
-      const [details] = await pool.execute(`SELECT * FROM actas_ocr_detalles WHERE id_carga_ocr IN (${ids.map(() => '?').join(',')}) ORDER BY id_detalle_ocr ASC`, ids);
+      const [details] = await pool.execute(`SELECT * FROM actas_ocr_detalles WHERE id_carga_ocr IN (${ids.map(() => '?').join(',')}) AND id_institucion = ? ORDER BY id_detalle_ocr ASC`, [...ids, idInstitucion]);
       details.forEach(d => { if (!detailsMap.has(d.id_carga_ocr)) detailsMap.set(d.id_carga_ocr, []); detailsMap.get(d.id_carga_ocr).push(d); });
     }
     const data = rows.map(row => ({ ...row, json_resultado: safeJsonParse(row.json_resultado, null), detalles: detailsMap.get(row.id_carga_ocr) || [] }));
@@ -117,14 +123,16 @@ router.get('/actas-semestre', authCoord, async (req, res) => {
   try {
     const semestre = req.query.semestre ? Number(req.query.semestre) : null;
     let sql = `SELECT c.*, p.nombre_plantilla, p.codigo_plantilla, per.nombre_periodo, g.nombre_grupo, g.semestre, m.nombre_materia, CONCAT(u.nombres, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS nombre_usuario FROM actas_ocr_cargas c INNER JOIN actas_ocr_plantillas p ON p.id_plantilla_ocr = c.id_plantilla_ocr LEFT JOIN periodos per ON per.id_periodo = c.id_periodo INNER JOIN grupos g ON g.id_grupo = c.id_grupo LEFT JOIN materias m ON m.id_materia = c.id_materia INNER JOIN usuarios u ON u.id_usuario = c.id_usuario_carga`;
-    const params = [];
-    if (semestre) { sql += ` WHERE g.semestre = ?`; params.push(semestre); }
+    const idInstitucion = req.user.id_institucion || 1;
+    const params = [idInstitucion];
+    sql += ` WHERE c.id_institucion = ?`;
+    if (semestre) { sql += ` AND g.semestre = ?`; params.push(semestre); }
     sql += ` ORDER BY g.semestre ASC, g.nombre_grupo ASC, c.id_carga_ocr DESC LIMIT 100`;
     const [rows] = await pool.execute(sql, params);
     const ids = rows.map(r => r.id_carga_ocr);
     const detailsMap = new Map();
     if (ids.length) {
-      const [details] = await pool.execute(`SELECT * FROM actas_ocr_detalles WHERE id_carga_ocr IN (${ids.map(() => '?').join(',')}) ORDER BY id_detalle_ocr ASC`, ids);
+      const [details] = await pool.execute(`SELECT * FROM actas_ocr_detalles WHERE id_carga_ocr IN (${ids.map(() => '?').join(',')}) AND id_institucion = ? ORDER BY id_detalle_ocr ASC`, [...ids, idInstitucion]);
       details.forEach(d => { if (!detailsMap.has(d.id_carga_ocr)) detailsMap.set(d.id_carga_ocr, []); detailsMap.get(d.id_carga_ocr).push(d); });
     }
     const data = rows.map(row => ({ ...row, json_resultado: safeJsonParse(row.json_resultado, null), detalles: detailsMap.get(row.id_carga_ocr) || [] }));
@@ -157,6 +165,7 @@ router.post('/actas/:id/validar', authCoord, async (req, res) => {
 
 router.get('/reportes', authCoord, async (req, res) => {
   try {
+    const idInstitucion = req.user.id_institucion || 1;
     const [porPeriodo] = await pool.execute(`
       SELECT per.id_periodo, per.nombre_periodo,
         COUNT(c.id_carga_ocr) AS total_cargas,
@@ -166,9 +175,10 @@ router.get('/reportes', authCoord, async (req, res) => {
         SUM(CASE WHEN c.estado IN ('RECIBIDA','EXTRACCION_PENDIENTE','VALIDACION_PENDIENTE') THEN 1 ELSE 0 END) AS pendientes
       FROM actas_ocr_cargas c
       INNER JOIN periodos per ON per.id_periodo = c.id_periodo
+      WHERE c.id_institucion = ?
       GROUP BY per.id_periodo, per.nombre_periodo
       ORDER BY per.id_periodo DESC
-    `);
+    `, [idInstitucion]);
     const [porGrupo] = await pool.execute(`
       SELECT g.id_grupo, g.nombre_grupo, g.semestre, car.nombre_carrera,
         COUNT(c.id_carga_ocr) AS total_cargas,
@@ -177,9 +187,10 @@ router.get('/reportes', authCoord, async (req, res) => {
       FROM actas_ocr_cargas c
       INNER JOIN grupos g ON g.id_grupo = c.id_grupo
       INNER JOIN carreras car ON car.id_carrera = g.id_carrera
+      WHERE c.id_institucion = ?
       GROUP BY g.id_grupo, g.nombre_grupo, g.semestre, car.nombre_carrera
       ORDER BY g.semestre ASC, g.nombre_grupo ASC
-    `);
+    `, [idInstitucion]);
     const [porSemestre] = await pool.execute(`
       SELECT g.semestre,
         COUNT(c.id_carga_ocr) AS total_cargas,
@@ -189,9 +200,10 @@ router.get('/reportes', authCoord, async (req, res) => {
         COUNT(DISTINCT c.id_grupo) AS grupos_con_actas
       FROM actas_ocr_cargas c
       INNER JOIN grupos g ON g.id_grupo = c.id_grupo
+      WHERE c.id_institucion = ?
       GROUP BY g.semestre
       ORDER BY g.semestre ASC
-    `);
+    `, [idInstitucion]);
     const [recientes] = await pool.execute(`
       SELECT c.id_carga_ocr, c.nombre_archivo, c.estado, c.confianza_global, c.created_at,
         per.nombre_periodo, g.nombre_grupo, m.nombre_materia
@@ -199,8 +211,9 @@ router.get('/reportes', authCoord, async (req, res) => {
       LEFT JOIN periodos per ON per.id_periodo = c.id_periodo
       LEFT JOIN grupos g ON g.id_grupo = c.id_grupo
       LEFT JOIN materias m ON m.id_materia = c.id_materia
+      WHERE c.id_institucion = ?
       ORDER BY c.id_carga_ocr DESC LIMIT 20
-    `);
+    `, [idInstitucion]);
     return res.json({ ok: true, data: { porPeriodo, porGrupo, porSemestre, recientes } });
   } catch (error) {
     return res.status(500).json({ ok: false, message: error.message || 'Error al generar reportes.' });

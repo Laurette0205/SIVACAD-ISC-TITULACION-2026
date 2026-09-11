@@ -8,7 +8,7 @@ function authFromHeader(req, res, next) {
   if (!auth.startsWith('Bearer ')) return res.status(401).json({ ok: false, message: 'Token no disponible' });
   try {
     const token = auth.slice(7).trim();
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     req.user = decoded;
     req.token = token;
     return next();
@@ -33,6 +33,8 @@ function formatBytes(bytes) {
 
 router.get('/panel', authFromHeader, async (req, res) => {
   try {
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [[stats]] = await pool.execute(`
       SELECT
         COUNT(*) AS total_cargas,
@@ -45,18 +47,21 @@ router.get('/panel', authFromHeader, async (req, res) => {
         MAX(created_at) AS ultima_carga,
         AVG(NULLIF(confianza_global, 0)) AS confianza_promedio
       FROM actas_ocr_cargas
-    `);
+      WHERE id_institucion = ?
+    `, [idInstitucion]);
 
     const [[erroresRecientes]] = await pool.execute(`
-      SELECT COUNT(*) AS total FROM actas_ocr_auditoria
-      WHERE accion IN ('EXTRACCION_OCR','VALIDACION_RECHAZADA','RECHAZO_ADMIN')
-        AND creado_en >= NOW() - INTERVAL 7 DAY
-    `);
+      SELECT COUNT(*) AS total FROM actas_ocr_auditoria a
+      INNER JOIN actas_ocr_cargas c ON c.id_carga_ocr = a.id_carga_ocr
+      WHERE a.accion IN ('EXTRACCION_OCR','VALIDACION_RECHAZADA','RECHAZO_ADMIN')
+        AND a.creado_en >= NOW() - INTERVAL 7 DAY
+        AND c.id_institucion = ?
+    `, [idInstitucion]);
 
     const [formatos] = await pool.execute(`
       SELECT mime_type, COUNT(*) AS total
-      FROM actas_ocr_cargas GROUP BY mime_type ORDER BY total DESC
-    `);
+      FROM actas_ocr_cargas WHERE id_institucion = ? GROUP BY mime_type ORDER BY total DESC
+    `, [idInstitucion]);
 
     return res.json({ ok: true, data: {
       resumen: {
@@ -80,6 +85,8 @@ router.get('/panel', authFromHeader, async (req, res) => {
 
 router.get('/incidencias', authFromHeader, async (req, res) => {
   try {
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [cargasProblema] = await pool.execute(`
       SELECT c.id_carga_ocr, c.nombre_archivo, c.mime_type, c.estado, c.confianza_global,
         c.firma_detectada, c.created_at, c.updated_at,
@@ -91,11 +98,12 @@ router.get('/incidencias', authFromHeader, async (req, res) => {
       LEFT JOIN grupos g ON g.id_grupo = c.id_grupo
       LEFT JOIN materias m ON m.id_materia = c.id_materia
       INNER JOIN usuarios u ON u.id_usuario = c.id_usuario_carga
-      WHERE c.estado IN ('RECHAZADA','RECIBIDA','EXTRACCION_PENDIENTE')
-         OR (c.estado = 'VALIDACION_PENDIENTE' AND c.confianza_global < 50)
+      WHERE c.id_institucion = ?
+        AND (c.estado IN ('RECHAZADA','RECIBIDA','EXTRACCION_PENDIENTE')
+          OR (c.estado = 'VALIDACION_PENDIENTE' AND c.confianza_global < 50))
       ORDER BY GREATEST(c.created_at, COALESCE(c.updated_at, c.created_at)) DESC
       LIMIT 50
-    `);
+    `, [idInstitucion]);
 
     const [erroresAuditoria] = await pool.execute(`
       SELECT a.*, CONCAT(u.nombres, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS nombre_usuario,
@@ -104,8 +112,9 @@ router.get('/incidencias', authFromHeader, async (req, res) => {
       INNER JOIN usuarios u ON u.id_usuario = a.id_usuario
       LEFT JOIN actas_ocr_cargas c ON c.id_carga_ocr = a.id_carga_ocr
       WHERE a.accion IN ('EXTRACCION_OCR','VALIDACION_RECHAZADA','RECHAZO_ADMIN','CONFIG_UPDATE')
+        AND (c.id_carga_ocr IS NULL OR c.id_institucion = ?)
       ORDER BY a.creado_en DESC LIMIT 30
-    `);
+    `, [idInstitucion]);
 
     return res.json({ ok: true, data: {
       cargas_problema: cargasProblema,
@@ -118,6 +127,8 @@ router.get('/incidencias', authFromHeader, async (req, res) => {
 
 router.get('/archivos', authFromHeader, async (req, res) => {
   try {
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [rows] = await pool.execute(`
       SELECT c.id_carga_ocr, c.nombre_archivo, c.mime_type, c.storage_path,
         c.estado, c.confianza_global, c.firma_detectada, c.created_at, c.updated_at,
@@ -129,8 +140,9 @@ router.get('/archivos', authFromHeader, async (req, res) => {
       LEFT JOIN periodos per ON per.id_periodo = c.id_periodo
       LEFT JOIN grupos g ON g.id_grupo = c.id_grupo
       LEFT JOIN materias m ON m.id_materia = c.id_materia
+      WHERE c.id_institucion = ?
       ORDER BY c.id_carga_ocr DESC LIMIT 100
-    `);
+    `, [idInstitucion]);
 
     return res.json({ ok: true, data: rows });
   } catch (error) {
@@ -140,6 +152,8 @@ router.get('/archivos', authFromHeader, async (req, res) => {
 
 router.get('/archivos/:id', authFromHeader, async (req, res) => {
   try {
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [rows] = await pool.execute(`
       SELECT c.*, p.nombre_plantilla, p.codigo_plantilla,
         per.nombre_periodo, g.nombre_grupo, m.nombre_materia,
@@ -150,8 +164,8 @@ router.get('/archivos/:id', authFromHeader, async (req, res) => {
       LEFT JOIN grupos g ON g.id_grupo = c.id_grupo
       LEFT JOIN materias m ON m.id_materia = c.id_materia
       INNER JOIN usuarios u ON u.id_usuario = c.id_usuario_carga
-      WHERE c.id_carga_ocr = ? LIMIT 1
-    `, [req.params.id]);
+      WHERE c.id_carga_ocr = ? AND c.id_institucion = ? LIMIT 1
+    `, [req.params.id, idInstitucion]);
 
     if (!rows.length) return res.status(404).json({ ok: false, message: 'Archivo no encontrado.' });
 
@@ -163,7 +177,7 @@ router.get('/archivos/:id', authFromHeader, async (req, res) => {
       ORDER BY a.creado_en ASC
     `, [req.params.id]);
 
-    const [detalles] = await pool.execute(`SELECT * FROM actas_ocr_detalles WHERE id_carga_ocr = ?`, [req.params.id]);
+    const [detalles] = await pool.execute(`SELECT * FROM actas_ocr_detalles WHERE id_carga_ocr = ? AND id_institucion = ?`, [req.params.id, idInstitucion]);
 
     return res.json({ ok: true, data: {
       ...rows[0],
@@ -178,21 +192,26 @@ router.get('/archivos/:id', authFromHeader, async (req, res) => {
 
 router.get('/recuperacion', authFromHeader, async (req, res) => {
   try {
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [atascadas] = await pool.execute(`
       SELECT c.*, CONCAT(u.nombres, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS usuario_carga
       FROM actas_ocr_cargas c
       INNER JOIN usuarios u ON u.id_usuario = c.id_usuario_carga
-      WHERE c.estado IN ('RECIBIDA', 'EXTRACCION_PENDIENTE')
+      WHERE c.id_institucion = ?
+        AND c.estado IN ('RECIBIDA', 'EXTRACCION_PENDIENTE')
         AND c.created_at < NOW() - INTERVAL 1 HOUR
       ORDER BY c.created_at ASC LIMIT 20
-    `);
+    `, [idInstitucion]);
 
     const [reintentos] = await pool.execute(`
-      SELECT accion, COUNT(*) AS total, MAX(creado_en) AS ultimo
-      FROM actas_ocr_auditoria
-      WHERE creado_en >= NOW() - INTERVAL 7 DAY
-      GROUP BY accion ORDER BY total DESC
-    `);
+      SELECT a.accion, COUNT(*) AS total, MAX(a.creado_en) AS ultimo
+      FROM actas_ocr_auditoria a
+      INNER JOIN actas_ocr_cargas c ON c.id_carga_ocr = a.id_carga_ocr
+      WHERE c.id_institucion = ?
+        AND a.creado_en >= NOW() - INTERVAL 7 DAY
+      GROUP BY a.accion ORDER BY total DESC
+    `, [idInstitucion]);
 
     const [estadoTiempo] = await pool.execute(`
       SELECT estado, COUNT(*) AS total,
@@ -200,9 +219,10 @@ router.get('/recuperacion', authFromHeader, async (req, res) => {
         MAX(created_at) AS mas_reciente,
         TIMESTAMPDIFF(HOUR, MIN(created_at), NOW()) AS horas_espera_max
       FROM actas_ocr_cargas
-      WHERE estado IN ('RECIBIDA','EXTRACCION_PENDIENTE','VALIDACION_PENDIENTE')
+      WHERE id_institucion = ?
+        AND estado IN ('RECIBIDA','EXTRACCION_PENDIENTE','VALIDACION_PENDIENTE')
       GROUP BY estado
-    `);
+    `, [idInstitucion]);
 
     return res.json({ ok: true, data: {
       cargas_atascadas: atascadas,
@@ -216,15 +236,16 @@ router.get('/recuperacion', authFromHeader, async (req, res) => {
 
 router.post('/recuperacion/reintentar/:id', authFromHeader, async (req, res) => {
   try {
+    const idInstitucion = req.user.id_institucion || 1;
     const cargaId = Number(req.params.id);
-    const [rows] = await pool.execute(`SELECT id_carga_ocr, estado FROM actas_ocr_cargas WHERE id_carga_ocr = ? LIMIT 1`, [cargaId]);
+    const [rows] = await pool.execute(`SELECT id_carga_ocr, estado FROM actas_ocr_cargas WHERE id_carga_ocr = ? AND id_institucion = ? LIMIT 1`, [cargaId, idInstitucion]);
     if (!rows.length) return res.status(404).json({ ok: false, message: 'Carga no encontrada.' });
 
     const userId = Number(req.user?.id_usuario || req.user?.id || 0) || 1;
 
     await pool.execute(
-      `UPDATE actas_ocr_cargas SET estado = 'EXTRACCION_PENDIENTE', updated_at = NOW(), observaciones_revision = 'Reintento de proceso asignado por soporte.' WHERE id_carga_ocr = ?`,
-      [cargaId]
+      `UPDATE actas_ocr_cargas SET estado = 'EXTRACCION_PENDIENTE', updated_at = NOW(), observaciones_revision = 'Reintento de proceso asignado por soporte.' WHERE id_carga_ocr = ? AND id_institucion = ?`,
+      [cargaId, idInstitucion]
     );
     await pool.execute(
       `INSERT INTO actas_ocr_auditoria (id_carga_ocr, id_usuario, accion, detalle, creado_en) VALUES (?, ?, 'REINTENTO_SOPORTE', ?, NOW())`,
@@ -239,18 +260,23 @@ router.post('/recuperacion/reintentar/:id', authFromHeader, async (req, res) => 
 
 router.get('/monitoreo', authFromHeader, async (req, res) => {
   try {
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [porEstado] = await pool.execute(`
-      SELECT estado, COUNT(*) AS total FROM actas_ocr_cargas GROUP BY estado ORDER BY total DESC
-    `);
+      SELECT estado, COUNT(*) AS total FROM actas_ocr_cargas
+      WHERE id_institucion = ?
+      GROUP BY estado ORDER BY total DESC
+    `, [idInstitucion]);
 
     const [porDia] = await pool.execute(`
       SELECT DATE(created_at) AS fecha, COUNT(*) AS total,
         SUM(CASE WHEN estado = 'VALIDADA' THEN 1 ELSE 0 END) AS validadas,
         SUM(CASE WHEN estado = 'RECHAZADA' THEN 1 ELSE 0 END) AS rechazadas
       FROM actas_ocr_cargas
-      WHERE created_at >= NOW() - INTERVAL 30 DAY
+      WHERE id_institucion = ?
+        AND created_at >= NOW() - INTERVAL 30 DAY
       GROUP BY DATE(created_at) ORDER BY fecha DESC LIMIT 30
-    `);
+    `, [idInstitucion]);
 
     const [porDocente] = await pool.execute(`
       SELECT CONCAT(u.nombres, ' ', u.apellido_paterno, ' ', u.apellido_materno) AS docente,
@@ -260,18 +286,21 @@ router.get('/monitoreo', authFromHeader, async (req, res) => {
       FROM actas_ocr_cargas c
       INNER JOIN docentes d ON d.id_docente = c.id_docente
       INNER JOIN usuarios u ON u.id_usuario = d.id_usuario
+      WHERE c.id_institucion = ?
       GROUP BY d.id_docente, u.nombres, u.apellido_paterno, u.apellido_materno
       ORDER BY total_cargas DESC LIMIT 20
-    `);
+    `, [idInstitucion]);
 
-    const [configActual] = await pool.execute(`SELECT clave, valor FROM actas_ocr_configuracion ORDER BY clave ASC`);
+    const [configActual] = await pool.execute(`SELECT clave, valor FROM actas_ocr_configuracion WHERE id_institucion = ? ORDER BY clave ASC`, [idInstitucion]);
 
     const [[geminiStatus]] = await pool.execute(`
       SELECT COUNT(*) AS usos_gemini,
-        MAX(creado_en) AS ultimo_uso
-      FROM actas_ocr_auditoria
-      WHERE accion = 'EXTRACCION_OCR' AND creado_en >= NOW() - INTERVAL 7 DAY
-    `);
+        MAX(a.creado_en) AS ultimo_uso
+      FROM actas_ocr_auditoria a
+      INNER JOIN actas_ocr_cargas c ON c.id_carga_ocr = a.id_carga_ocr
+      WHERE a.accion = 'EXTRACCION_OCR' AND a.creado_en >= NOW() - INTERVAL 7 DAY
+        AND c.id_institucion = ?
+    `, [idInstitucion]);
 
     return res.json({ ok: true, data: {
       por_estado: porEstado,

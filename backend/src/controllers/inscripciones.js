@@ -85,8 +85,10 @@ exports.listarInscripciones = async (req, res) => {
 
   try {
     conn = await pool.getConnection();
+    const idInstitucion = req.user.id_institucion || 1;
     const params = [];
-    const where = [];
+    const where = ['i.id_institucion = ?'];
+    params.push(idInstitucion);
 
     if (isAlumno(req.user)) {
       where.push('a.id_usuario = ?');
@@ -111,7 +113,7 @@ exports.listarInscripciones = async (req, res) => {
         ON a.id_alumno = i.id_alumno
       INNER JOIN periodos p
         ON p.id_periodo = i.id_periodo
-      ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+      WHERE ${where.join(' AND ')}
       ORDER BY i.id_inscripcion DESC`
       ,
       params
@@ -195,14 +197,17 @@ exports.crearInscripcion = async (req, res) => {
       }
     }
 
+    const idInstitucion = req.user.id_institucion || 1;
+
     const [duplicado] = await conn.execute(
       `SELECT id_inscripcion
        FROM inscripciones
        WHERE id_alumno = ?
          AND id_periodo = ?
          AND tipo_inscripcion = ?
+         AND id_institucion = ?
        LIMIT 1`,
-      [id_alumno, periodoFinal, tipoFinal]
+      [id_alumno, periodoFinal, tipoFinal, idInstitucion]
     );
 
     if (duplicado.length) {
@@ -217,12 +222,13 @@ exports.crearInscripcion = async (req, res) => {
 
     const [result] = await conn.execute(
       `INSERT INTO inscripciones
-        (id_alumno, id_periodo, fecha_inscripcion, tipo_inscripcion, estado, observaciones)
+        (id_alumno, id_periodo, id_institucion, fecha_inscripcion, tipo_inscripcion, estado, observaciones)
        VALUES
-        (?, ?, NOW(), ?, ?, ?)`,
+        (?, ?, ?, NOW(), ?, ?, ?)`,
       [
         id_alumno,
         periodoFinal,
+        idInstitucion,
         tipoFinal,
         estadoInicial,
         observaciones?.trim() || null
@@ -236,13 +242,14 @@ exports.crearInscripcion = async (req, res) => {
 
       await conn.execute(
         `INSERT INTO reinscripciones
-          (id_inscripcion, motivo, validada_por, fecha_validacion)
+          (id_inscripcion, motivo, validada_por, fecha_validacion, id_institucion)
          VALUES
-          (?, ?, ?, NOW())`,
+          (?, ?, ?, NOW(), ?)`,
         [
           id_inscripcion,
           observaciones?.trim() || null,
-          id_usuario
+          id_usuario,
+          idInstitucion
         ]
       );
     }

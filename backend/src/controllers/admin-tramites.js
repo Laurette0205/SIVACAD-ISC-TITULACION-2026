@@ -6,18 +6,19 @@ function generarFolio(contador) {
   return `TRM-${year}-${num}`;
 }
 
-async function registrarAuditoria(id_tramite, id_usuario, accion, detalle, req) {
+async function registrarAuditoria(id_tramite, id_usuario, accion, detalle, req, id_institucion) {
   try {
     await db.query(
-      `INSERT INTO tramites_auditoria (id_tramite, id_usuario, accion, detalle, ip, user_agent)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO tramites_auditoria (id_tramite, id_usuario, accion, detalle, ip, user_agent, id_institucion)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         id_tramite,
         id_usuario,
         accion,
         detalle || null,
         req?.ip || req?.headers?.['x-forwarded-for'] || req?.connection?.remoteAddress || null,
-        req?.headers?.['user-agent'] || null
+        req?.headers?.['user-agent'] || null,
+        id_institucion
       ]
     );
   } catch (err) {
@@ -25,12 +26,12 @@ async function registrarAuditoria(id_tramite, id_usuario, accion, detalle, req) 
   }
 }
 
-async function registrarHistorialEstado(id_tramite, estado_anterior, estado_nuevo, cambiado_por, observaciones) {
+async function registrarHistorialEstado(id_tramite, estado_anterior, estado_nuevo, cambiado_por, observaciones, id_institucion) {
   try {
     await db.query(
-      `INSERT INTO tramites_historial_estados (id_tramite, estado_anterior, estado_nuevo, cambiado_por, observaciones)
-       VALUES (?, ?, ?, ?, ?)`,
-      [id_tramite, estado_anterior, estado_nuevo, cambiado_por, observaciones || null]
+      `INSERT INTO tramites_historial_estados (id_tramite, estado_anterior, estado_nuevo, cambiado_por, observaciones, id_institucion)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [id_tramite, estado_anterior, estado_nuevo, cambiado_por, observaciones || null, id_institucion]
     );
   } catch (err) {
     console.error('Error registrando historial de estado:', err);
@@ -58,6 +59,7 @@ async function registrarEnBitacoraGeneral(id_usuario, accion, detalle, req) {
 
 const listarTramites = async (req, res) => {
   try {
+    const id_institucion = req.user?.id_institucion || 1;
     let sql = `
       SELECT
         t.id_tramite,
@@ -89,8 +91,8 @@ const listarTramites = async (req, res) => {
       JOIN usuarios u_sol ON u_sol.id_usuario = t.id_usuario_solicitante
     `;
 
-    const condiciones = [];
-    const params = [];
+    const condiciones = ['t.id_institucion = ?'];
+    const params = [id_institucion];
 
     if (req.query.tipo) {
       condiciones.push('tt.codigo = ?');
@@ -118,9 +120,7 @@ const listarTramites = async (req, res) => {
       params.push(req.query.periodo);
     }
 
-    if (condiciones.length > 0) {
-      sql += ' WHERE ' + condiciones.join(' AND ');
-    }
+    sql += ' WHERE ' + condiciones.join(' AND ');
 
     sql += ' ORDER BY t.creado_en DESC';
 
@@ -141,6 +141,7 @@ const listarTramites = async (req, res) => {
 const obtenerTramite = async (req, res) => {
   try {
     const { id } = req.params;
+    const id_institucion = req.user?.id_institucion || 1;
 
     const [tramites] = await db.query(
       `SELECT
@@ -179,8 +180,8 @@ const obtenerTramite = async (req, res) => {
       LEFT JOIN usuarios u_val ON u_val.id_usuario = t.solicitud_validada_por
       LEFT JOIN usuarios u_ce ON u_ce.id_usuario = t.autorizacion_control_escolar_por
       LEFT JOIN usuarios u_dis ON u_dis.id_usuario = t.autorizacion_division_isc_por
-      WHERE t.id_tramite = ?`,
-      [id]
+      WHERE t.id_tramite = ? AND t.id_institucion = ?`,
+      [id, id_institucion]
     );
 
     if (tramites.length === 0) {
@@ -188,17 +189,17 @@ const obtenerTramite = async (req, res) => {
     }
 
     const [documentos] = await db.query(
-      `SELECT * FROM tramites_documentos WHERE id_tramite = ? ORDER BY subido_en DESC`,
-      [id]
+      `SELECT * FROM tramites_documentos WHERE id_tramite = ? AND id_institucion = ? ORDER BY subido_en DESC`,
+      [id, id_institucion]
     );
 
     const [historial] = await db.query(
       `SELECT h.*, u.nombres, u.apellido_paterno
        FROM tramites_historial_estados h
        LEFT JOIN usuarios u ON u.id_usuario = h.cambiado_por
-       WHERE h.id_tramite = ?
+       WHERE h.id_tramite = ? AND h.id_institucion = ?
        ORDER BY h.creado_en DESC`,
-      [id]
+      [id, id_institucion]
     );
 
     return res.json({
@@ -217,7 +218,8 @@ const obtenerTramite = async (req, res) => {
 
 const catalogos = async (req, res) => {
   try {
-    const [tipos] = await db.query('SELECT * FROM tramites_tipos WHERE activo = 1 ORDER BY nombre');
+    const id_institucion = req.user?.id_institucion || 1;
+    const [tipos] = await db.query('SELECT * FROM tramites_tipos WHERE activo = 1 AND id_institucion = ? ORDER BY nombre', [id_institucion]);
     const [estados] = await db.query('SELECT * FROM tramites_estados ORDER BY orden');
     const [alumnos] = await db.query(`
       SELECT a.id_alumno, CONCAT(a.nombres, ' ', a.apellido_paterno, ' ', a.apellido_materno) AS nombre_completo,
@@ -238,13 +240,15 @@ const catalogos = async (req, res) => {
 const crearTramite = async (req, res) => {
   try {
     const { id_tipo, id_alumno, motivo, id_periodo } = req.body;
+    const id_institucion = req.user?.id_institucion || 1;
 
     if (!id_tipo || !id_alumno) {
       return res.status(400).json({ ok: false, message: 'Tipo de trámite y alumno son requeridos' });
     }
 
     const [config] = await db.query(
-      "SELECT valor FROM tramites_configuracion WHERE clave = 'folio_contador'"
+      "SELECT valor FROM tramites_configuracion WHERE clave = 'folio_contador' AND id_institucion = ?",
+      [id_institucion]
     );
     let contador = parseInt(config[0]?.valor || '0');
     contador++;
@@ -252,21 +256,21 @@ const crearTramite = async (req, res) => {
     const folio = generarFolio(contador);
 
     await db.query(
-      "UPDATE tramites_configuracion SET valor = ? WHERE clave = 'folio_contador'",
-      [String(contador)]
+      "UPDATE tramites_configuracion SET valor = ? WHERE clave = 'folio_contador' AND id_institucion = ?",
+      [String(contador), id_institucion]
     );
 
     const [result] = await db.query(
-      `INSERT INTO tramites (folio, id_tipo, id_alumno, id_usuario_solicitante, id_periodo, estado_actual, motivo)
-       VALUES (?, ?, ?, ?, ?, 'SOLICITADO', ?)`,
-      [folio, id_tipo, id_alumno, req.user.id_usuario, id_periodo || null, motivo || null]
+      `INSERT INTO tramites (folio, id_tipo, id_alumno, id_usuario_solicitante, id_periodo, estado_actual, motivo, id_institucion)
+       VALUES (?, ?, ?, ?, ?, 'SOLICITADO', ?, ?)`,
+      [folio, id_tipo, id_alumno, req.user.id_usuario, id_periodo || null, motivo || null, id_institucion]
     );
 
     const id_tramite = result.insertId;
 
-    await registrarHistorialEstado(id_tramite, null, 'SOLICITADO', req.user.id_usuario, 'Creación del trámite');
+    await registrarHistorialEstado(id_tramite, null, 'SOLICITADO', req.user.id_usuario, 'Creación del trámite', id_institucion);
 
-    await registrarAuditoria(id_tramite, req.user.id_usuario, 'CREAR', `Trámite ${folio} creado`, req);
+    await registrarAuditoria(id_tramite, req.user.id_usuario, 'CREAR', `Trámite ${folio} creado`, req, id_institucion);
 
     await registrarEnBitacoraGeneral(req.user.id_usuario, 'CREAR_TRAMITE', `Trámite ${folio} creado para alumno ID ${id_alumno}`, req);
 
@@ -285,8 +289,9 @@ const validarSolicitud = async (req, res) => {
   try {
     const { id } = req.params;
     const { observaciones } = req.body;
+    const id_institucion = req.user?.id_institucion || 1;
 
-    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ?', [id]);
+    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ? AND id_institucion = ?', [id, id_institucion]);
     if (tramites.length === 0) {
       return res.status(404).json({ ok: false, message: 'Trámite no encontrado' });
     }
@@ -300,12 +305,12 @@ const validarSolicitud = async (req, res) => {
         solicitud_validada_en = NOW(),
         estado_actual = 'EN_REVISION',
         observaciones = COALESCE(NULLIF(?, ''), observaciones)
-      WHERE id_tramite = ?`,
-      [req.user.id_usuario, observaciones, id]
+      WHERE id_tramite = ? AND id_institucion = ?`,
+      [req.user.id_usuario, observaciones, id, id_institucion]
     );
 
-    await registrarHistorialEstado(id, tramite.estado_actual, 'EN_REVISION', req.user.id_usuario, observaciones);
-    await registrarAuditoria(id, req.user.id_usuario, 'VALIDAR_SOLICITUD', `Solicitud validada para trámite ${tramite.folio}`, req);
+    await registrarHistorialEstado(id, tramite.estado_actual, 'EN_REVISION', req.user.id_usuario, observaciones, id_institucion);
+    await registrarAuditoria(id, req.user.id_usuario, 'VALIDAR_SOLICITUD', `Solicitud validada para trámite ${tramite.folio}`, req, id_institucion);
     await registrarEnBitacoraGeneral(req.user.id_usuario, 'VALIDAR_TRAMITE', `Solicitud validada: ${tramite.folio}`, req);
 
     return res.json({ ok: true, message: 'Solicitud validada exitosamente' });
@@ -319,6 +324,7 @@ const emitirDictamen = async (req, res) => {
   try {
     const { id } = req.params;
     const { dictamen, dictamen_tipo } = req.body;
+    const id_institucion = req.user?.id_institucion || 1;
 
     if (!dictamen || !dictamen_tipo) {
       return res.status(400).json({ ok: false, message: 'Dictamen y tipo son requeridos' });
@@ -328,7 +334,7 @@ const emitirDictamen = async (req, res) => {
       return res.status(400).json({ ok: false, message: 'Tipo de dictamen inválido' });
     }
 
-    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ?', [id]);
+    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ? AND id_institucion = ?', [id, id_institucion]);
     if (tramites.length === 0) {
       return res.status(404).json({ ok: false, message: 'Trámite no encontrado' });
     }
@@ -343,12 +349,12 @@ const emitirDictamen = async (req, res) => {
         dictamen_tipo = ?,
         dictamen_en = NOW(),
         estado_actual = ?
-      WHERE id_tramite = ?`,
-      [req.user.id_usuario, dictamen, dictamen_tipo, nuevoEstado, id]
+      WHERE id_tramite = ? AND id_institucion = ?`,
+      [req.user.id_usuario, dictamen, dictamen_tipo, nuevoEstado, id, id_institucion]
     );
 
-    await registrarHistorialEstado(id, tramite.estado_actual, nuevoEstado, req.user.id_usuario, dictamen);
-    await registrarAuditoria(id, req.user.id_usuario, 'EMITIR_DICTAMEN', `Dictamen ${dictamen_tipo} para trámite ${tramite.folio}`, req);
+    await registrarHistorialEstado(id, tramite.estado_actual, nuevoEstado, req.user.id_usuario, dictamen, id_institucion);
+    await registrarAuditoria(id, req.user.id_usuario, 'EMITIR_DICTAMEN', `Dictamen ${dictamen_tipo} para trámite ${tramite.folio}`, req, id_institucion);
     await registrarEnBitacoraGeneral(req.user.id_usuario, 'DICTAMINAR_TRAMITE', `Dictamen ${dictamen_tipo}: ${tramite.folio}`, req);
 
     return res.json({ ok: true, message: `Dictamen ${dictamen_tipo === 'FAVORABLE' ? 'favorable' : 'desfavorable'} registrado` });
@@ -362,8 +368,9 @@ const autorizarControlEscolar = async (req, res) => {
   try {
     const { id } = req.params;
     const { observaciones } = req.body;
+    const id_institucion = req.user?.id_institucion || 1;
 
-    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ?', [id]);
+    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ? AND id_institucion = ?', [id, id_institucion]);
     if (tramites.length === 0) {
       return res.status(404).json({ ok: false, message: 'Trámite no encontrado' });
     }
@@ -376,11 +383,11 @@ const autorizarControlEscolar = async (req, res) => {
         autorizacion_control_escolar_por = ?,
         autorizacion_control_escolar_en = NOW(),
         observaciones = COALESCE(NULLIF(?, ''), observaciones)
-      WHERE id_tramite = ?`,
-      [req.user.id_usuario, observaciones, id]
+      WHERE id_tramite = ? AND id_institucion = ?`,
+      [req.user.id_usuario, observaciones, id, id_institucion]
     );
 
-    await registrarAuditoria(id, req.user.id_usuario, 'AUTORIZAR_CONTROL_ESCOLAR', `Autorización de Control Escolar para trámite ${tramite.folio}`, req);
+    await registrarAuditoria(id, req.user.id_usuario, 'AUTORIZAR_CONTROL_ESCOLAR', `Autorización de Control Escolar para trámite ${tramite.folio}`, req, id_institucion);
     await registrarEnBitacoraGeneral(req.user.id_usuario, 'AUTORIZAR_CE_TRAMITE', `Control Escolar autorizó: ${tramite.folio}`, req);
 
     return res.json({ ok: true, message: 'Autorización de Control Escolar registrada' });
@@ -394,8 +401,9 @@ const autorizarDivisionISC = async (req, res) => {
   try {
     const { id } = req.params;
     const { observaciones } = req.body;
+    const id_institucion = req.user?.id_institucion || 1;
 
-    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ?', [id]);
+    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ? AND id_institucion = ?', [id, id_institucion]);
     if (tramites.length === 0) {
       return res.status(404).json({ ok: false, message: 'Trámite no encontrado' });
     }
@@ -408,11 +416,11 @@ const autorizarDivisionISC = async (req, res) => {
         autorizacion_division_isc_por = ?,
         autorizacion_division_isc_en = NOW(),
         observaciones = COALESCE(NULLIF(?, ''), observaciones)
-      WHERE id_tramite = ?`,
-      [req.user.id_usuario, observaciones, id]
+      WHERE id_tramite = ? AND id_institucion = ?`,
+      [req.user.id_usuario, observaciones, id, id_institucion]
     );
 
-    await registrarAuditoria(id, req.user.id_usuario, 'AUTORIZAR_DIVISION_ISC', `Autorización de División ISC para trámite ${tramite.folio}`, req);
+    await registrarAuditoria(id, req.user.id_usuario, 'AUTORIZAR_DIVISION_ISC', `Autorización de División ISC para trámite ${tramite.folio}`, req, id_institucion);
     await registrarEnBitacoraGeneral(req.user.id_usuario, 'AUTORIZAR_DIV_ISC_TRAMITE', `División ISC autorizó: ${tramite.folio}`, req);
 
     return res.json({ ok: true, message: 'Autorización de División ISC registrada' });
@@ -426,8 +434,9 @@ const emitirDocumentoOficial = async (req, res) => {
   try {
     const { id } = req.params;
     const { folio_documento, observaciones } = req.body;
+    const id_institucion = req.user?.id_institucion || 1;
 
-    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ?', [id]);
+    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ? AND id_institucion = ?', [id, id_institucion]);
     if (tramites.length === 0) {
       return res.status(404).json({ ok: false, message: 'Trámite no encontrado' });
     }
@@ -442,12 +451,12 @@ const emitirDocumentoOficial = async (req, res) => {
         folio_documento_oficial = ?,
         estado_actual = 'EMITIDO',
         observaciones = COALESCE(NULLIF(?, ''), observaciones)
-      WHERE id_tramite = ?`,
-      [req.user.id_usuario, folio_documento || null, observaciones, id]
+      WHERE id_tramite = ? AND id_institucion = ?`,
+      [req.user.id_usuario, folio_documento || null, observaciones, id, id_institucion]
     );
 
-    await registrarHistorialEstado(id, tramite.estado_actual, 'EMITIDO', req.user.id_usuario, `Documento oficial emitido: ${folio_documento || 'Sin folio'}`);
-    await registrarAuditoria(id, req.user.id_usuario, 'EMITIR_DOCUMENTO', `Documento oficial emitido para trámite ${tramite.folio}. Folio: ${folio_documento || 'N/A'}`, req);
+    await registrarHistorialEstado(id, tramite.estado_actual, 'EMITIDO', req.user.id_usuario, `Documento oficial emitido: ${folio_documento || 'Sin folio'}`, id_institucion);
+    await registrarAuditoria(id, req.user.id_usuario, 'EMITIR_DOCUMENTO', `Documento oficial emitido para trámite ${tramite.folio}. Folio: ${folio_documento || 'N/A'}`, req, id_institucion);
     await registrarEnBitacoraGeneral(req.user.id_usuario, 'EMITIR_DOC_TRAMITE', `Documento emitido: ${tramite.folio} - Folio: ${folio_documento || 'N/A'}`, req);
 
     return res.json({ ok: true, message: 'Documento oficial emitido exitosamente' });
@@ -461,8 +470,9 @@ const cerrarTramite = async (req, res) => {
   try {
     const { id } = req.params;
     const { observaciones } = req.body;
+    const id_institucion = req.user?.id_institucion || 1;
 
-    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ?', [id]);
+    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ? AND id_institucion = ?', [id, id_institucion]);
     if (tramites.length === 0) {
       return res.status(404).json({ ok: false, message: 'Trámite no encontrado' });
     }
@@ -476,12 +486,12 @@ const cerrarTramite = async (req, res) => {
         cerrado_por = ?,
         estado_actual = 'CERRADO',
         observaciones = COALESCE(NULLIF(?, ''), observaciones)
-      WHERE id_tramite = ?`,
-      [req.user.id_usuario, observaciones, id]
+      WHERE id_tramite = ? AND id_institucion = ?`,
+      [req.user.id_usuario, observaciones, id, id_institucion]
     );
 
-    await registrarHistorialEstado(id, tramite.estado_actual, 'CERRADO', req.user.id_usuario, observaciones);
-    await registrarAuditoria(id, req.user.id_usuario, 'CERRAR', `Trámite ${tramite.folio} cerrado`, req);
+    await registrarHistorialEstado(id, tramite.estado_actual, 'CERRADO', req.user.id_usuario, observaciones, id_institucion);
+    await registrarAuditoria(id, req.user.id_usuario, 'CERRAR', `Trámite ${tramite.folio} cerrado`, req, id_institucion);
     await registrarEnBitacoraGeneral(req.user.id_usuario, 'CERRAR_TRAMITE', `Trámite cerrado: ${tramite.folio}`, req);
 
     return res.json({ ok: true, message: 'Trámite cerrado exitosamente' });
@@ -495,12 +505,13 @@ const rechazarTramite = async (req, res) => {
   try {
     const { id } = req.params;
     const { motivo_rechazo } = req.body;
+    const id_institucion = req.user?.id_institucion || 1;
 
     if (!motivo_rechazo) {
       return res.status(400).json({ ok: false, message: 'Motivo de rechazo es requerido' });
     }
 
-    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ?', [id]);
+    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ? AND id_institucion = ?', [id, id_institucion]);
     if (tramites.length === 0) {
       return res.status(404).json({ ok: false, message: 'Trámite no encontrado' });
     }
@@ -511,12 +522,12 @@ const rechazarTramite = async (req, res) => {
       `UPDATE tramites SET
         estado_actual = 'RECHAZADO',
         observaciones = CONCAT(COALESCE(observaciones, ''), '\nRECHAZO: ', ?)
-      WHERE id_tramite = ?`,
-      [motivo_rechazo, id]
+      WHERE id_tramite = ? AND id_institucion = ?`,
+      [motivo_rechazo, id, id_institucion]
     );
 
-    await registrarHistorialEstado(id, tramite.estado_actual, 'RECHAZADO', req.user.id_usuario, motivo_rechazo);
-    await registrarAuditoria(id, req.user.id_usuario, 'RECHAZAR', `Trámite ${tramite.folio} rechazado: ${motivo_rechazo}`, req);
+    await registrarHistorialEstado(id, tramite.estado_actual, 'RECHAZADO', req.user.id_usuario, motivo_rechazo, id_institucion);
+    await registrarAuditoria(id, req.user.id_usuario, 'RECHAZAR', `Trámite ${tramite.folio} rechazado: ${motivo_rechazo}`, req, id_institucion);
     await registrarEnBitacoraGeneral(req.user.id_usuario, 'RECHAZAR_TRAMITE', `Trámite rechazado: ${tramite.folio} - ${motivo_rechazo}`, req);
 
     return res.json({ ok: true, message: 'Trámite rechazado' });
@@ -530,12 +541,13 @@ const subirDocumento = async (req, res) => {
   try {
     const { id } = req.params;
     const { tipo_documento, observaciones } = req.body;
+    const id_institucion = req.user?.id_institucion || 1;
 
     if (!tipo_documento) {
       return res.status(400).json({ ok: false, message: 'Tipo de documento es requerido' });
     }
 
-    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ?', [id]);
+    const [tramites] = await db.query('SELECT * FROM tramites WHERE id_tramite = ? AND id_institucion = ?', [id, id_institucion]);
     if (tramites.length === 0) {
       return res.status(404).json({ ok: false, message: 'Trámite no encontrado' });
     }
@@ -546,12 +558,12 @@ const subirDocumento = async (req, res) => {
     }
 
     await db.query(
-      `INSERT INTO tramites_documentos (id_tramite, tipo_documento, nombre_original, ruta_archivo, mime_type, peso_bytes, subido_por, observaciones)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, tipo_documento, archivo.originalname, archivo.path, archivo.mimetype, archivo.size, req.user.id_usuario, observaciones || null]
+      `INSERT INTO tramites_documentos (id_tramite, tipo_documento, nombre_original, ruta_archivo, mime_type, peso_bytes, subido_por, observaciones, id_institucion)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, tipo_documento, archivo.originalname, archivo.path, archivo.mimetype, archivo.size, req.user.id_usuario, observaciones || null, id_institucion]
     );
 
-    await registrarAuditoria(id, req.user.id_usuario, 'SUBIR_DOCUMENTO', `Documento ${tipo_documento} subido: ${archivo.originalname}`, req);
+    await registrarAuditoria(id, req.user.id_usuario, 'SUBIR_DOCUMENTO', `Documento ${tipo_documento} subido: ${archivo.originalname}`, req, id_institucion);
 
     return res.status(201).json({ ok: true, message: 'Documento subido exitosamente' });
   } catch (error) {
@@ -563,14 +575,15 @@ const subirDocumento = async (req, res) => {
 const listarDocumentos = async (req, res) => {
   try {
     const { id } = req.params;
+    const id_institucion = req.user?.id_institucion || 1;
 
     const [documentos] = await db.query(
       `SELECT d.*, u.nombres AS subido_por_nombre, u.apellido_paterno AS subido_por_apellido
        FROM tramites_documentos d
        LEFT JOIN usuarios u ON u.id_usuario = d.subido_por
-       WHERE d.id_tramite = ?
+       WHERE d.id_tramite = ? AND d.id_institucion = ?
        ORDER BY d.subido_en DESC`,
-      [id]
+      [id, id_institucion]
     );
 
     return res.json({ ok: true, data: documentos });
@@ -582,6 +595,7 @@ const listarDocumentos = async (req, res) => {
 
 const bitacora = async (req, res) => {
   try {
+    const id_institucion = req.user?.id_institucion || 1;
     let sql = `
       SELECT
         ta.*,
@@ -594,8 +608,8 @@ const bitacora = async (req, res) => {
       LEFT JOIN tramites t ON t.id_tramite = ta.id_tramite
     `;
 
-    const condiciones = [];
-    const params = [];
+    const condiciones = ['ta.id_institucion = ?'];
+    const params = [id_institucion];
 
     if (req.query.tramite_id) {
       condiciones.push('ta.id_tramite = ?');
@@ -607,9 +621,7 @@ const bitacora = async (req, res) => {
       params.push(`%${req.query.accion}%`);
     }
 
-    if (condiciones.length > 0) {
-      sql += ' WHERE ' + condiciones.join(' AND ');
-    }
+    sql += ' WHERE ' + condiciones.join(' AND ');
 
     sql += ' ORDER BY ta.creado_en DESC LIMIT 200';
 
@@ -624,6 +636,7 @@ const bitacora = async (req, res) => {
 
 const auditoria = async (req, res) => {
   try {
+    const id_institucion = req.user?.id_institucion || 1;
     let sql = `
       SELECT
         ta.*,
@@ -638,8 +651,8 @@ const auditoria = async (req, res) => {
       LEFT JOIN tramites_tipos tt ON tt.id_tipo = t.id_tipo
     `;
 
-    const condiciones = [];
-    const params = [];
+    const condiciones = ['ta.id_institucion = ?'];
+    const params = [id_institucion];
 
     if (req.query.desde) {
       condiciones.push('ta.creado_en >= ?');
@@ -656,9 +669,7 @@ const auditoria = async (req, res) => {
       params.push(req.query.usuario_id);
     }
 
-    if (condiciones.length > 0) {
-      sql += ' WHERE ' + condiciones.join(' AND ');
-    }
+    sql += ' WHERE ' + condiciones.join(' AND ');
 
     sql += ' ORDER BY ta.creado_en DESC';
 
@@ -677,7 +688,8 @@ const auditoria = async (req, res) => {
 
 const obtenerConfiguracion = async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM tramites_configuracion ORDER BY clave');
+    const id_institucion = req.user?.id_institucion || 1;
+    const [rows] = await db.query('SELECT * FROM tramites_configuracion WHERE id_institucion = ? ORDER BY clave', [id_institucion]);
     return res.json({ ok: true, data: rows });
   } catch (error) {
     console.error('Error obteniendo configuración:', error);
@@ -689,19 +701,20 @@ const actualizarConfiguracion = async (req, res) => {
   try {
     const { id } = req.params;
     const { valor } = req.body;
+    const id_institucion = req.user?.id_institucion || 1;
 
     if (valor === undefined || valor === null) {
       return res.status(400).json({ ok: false, message: 'Valor es requerido' });
     }
 
-    const [config] = await db.query('SELECT * FROM tramites_configuracion WHERE id_config = ?', [id]);
+    const [config] = await db.query('SELECT * FROM tramites_configuracion WHERE id_config = ? AND id_institucion = ?', [id, id_institucion]);
     if (config.length === 0) {
       return res.status(404).json({ ok: false, message: 'Configuración no encontrada' });
     }
 
     await db.query(
-      'UPDATE tramites_configuracion SET valor = ?, actualizado_por = ? WHERE id_config = ?',
-      [String(valor), req.user.id_usuario, id]
+      'UPDATE tramites_configuracion SET valor = ?, actualizado_por = ? WHERE id_config = ? AND id_institucion = ?',
+      [String(valor), req.user.id_usuario, id, id_institucion]
     );
 
     await registrarEnBitacoraGeneral(req.user.id_usuario, 'ACTUALIZAR_CONFIG_TRAMITES', `Configuración '${config[0].clave}' actualizada a: ${valor}`, req);
@@ -715,24 +728,31 @@ const actualizarConfiguracion = async (req, res) => {
 
 const resumen = async (req, res) => {
   try {
-    const [total] = await db.query('SELECT COUNT(*) AS total FROM tramites');
+    const id_institucion = req.user?.id_institucion || 1;
+    const [total] = await db.query('SELECT COUNT(*) AS total FROM tramites WHERE id_institucion = ?', [id_institucion]);
     const [porEstado] = await db.query(
-      `SELECT estado_actual, COUNT(*) AS cantidad FROM tramites GROUP BY estado_actual ORDER BY estado_actual`
+      `SELECT estado_actual, COUNT(*) AS cantidad FROM tramites WHERE id_institucion = ? GROUP BY estado_actual ORDER BY estado_actual`,
+      [id_institucion]
     );
     const [porTipo] = await db.query(
       `SELECT tt.nombre, tt.codigo, COUNT(*) AS cantidad
        FROM tramites t
        JOIN tramites_tipos tt ON tt.id_tipo = t.id_tipo
-       GROUP BY tt.id_tipo, tt.nombre, tt.codigo`
+       WHERE t.id_institucion = ?
+       GROUP BY tt.id_tipo, tt.nombre, tt.codigo`,
+      [id_institucion]
     );
     const [pendientes] = await db.query(
-      "SELECT COUNT(*) AS pendientes FROM tramites WHERE estado_actual IN ('SOLICITADO', 'EN_REVISION')"
+      "SELECT COUNT(*) AS pendientes FROM tramites WHERE estado_actual IN ('SOLICITADO', 'EN_REVISION') AND id_institucion = ?",
+      [id_institucion]
     );
     const [emitidos] = await db.query(
-      "SELECT COUNT(*) AS emitidos FROM tramites WHERE estado_actual = 'EMITIDO'"
+      "SELECT COUNT(*) AS emitidos FROM tramites WHERE estado_actual = 'EMITIDO' AND id_institucion = ?",
+      [id_institucion]
     );
     const [cerrados] = await db.query(
-      "SELECT COUNT(*) AS cerrados FROM tramites WHERE estado_actual = 'CERRADO'"
+      "SELECT COUNT(*) AS cerrados FROM tramites WHERE estado_actual = 'CERRADO' AND id_institucion = ?",
+      [id_institucion]
     );
 
     return res.json({

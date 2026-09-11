@@ -33,7 +33,7 @@ exports.getPanel = async (req, res) => {
       FROM soporte_reinscripciones_incidencias
     `);
 
-    const [totalReinscripciones] = await conn.execute('SELECT COUNT(*) AS total FROM reinscripciones');
+    const [totalReinscripciones] = await conn.execute('SELECT COUNT(*) AS total FROM reinscripciones r INNER JOIN inscripciones i ON i.id_inscripcion = r.id_inscripcion WHERE i.id_institucion = ?', [req.user.id_institucion || 1]);
     const [totalAuditoria] = await conn.execute('SELECT COUNT(*) AS total FROM reinscripcion_auditoria');
     const [totalLogs] = await conn.execute('SELECT COUNT(*) AS total FROM soporte_reinscripciones_logs');
     const [totalMonitoreo] = await conn.execute('SELECT COUNT(*) AS total FROM soporte_reinscripciones_monitoreo');
@@ -42,14 +42,16 @@ exports.getPanel = async (req, res) => {
       SELECT UPPER(i.estado) AS estado, COUNT(*) AS total
       FROM reinscripciones r
       INNER JOIN inscripciones i ON i.id_inscripcion = r.id_inscripcion
+      WHERE i.id_institucion = ?
       GROUP BY i.estado ORDER BY total DESC
-    `);
+    `, [req.user.id_institucion || 1]);
 
     const [reinscripcionesHoy] = await conn.execute(`
       SELECT COUNT(*) AS total FROM reinscripciones r
       INNER JOIN inscripciones i ON i.id_inscripcion = r.id_inscripcion
       WHERE DATE(i.fecha_inscripcion) = CURDATE()
-    `);
+        AND i.id_institucion = ?
+    `, [req.user.id_institucion || 1]);
 
     const [erroresRecientes] = await conn.execute(`
       SELECT COUNT(*) AS total

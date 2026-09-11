@@ -39,18 +39,18 @@ function authFromHeader(req, res, next) {
   return verifyToken(req, res, next);
 }
 
-async function resolveAlumnoId(conn, idUsuario) {
+async function resolveAlumnoId(conn, idUsuario, idInstitucion = 1) {
   const [rows] = await conn.execute(
-    'SELECT id_alumno FROM alumnos WHERE id_usuario = ? LIMIT 1',
-    [idUsuario]
+    'SELECT id_alumno FROM alumnos WHERE id_usuario = ? AND id_institucion = ? LIMIT 1',
+    [idUsuario, idInstitucion]
   );
   return rows.length ? rows[0].id_alumno : null;
 }
 
-async function getEvaluacionEstado(conn, idEvaluacion) {
+async function getEvaluacionEstado(conn, idEvaluacion, idInstitucion = 1) {
   const [rows] = await conn.execute(
-    "SELECT id_evaluacion, titulo, UPPER(estado) AS estado, fecha_inicio, fecha_fin, instrucciones FROM evaluaciones WHERE id_evaluacion = ? LIMIT 1",
-    [idEvaluacion]
+    "SELECT id_evaluacion, titulo, UPPER(estado) AS estado, fecha_inicio, fecha_fin, instrucciones FROM evaluaciones WHERE id_evaluacion = ? AND id_institucion = ? LIMIT 1",
+    [idEvaluacion, idInstitucion]
   );
   return rows.length ? rows[0] : null;
 }
@@ -61,7 +61,8 @@ router.get('/mis-evaluaciones', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!isAlumno(req.user)) return sendError(res, 403, 'Acceso exclusivo para alumnos.');
-    const idAlumno = await resolveAlumnoId(conn, req.user.id_usuario);
+    const idInstitucion = req.user.id_institucion || 1;
+    const idAlumno = await resolveAlumnoId(conn, req.user.id_usuario, idInstitucion);
     if (!idAlumno) return sendError(res, 404, 'No se encontr\u00f3 un registro de alumno vinculado a tu cuenta.');
 
     const [rows] = await conn.execute(`
@@ -78,12 +79,13 @@ router.get('/mis-evaluaciones', async (req, res) => {
       LEFT JOIN evaluacion_preguntas ep ON ep.id_evaluacion = e.id_evaluacion
       LEFT JOIN respuestas_evaluacion re ON re.id_evaluacion = e.id_evaluacion AND re.id_alumno = ?
       WHERE UPPER(e.estado) = 'ACTIVA'
+        AND e.id_institucion = ?
         AND (e.fecha_inicio IS NULL OR e.fecha_inicio <= NOW())
         AND (e.fecha_fin IS NULL OR e.fecha_fin >= NOW())
       GROUP BY e.id_evaluacion
       ORDER BY e.fecha_fin ASC, e.fecha_inicio ASC
       LIMIT 50
-    `, [idAlumno]);
+    `, [idAlumno, idInstitucion]);
 
     return res.json({ ok: true, data: rows, evaluaciones: rows });
   } catch (error) {
@@ -96,7 +98,8 @@ router.get('/respondidas', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!isAlumno(req.user)) return sendError(res, 403, 'Acceso exclusivo para alumnos.');
-    const idAlumno = await resolveAlumnoId(conn, req.user.id_usuario);
+    const idInstitucion = req.user.id_institucion || 1;
+    const idAlumno = await resolveAlumnoId(conn, req.user.id_usuario, idInstitucion);
     if (!idAlumno) return sendError(res, 404, 'No se encontr\u00f3 un registro de alumno vinculado a tu cuenta.');
 
     const [rows] = await conn.execute(`
@@ -112,10 +115,11 @@ router.get('/respondidas', async (req, res) => {
       LEFT JOIN evaluacion_plantillas tp ON tp.id_plantilla = e.id_plantilla
       JOIN evaluacion_preguntas ep ON ep.id_evaluacion = e.id_evaluacion
       JOIN respuestas_evaluacion re ON re.id_evaluacion = e.id_evaluacion AND re.id_alumno = ?
+      WHERE e.id_institucion = ?
       GROUP BY e.id_evaluacion
       ORDER BY MAX(re.creado_en) DESC
       LIMIT 50
-    `, [idAlumno]);
+    `, [idAlumno, idInstitucion]);
 
     return res.json({ ok: true, data: rows, respondidas: rows });
   } catch (error) {
@@ -128,18 +132,19 @@ router.get('/:id/estado-envio', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!isAlumno(req.user)) return sendError(res, 403, 'Acceso exclusivo para alumnos.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.params.id || 0);
     if (!idEvaluacion) return sendError(res, 400, 'ID de evaluaci\u00f3n inv\u00e1lido.');
 
-    const idAlumno = await resolveAlumnoId(conn, req.user.id_usuario);
+    const idAlumno = await resolveAlumnoId(conn, req.user.id_usuario, idInstitucion);
     if (!idAlumno) return sendError(res, 404, 'No se encontr\u00f3 un registro de alumno vinculado a tu cuenta.');
 
-    const evaluacion = await getEvaluacionEstado(conn, idEvaluacion);
+    const evaluacion = await getEvaluacionEstado(conn, idEvaluacion, idInstitucion);
     if (!evaluacion) return sendError(res, 404, 'La evaluaci\u00f3n no existe.');
 
     const [preguntas] = await conn.execute(
-      'SELECT COUNT(*) AS total FROM evaluacion_preguntas WHERE id_evaluacion = ?',
-      [idEvaluacion]
+      'SELECT COUNT(*) AS total FROM evaluacion_preguntas WHERE id_evaluacion = ? AND id_institucion = ?',
+      [idEvaluacion, idInstitucion]
     );
     const totalPreguntas = preguntas[0]?.total || 0;
 
@@ -186,13 +191,14 @@ router.get('/:id/preguntas', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!isAlumno(req.user)) return sendError(res, 403, 'Acceso exclusivo para alumnos.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.params.id || 0);
     if (!idEvaluacion) return sendError(res, 400, 'ID de evaluaci\u00f3n inv\u00e1lido.');
 
-    const idAlumno = await resolveAlumnoId(conn, req.user.id_usuario);
+    const idAlumno = await resolveAlumnoId(conn, req.user.id_usuario, idInstitucion);
     if (!idAlumno) return sendError(res, 404, 'No se encontr\u00f3 un registro de alumno vinculado a tu cuenta.');
 
-    const evaluacion = await getEvaluacionEstado(conn, idEvaluacion);
+    const evaluacion = await getEvaluacionEstado(conn, idEvaluacion, idInstitucion);
     if (!evaluacion) return sendError(res, 404, 'La evaluaci\u00f3n no existe.');
 
     const [preguntas] = await conn.execute(`
@@ -203,9 +209,9 @@ router.get('/:id/preguntas', async (req, res) => {
       LEFT JOIN respuestas_evaluacion re ON re.id_pregunta = ep.id_pregunta_plantilla
         AND re.id_evaluacion = ep.id_evaluacion
         AND re.id_alumno = ?
-      WHERE ep.id_evaluacion = ?
+      WHERE ep.id_evaluacion = ? AND ep.id_institucion = ?
       ORDER BY ep.orden_pregunta ASC
-    `, [idAlumno, idEvaluacion]);
+    `, [idAlumno, idEvaluacion, idInstitucion]);
 
     return res.json({
       ok: true,
@@ -233,20 +239,21 @@ router.post('/responder', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!isAlumno(req.user)) return sendError(res, 403, 'Acceso exclusivo para alumnos.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.body.id_evaluacion || 0);
     const idPregunta = Number(req.body.id_pregunta || 0);
     if (!idEvaluacion || !idPregunta) return sendError(res, 400, 'ID de evaluaci\u00f3n e ID de pregunta son obligatorios.');
 
-    const idAlumno = await resolveAlumnoId(conn, req.user.id_usuario);
+    const idAlumno = await resolveAlumnoId(conn, req.user.id_usuario, idInstitucion);
     if (!idAlumno) return sendError(res, 404, 'No se encontr\u00f3 un registro de alumno vinculado a tu cuenta.');
 
-    const evaluacion = await getEvaluacionEstado(conn, idEvaluacion);
+    const evaluacion = await getEvaluacionEstado(conn, idEvaluacion, idInstitucion);
     if (!evaluacion) return sendError(res, 404, 'La evaluaci\u00f3n no existe.');
     if (evaluacion.estado !== 'ACTIVA') return sendError(res, 400, 'Solo se pueden responder evaluaciones en estado ACTIVA.');
 
     const [questionRows] = await conn.execute(
-      'SELECT id_pregunta, id_pregunta_plantilla, tipo_respuesta FROM evaluacion_preguntas WHERE id_pregunta = ? AND id_evaluacion = ? LIMIT 1',
-      [idPregunta, idEvaluacion]
+      'SELECT id_pregunta, id_pregunta_plantilla, tipo_respuesta FROM evaluacion_preguntas WHERE id_pregunta = ? AND id_evaluacion = ? AND id_institucion = ? LIMIT 1',
+      [idPregunta, idEvaluacion, idInstitucion]
     );
     if (!questionRows.length) return sendError(res, 404, 'La pregunta no existe en esta evaluaci\u00f3n.');
 
@@ -320,15 +327,16 @@ router.post('/guardar-avance', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!isAlumno(req.user)) return sendError(res, 403, 'Acceso exclusivo para alumnos.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.body.id_evaluacion || 0);
     const respuestas = Array.isArray(req.body.respuestas) ? req.body.respuestas : [];
     if (!idEvaluacion) return sendError(res, 400, 'ID de evaluaci\u00f3n obligatorio.');
     if (!respuestas.length) return sendError(res, 400, 'Debes incluir al menos una respuesta.');
 
-    const idAlumno = await resolveAlumnoId(conn, req.user.id_usuario);
+    const idAlumno = await resolveAlumnoId(conn, req.user.id_usuario, idInstitucion);
     if (!idAlumno) return sendError(res, 404, 'No se encontr\u00f3 un registro de alumno vinculado a tu cuenta.');
 
-    const evaluacion = await getEvaluacionEstado(conn, idEvaluacion);
+    const evaluacion = await getEvaluacionEstado(conn, idEvaluacion, idInstitucion);
     if (!evaluacion) return sendError(res, 404, 'La evaluaci\u00f3n no existe.');
     if (evaluacion.estado !== 'ACTIVA') return sendError(res, 400, 'Solo se pueden responder evaluaciones en estado ACTIVA.');
 
@@ -338,8 +346,8 @@ router.post('/guardar-avance', async (req, res) => {
       if (!idPregunta) continue;
 
       const [qRow] = await conn.execute(
-        'SELECT id_pregunta_plantilla, tipo_respuesta FROM evaluacion_preguntas WHERE id_pregunta = ? AND id_evaluacion = ? LIMIT 1',
-        [idPregunta, idEvaluacion]
+        'SELECT id_pregunta_plantilla, tipo_respuesta FROM evaluacion_preguntas WHERE id_pregunta = ? AND id_evaluacion = ? AND id_institucion = ? LIMIT 1',
+        [idPregunta, idEvaluacion, idInstitucion]
       );
       if (!qRow.length) continue;
 
@@ -381,19 +389,20 @@ router.post('/enviar', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!isAlumno(req.user)) return sendError(res, 403, 'Acceso exclusivo para alumnos.');
+    const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.body.id_evaluacion || 0);
     if (!idEvaluacion) return sendError(res, 400, 'ID de evaluaci\u00f3n obligatorio.');
 
-    const idAlumno = await resolveAlumnoId(conn, req.user.id_usuario);
+    const idAlumno = await resolveAlumnoId(conn, req.user.id_usuario, idInstitucion);
     if (!idAlumno) return sendError(res, 404, 'No se encontr\u00f3 un registro de alumno vinculado a tu cuenta.');
 
-    const evaluacion = await getEvaluacionEstado(conn, idEvaluacion);
+    const evaluacion = await getEvaluacionEstado(conn, idEvaluacion, idInstitucion);
     if (!evaluacion) return sendError(res, 404, 'La evaluaci\u00f3n no existe.');
     if (evaluacion.estado !== 'ACTIVA') return sendError(res, 400, 'Solo se pueden enviar evaluaciones en estado ACTIVA.');
 
     const [preguntas] = await conn.execute(
-      'SELECT COUNT(*) AS total FROM evaluacion_preguntas WHERE id_evaluacion = ?',
-      [idEvaluacion]
+      'SELECT COUNT(*) AS total FROM evaluacion_preguntas WHERE id_evaluacion = ? AND id_institucion = ?',
+      [idEvaluacion, idInstitucion]
     );
     const totalPreguntas = preguntas[0]?.total || 0;
 

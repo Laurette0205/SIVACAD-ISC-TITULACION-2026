@@ -35,10 +35,10 @@ function authFromHeader(req, res, next) {
   return verifyToken(req, res, next);
 }
 
-async function resolveDocenteId(conn, idUsuario) {
+async function resolveDocenteId(conn, idUsuario, idInstitucion = 1) {
   const [rows] = await conn.execute(
-    'SELECT id_docente, clave_docente FROM docentes WHERE id_usuario = ? LIMIT 1',
-    [idUsuario]
+    'SELECT id_docente, clave_docente FROM docentes WHERE id_usuario = ? AND id_institucion = ? LIMIT 1',
+    [idUsuario, idInstitucion]
   );
   return rows.length ? rows[0] : null;
 }
@@ -49,7 +49,8 @@ router.get('/mis-evaluaciones', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!isDocente(req.user)) return sendError(res, 403, 'Acceso exclusivo para docentes.');
-    const docente = await resolveDocenteId(conn, req.user.id_usuario);
+    const idInstitucion = req.user.id_institucion || 1;
+    const docente = await resolveDocenteId(conn, req.user.id_usuario, idInstitucion);
     if (!docente) return sendError(res, 404, 'No se encontr\u00f3 un registro docente vinculado a tu cuenta.');
 
     const [rows] = await conn.execute(`
@@ -62,11 +63,12 @@ router.get('/mis-evaluaciones', async (req, res) => {
       LEFT JOIN evaluacion_plantillas tp ON tp.id_plantilla = e.id_plantilla
       LEFT JOIN evaluacion_preguntas ep ON ep.id_evaluacion = e.id_evaluacion
       WHERE (UPPER(e.estado) = 'ACTIVA' OR UPPER(e.estado) = 'CERRADA')
+        AND e.id_institucion = ?
         AND (e.publico_objetivo = 'DOCENTES' OR e.tipo_instrumento = 'ALUMNO_POR_DOCENTES')
       GROUP BY e.id_evaluacion
       ORDER BY e.fecha_fin DESC, e.creado_en DESC
       LIMIT 50
-    `);
+    `, [idInstitucion]);
 
     return res.json({ ok: true, data: rows, evaluaciones: rows });
   } catch (error) {
@@ -79,7 +81,8 @@ router.get('/resultados', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!isDocente(req.user)) return sendError(res, 403, 'Acceso exclusivo para docentes.');
-    const docente = await resolveDocenteId(conn, req.user.id_usuario);
+    const idInstitucion = req.user.id_institucion || 1;
+    const docente = await resolveDocenteId(conn, req.user.id_usuario, idInstitucion);
     if (!docente) return sendError(res, 404, 'No se encontr\u00f3 un registro docente vinculado a tu cuenta.');
 
     const [rows] = await conn.execute(`
@@ -95,10 +98,10 @@ router.get('/resultados', async (req, res) => {
       JOIN periodos p ON p.id_periodo = e.id_periodo
       LEFT JOIN evaluacion_plantillas tp ON tp.id_plantilla = e.id_plantilla
       LEFT JOIN usuarios u ON u.id_usuario = r.validado_por
-      WHERE r.tipo_evaluado = 'DOCENTE' AND r.id_evaluado = ?
+      WHERE r.tipo_evaluado = 'DOCENTE' AND r.id_evaluado = ? AND r.id_institucion = ?
       ORDER BY e.fecha_fin DESC, r.creado_en DESC
       LIMIT 100
-    `, [docente.id_docente]);
+    `, [docente.id_docente, idInstitucion]);
 
     return res.json({ ok: true, data: rows, resultados: rows });
   } catch (error) {
@@ -111,7 +114,8 @@ router.get('/resultados/:id', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!isDocente(req.user)) return sendError(res, 403, 'Acceso exclusivo para docentes.');
-    const docente = await resolveDocenteId(conn, req.user.id_usuario);
+    const idInstitucion = req.user.id_institucion || 1;
+    const docente = await resolveDocenteId(conn, req.user.id_usuario, idInstitucion);
     if (!docente) return sendError(res, 404, 'No se encontr\u00f3 un registro docente vinculado a tu cuenta.');
 
     const idResultado = Number(req.params.id || 0);
@@ -124,9 +128,9 @@ router.get('/resultados/:id', async (req, res) => {
       JOIN evaluaciones e ON e.id_evaluacion = r.id_evaluacion
       JOIN periodos p ON p.id_periodo = e.id_periodo
       LEFT JOIN evaluacion_plantillas tp ON tp.id_plantilla = e.id_plantilla
-      WHERE r.id_resultado = ? AND r.tipo_evaluado = 'DOCENTE' AND r.id_evaluado = ?
+      WHERE r.id_resultado = ? AND r.tipo_evaluado = 'DOCENTE' AND r.id_evaluado = ? AND r.id_institucion = ?
       LIMIT 1
-    `, [idResultado, docente.id_docente]);
+    `, [idResultado, docente.id_docente, idInstitucion]);
 
     if (!resultRows.length) return sendError(res, 404, 'Resultado no encontrado.');
 
@@ -169,7 +173,8 @@ router.get('/comparativos', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!isDocente(req.user)) return sendError(res, 403, 'Acceso exclusivo para docentes.');
-    const docente = await resolveDocenteId(conn, req.user.id_usuario);
+    const idInstitucion = req.user.id_institucion || 1;
+    const docente = await resolveDocenteId(conn, req.user.id_usuario, idInstitucion);
     if (!docente) return sendError(res, 404, 'No se encontr\u00f3 un registro docente vinculado a tu cuenta.');
 
     const periodId = req.query?.id_periodo ? Number(req.query.id_periodo) : 0;
@@ -184,12 +189,13 @@ router.get('/comparativos', async (req, res) => {
       JOIN evaluaciones e ON e.id_evaluacion = r.id_evaluacion
       JOIN periodos p ON p.id_periodo = e.id_periodo
       WHERE r.tipo_evaluado = 'DOCENTE' AND r.id_evaluado = ?
+        AND r.id_institucion = ?
         AND r.estado_validacion = 'VALIDADO'
         ${periodId ? 'AND p.id_periodo = ?' : ''}
       GROUP BY p.id_periodo, p.nombre_periodo
       ORDER BY p.fecha_inicio ASC
       LIMIT 20
-    `, periodId ? [docente.id_docente, periodId] : [docente.id_docente]);
+    `, periodId ? [docente.id_docente, idInstitucion, periodId] : [docente.id_docente, idInstitucion]);
 
     const [detallePeriodos] = await conn.execute(`
       SELECT p.id_periodo, p.nombre_periodo,
@@ -200,11 +206,12 @@ router.get('/comparativos', async (req, res) => {
       JOIN evaluaciones e ON e.id_evaluacion = r.id_evaluacion
       JOIN periodos p ON p.id_periodo = e.id_periodo
       WHERE r.tipo_evaluado = 'DOCENTE' AND r.id_evaluado = ?
+        AND r.id_institucion = ?
         AND r.estado_validacion = 'VALIDADO'
         ${periodId ? 'AND p.id_periodo = ?' : ''}
       ORDER BY p.fecha_inicio ASC, e.fecha_fin ASC
       LIMIT 100
-    `, periodId ? [docente.id_docente, periodId] : [docente.id_docente]);
+    `, periodId ? [docente.id_docente, idInstitucion, periodId] : [docente.id_docente, idInstitucion]);
 
     return res.json({
       ok: true,
@@ -225,7 +232,8 @@ router.get('/evolucion', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!isDocente(req.user)) return sendError(res, 403, 'Acceso exclusivo para docentes.');
-    const docente = await resolveDocenteId(conn, req.user.id_usuario);
+    const idInstitucion = req.user.id_institucion || 1;
+    const docente = await resolveDocenteId(conn, req.user.id_usuario, idInstitucion);
     if (!docente) return sendError(res, 404, 'No se encontr\u00f3 un registro docente vinculado a tu cuenta.');
 
     const [rows] = await conn.execute(`
@@ -237,10 +245,11 @@ router.get('/evolucion', async (req, res) => {
       JOIN evaluaciones e ON e.id_evaluacion = r.id_evaluacion
       JOIN periodos p ON p.id_periodo = e.id_periodo
       WHERE r.tipo_evaluado = 'DOCENTE' AND r.id_evaluado = ?
+        AND r.id_institucion = ?
         AND r.estado_validacion = 'VALIDADO'
       ORDER BY p.fecha_inicio ASC, e.fecha_fin ASC
       LIMIT 100
-    `, [docente.id_docente]);
+    `, [docente.id_docente, idInstitucion]);
 
     const evolucion = [];
     const periodosUnicos = [];
@@ -277,7 +286,8 @@ router.get('/retroalimentacion', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!isDocente(req.user)) return sendError(res, 403, 'Acceso exclusivo para docentes.');
-    const docente = await resolveDocenteId(conn, req.user.id_usuario);
+    const idInstitucion = req.user.id_institucion || 1;
+    const docente = await resolveDocenteId(conn, req.user.id_usuario, idInstitucion);
     if (!docente) return sendError(res, 404, 'No se encontr\u00f3 un registro docente vinculado a tu cuenta.');
 
     const [rows] = await conn.execute(`
@@ -293,6 +303,7 @@ router.get('/retroalimentacion', async (req, res) => {
         AND ep.id_pregunta_plantilla = r.id_pregunta
       LEFT JOIN alumnos a ON a.id_alumno = r.id_alumno
       WHERE r.valor_texto IS NOT NULL AND r.valor_texto != ''
+        AND r.id_institucion = ?
         AND EXISTS (
           SELECT 1 FROM evaluacion_resultados er
           WHERE er.id_evaluacion = r.id_evaluacion
@@ -301,7 +312,7 @@ router.get('/retroalimentacion', async (req, res) => {
         )
       ORDER BY r.creado_en DESC
       LIMIT 200
-    `, [docente.id_docente]);
+    `, [idInstitucion, docente.id_docente]);
 
     return res.json({ ok: true, data: rows, retroalimentacion: rows });
   } catch (error) {
@@ -314,7 +325,8 @@ router.get('/reporte/:id', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     if (!isDocente(req.user)) return sendError(res, 403, 'Acceso exclusivo para docentes.');
-    const docente = await resolveDocenteId(conn, req.user.id_usuario);
+    const idInstitucion = req.user.id_institucion || 1;
+    const docente = await resolveDocenteId(conn, req.user.id_usuario, idInstitucion);
     if (!docente) return sendError(res, 404, 'No se encontr\u00f3 un registro docente vinculado a tu cuenta.');
 
     const idResultado = Number(req.params.id || 0);
@@ -331,9 +343,9 @@ router.get('/reporte/:id', async (req, res) => {
       JOIN evaluaciones e ON e.id_evaluacion = r.id_evaluacion
       JOIN periodos p ON p.id_periodo = e.id_periodo
       LEFT JOIN evaluacion_plantillas tp ON tp.id_plantilla = e.id_plantilla
-      WHERE r.id_resultado = ? AND r.tipo_evaluado = 'DOCENTE' AND r.id_evaluado = ?
+      WHERE r.id_resultado = ? AND r.tipo_evaluado = 'DOCENTE' AND r.id_evaluado = ? AND r.id_institucion = ?
       LIMIT 1
-    `, [idResultado, docente.id_docente]);
+    `, [idResultado, docente.id_docente, idInstitucion]);
 
     if (!resultRows.length) return sendError(res, 404, 'Resultado no encontrado.');
 

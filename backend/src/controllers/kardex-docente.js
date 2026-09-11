@@ -126,6 +126,7 @@ async function getKardexGrupo(req, res) {
 
     const { idGrupo } = req.params;
     const idDocente = docente ? docente.id_docente : null;
+    const idInstitucion = req.user?.id_institucion || 1;
 
     const tieneAcceso = await docenteTieneAccesoAGrupo(pool, idDocente, idGrupo);
     if (!tieneAcceso) {
@@ -149,15 +150,15 @@ async function getKardexGrupo(req, res) {
         COALESCE(k.creditos_acumulados, 0) AS creditos_acumulados,
         k.estatus AS estatus_kardex,
         (SELECT COUNT(*) FROM kardex_historial_academico h
-         WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada') AS materias_reprobadas,
+         WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada' AND h.id_institucion = ?) AS materias_reprobadas,
         (SELECT COUNT(*) FROM kardex_historial_academico h
-         WHERE h.id_alumno = a.id_alumno AND h.tipo_materia = 'Extraordinario') AS extraordinarios
+         WHERE h.id_alumno = a.id_alumno AND h.tipo_materia = 'Extraordinario' AND h.id_institucion = ?) AS extraordinarios
       FROM grupos_alumnos ga
       JOIN alumnos a ON a.id_alumno = ga.id_alumno
       LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
-      WHERE ga.id_grupo = ? AND ga.estado = 'ACTIVO'
+      WHERE ga.id_grupo = ? AND ga.estado = 'ACTIVO' AND a.id_institucion = ?
       ORDER BY a.apellido_paterno, a.apellido_materno
-    `, [idGrupo]);
+    `, [idInstitucion, idInstitucion, idGrupo, idInstitucion]);
 
     const total = alumnos.length;
     const conRezago = alumnos.filter(a => a.promedio_general < 70 || a.materias_reprobadas > 2).length;
@@ -195,6 +196,7 @@ async function getKardexAlumno(req, res) {
 
     const { idAlumno } = req.params;
     const idDocente = docente ? docente.id_docente : null;
+    const idInstitucion = req.user?.id_institucion || 1;
 
     const tieneAcceso = await docenteTieneAccesoAAlumno(pool, idDocente, idAlumno);
     if (!tieneAcceso) {
@@ -211,8 +213,8 @@ async function getKardexAlumno(req, res) {
       FROM alumnos a
       JOIN carreras c ON c.id_carrera = a.id_carrera
       LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
-      WHERE a.id_alumno = ?
-    `, [idAlumno]);
+      WHERE a.id_alumno = ? AND a.id_institucion = ?
+    `, [idAlumno, idInstitucion]);
 
     if (alumno.length === 0) {
       return res.status(404).json({ ok: false, message: 'Alumno no encontrado' });
@@ -224,9 +226,9 @@ async function getKardexAlumno(req, res) {
       LEFT JOIN periodos p ON p.id_periodo = h.id_periodo
       LEFT JOIN materias m ON m.id_materia = h.id_materia
       LEFT JOIN grupos g ON g.id_grupo = h.id_grupo
-      WHERE h.id_alumno = ?
+      WHERE h.id_alumno = ? AND h.id_institucion = ?
       ORDER BY p.fecha_inicio DESC, m.semestre_sugerido
-    `, [idAlumno]);
+    `, [idAlumno, idInstitucion]);
 
     res.json({
       ok: true,
@@ -251,6 +253,7 @@ async function getResumenDesempeno(req, res) {
 
     const { idAlumno } = req.params;
     const idDocente = docente ? docente.id_docente : null;
+    const idInstitucion = req.user?.id_institucion || 1;
 
     const tieneAcceso = await docenteTieneAccesoAAlumno(pool, idDocente, idAlumno);
     if (!tieneAcceso) {
@@ -268,8 +271,8 @@ async function getResumenDesempeno(req, res) {
       FROM alumnos a
       JOIN carreras c ON c.id_carrera = a.id_carrera
       LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
-      WHERE a.id_alumno = ?
-    `, [idAlumno]);
+      WHERE a.id_alumno = ? AND a.id_institucion = ?
+    `, [idAlumno, idInstitucion]);
 
     if (alumno.length === 0) {
       return res.status(404).json({ ok: false, message: 'Alumno no encontrado' });
@@ -283,9 +286,9 @@ async function getResumenDesempeno(req, res) {
       LEFT JOIN periodos p ON p.id_periodo = h.id_periodo
       LEFT JOIN materias m ON m.id_materia = h.id_materia
       LEFT JOIN grupos g ON g.id_grupo = h.id_grupo
-      WHERE h.id_alumno = ?
+      WHERE h.id_alumno = ? AND h.id_institucion = ?
       ORDER BY p.fecha_inicio DESC
-    `, [idAlumno]);
+    `, [idAlumno, idInstitucion]);
 
     const totalMaterias = historial.length;
     const acreditadas = historial.filter(h => h.estado === 'Acreditada').length;
@@ -348,6 +351,7 @@ async function getHistorialEvaluacion(req, res) {
 
     const { idAlumno } = req.params;
     const idDocente = docente ? docente.id_docente : null;
+    const idInstitucion = req.user?.id_institucion || 1;
 
     const tieneAcceso = await docenteTieneAccesoAAlumno(pool, idDocente, idAlumno);
     if (!tieneAcceso) {
@@ -367,9 +371,9 @@ async function getHistorialEvaluacion(req, res) {
       LEFT JOIN grupos g ON g.id_grupo = h.id_grupo
       LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
       LEFT JOIN docentes d ON d.id_docente = ca.id_docente
-      WHERE h.id_alumno = ?
+      WHERE h.id_alumno = ? AND h.id_institucion = ?
       ORDER BY p.fecha_inicio DESC, m.semestre_sugerido
-    `, [idAlumno]);
+    `, [idAlumno, idInstitucion]);
 
     const acreditadas = historial.filter(h => h.estado === 'Acreditada').length;
     const noAcreditadas = historial.filter(h => h.estado === 'No Acreditada').length;

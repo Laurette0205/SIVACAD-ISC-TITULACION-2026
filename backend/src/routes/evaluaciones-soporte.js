@@ -54,9 +54,9 @@ router.get('/diagnostico', async (req, res) => {
 
     const [auditCount] = await conn.execute('SELECT COUNT(*) AS total FROM evaluacion_auditoria');
     const [alertCount] = await conn.execute('SELECT COUNT(*) AS total FROM evaluacion_alertas');
-    const [evalCount] = await conn.execute('SELECT COUNT(*) AS total FROM evaluaciones');
-    const [resultCount] = await conn.execute('SELECT COUNT(*) AS total FROM evaluacion_resultados');
-    const [respCount] = await conn.execute('SELECT COUNT(*) AS total FROM respuestas_evaluacion');
+    const [evalCount] = await conn.execute('SELECT COUNT(*) AS total FROM evaluaciones WHERE id_institucion = ?', [req.user.id_institucion || 1]);
+    const [resultCount] = await conn.execute('SELECT COUNT(*) AS total FROM evaluacion_resultados WHERE id_institucion = ?', [req.user.id_institucion || 1]);
+    const [respCount] = await conn.execute('SELECT COUNT(*) AS total FROM respuestas_evaluacion WHERE id_institucion = ?', [req.user.id_institucion || 1]);
 
     const [accionesRecientes] = await conn.execute(`
       SELECT a.id_auditoria, a.accion, a.detalle, a.creado_en,
@@ -80,8 +80,8 @@ router.get('/diagnostico', async (req, res) => {
 
     const [estadosEval] = await conn.execute(`
       SELECT UPPER(estado) AS estado, COUNT(*) AS total
-      FROM evaluaciones GROUP BY UPPER(estado) ORDER BY estado
-    `);
+      FROM evaluaciones WHERE id_institucion = ? GROUP BY UPPER(estado) ORDER BY estado
+    `, [req.user.id_institucion || 1]);
 
     return res.json({
       ok: true,
@@ -111,12 +111,13 @@ router.get('/incidencias', async (req, res) => {
   try {
     if (!isSoporte(req.user)) return sendError(res, 403, 'Acceso exclusivo para soporte t\u00e9cnico.');
 
+    const idInstitucion = req.user.id_institucion || 1;
     const horas = Math.min(Math.max(Number(req.query?.horas || 72), 1), 720);
 
     const [erroresRecientes] = await conn.execute(`
       SELECT a.id_auditoria, a.accion, a.detalle, a.observaciones, a.creado_en, a.ip,
         CONCAT(COALESCE(u.nombres, ''), ' ', COALESCE(u.apellido_paterno, '')) AS usuario,
-        COALESCE(r.nombre_rol, '—') AS rol_usuario,
+        COALESCE(r.nombre_rol, '\u2014') AS rol_usuario,
         e.titulo AS evaluacion_titulo
       FROM evaluacion_auditoria a
       LEFT JOIN usuarios u ON u.id_usuario = a.id_usuario
@@ -130,13 +131,14 @@ router.get('/incidencias', async (req, res) => {
     const [sinResultados] = await conn.execute(`
       SELECT e.id_evaluacion, e.titulo, UPPER(e.estado) AS estado,
         e.fecha_fin, e.creado_en,
-        (SELECT COUNT(*) FROM evaluacion_resultados WHERE id_evaluacion = e.id_evaluacion) AS total_resultados
+        (SELECT COUNT(*) FROM evaluacion_resultados WHERE id_evaluacion = e.id_evaluacion AND id_institucion = ?) AS total_resultados
       FROM evaluaciones e
-      WHERE (SELECT COUNT(*) FROM evaluacion_resultados WHERE id_evaluacion = e.id_evaluacion) = 0
+      WHERE e.id_institucion = ?
+        AND (SELECT COUNT(*) FROM evaluacion_resultados WHERE id_evaluacion = e.id_evaluacion AND id_institucion = ?) = 0
         AND UPPER(e.estado) != 'BORRADOR'
       ORDER BY e.creado_en DESC
       LIMIT 30
-    `);
+    `, [idInstitucion, idInstitucion, idInstitucion]);
 
     const [alertasAltas] = await conn.execute(`
       SELECT a.id_alerta, a.tipo_alerta, a.descripcion, a.nivel, a.atendida, a.creado_en,
@@ -193,10 +195,10 @@ router.get('/errores-validacion', async (req, res) => {
       FROM evaluacion_resultados r
       JOIN evaluaciones e ON e.id_evaluacion = r.id_evaluacion
       JOIN periodos p ON p.id_periodo = e.id_periodo
-      WHERE r.estado_validacion = 'RECHAZADO'
+      WHERE r.estado_validacion = 'RECHAZADO' AND r.id_institucion = ?
       ORDER BY r.validado_en DESC
       LIMIT 50
-    `);
+    `, [req.user.id_institucion || 1]);
 
     return res.json({
       ok: true,

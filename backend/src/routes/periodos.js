@@ -23,9 +23,10 @@ function normalizeState(value) {
 
 router.get('/', auth, async (req, res) => {
   try {
+    const idInstitucion = req.user.id_institucion || 1;
     const estado = normalizeText(req.query?.estado);
-    const params = [];
-    const where = [];
+    const params = [idInstitucion];
+    const where = ['p.id_institucion = ?'];
 
     if (estado) {
       where.push('p.estado = ?');
@@ -75,6 +76,7 @@ router.get('/', auth, async (req, res) => {
 
 router.post('/', auth, role(...ADMIN_ROLES), async (req, res) => {
   try {
+    const idInstitucion = req.user.id_institucion || 1;
     const nombrePeriodo = normalizeText(req.body?.nombre_periodo || req.body?.nombre);
     const fechaInicio = normalizeText(req.body?.fecha_inicio);
     const fechaFin = normalizeText(req.body?.fecha_fin);
@@ -104,11 +106,11 @@ router.post('/', auth, role(...ADMIN_ROLES), async (req, res) => {
     const [result] = await pool.execute(
       `
       INSERT INTO periodos
-        (nombre_periodo, fecha_inicio, fecha_fin, estado)
+        (nombre_periodo, fecha_inicio, fecha_fin, estado, id_institucion)
       VALUES
-        (?, ?, ?, ?)
+        (?, ?, ?, ?, ?)
       `,
-      [nombrePeriodo, fechaInicio, fechaFin, estado]
+      [nombrePeriodo, fechaInicio, fechaFin, estado, idInstitucion]
     );
 
     return res.status(201).json({

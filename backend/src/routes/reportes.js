@@ -9,6 +9,7 @@ const otherCtrl = require('../controllers/other');
 const reportesCtrl = require('../controllers/reportes');
 
 const ROLES_REPORTES = ['ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'ALUMNO'];
+const ROLES_SEGURIDAD = ['ADMINISTRADOR', 'SOPORTE'];
 
 function asyncHandler(fn) {
   return (req, res, next) =>
@@ -88,6 +89,13 @@ router.get('/kardex/:id/preview', auth, role(...ROLES_REPORTES), reportesCtrl.pr
 router.get('/kardex/:id/pdf', auth, role(...ROLES_REPORTES), reportesCtrl.exportKardexPDF);
 router.get('/kardex/:id/pdf/dompdf', auth, role(...ROLES_REPORTES), reportesCtrl.exportKardexDompdfPDF);
 router.get('/kardex/:id/excel', auth, role(...ROLES_REPORTES), reportesCtrl.exportKardexExcel);
+
+// =====================================================
+// SECURITY REPORT ENDPOINTS
+// =====================================================
+router.get('/seguridad/mfa', auth, role(...ROLES_SEGURIDAD), wrapReportController(reportesCtrl.exportMFAEvents));
+router.get('/seguridad/sospechosas', auth, role(...ROLES_SEGURIDAD), wrapReportController(reportesCtrl.exportSuspiciousActivity));
+router.get('/seguridad/dispositivos', auth, role(...ROLES_SEGURIDAD), wrapReportController(reportesCtrl.exportKnownDevices));
 
 // =====================================================
 // LEGACY REPORT ENDPOINTS

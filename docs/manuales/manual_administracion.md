@@ -4,7 +4,7 @@
 
 **Autoras:** Bárcenas González Laura Casandra & Morales Ibarra Sandivel  
 **Institución:** TESI Ixtapaluca — Ingeniería en Sistemas Computacionales  
-**Versión:** 1.0 — Julio 2026
+**Versión:** 3.0 — Septiembre 2026
 
 ---
 
@@ -21,6 +21,8 @@
 9. [Parámetros del Sistema](#9-parámetros-del-sistema)
 10. [Supervisión General](#10-supervisión-general)
 11. [Buenas Prácticas](#11-buenas-prácticas)
+12. [Autenticación Multi-Factor (MFA)](#12-autenticación-multi-factor-mfa)
+13. [Reautenticación para Operaciones Sensibles](#13-reautenticación-para-operaciones-sensibles)
 
 ---
 
@@ -230,7 +232,27 @@ La tabla `auditoria_global` utiliza un hash SHA-256 encadenado:
 - Esto garantiza la **integridad y no-repudio** de la cadena de auditoría.
 - Si alguien modifica un registro histórico, el hash ya no coincidirá.
 
-### 7.3 Consultar auditoría
+### 7.3 Eventos de seguridad
+
+Además de las operaciones CRUD estándar, el sistema registra eventos de seguridad específicos:
+
+| Evento | Módulo | Descripción |
+|--------|--------|-------------|
+| `MFA_ENABLED` | SEGURIDAD | MFA activado exitosamente por el usuario |
+| `MFA_DISABLED` | SEGURIDAD | MFA deshabilitado por el usuario |
+| `MFA_ENABLE_FAILED` | SEGURIDAD | Error al intentar activar MFA (código TOTP inválido) |
+| `MFA_LOGIN_SUCCESS` | SEGURIDAD | Login completado con verificación MFA exitosa |
+| `MFA_LOGIN_FAILED` | SEGURIDAD | Código MFA inválido durante intento de login |
+| `REAUTH_SUCCESS` | SEGURIDAD | Reautenticación exitosa (token temporal emitido) |
+| `REAUTH_FAILED` | SEGURIDAD | Reautenticación fallida (contraseña incorrecta) |
+| `PROFILE_CHANGED` | USUARIOS | Perfil de alumno o docente actualizado por un administrador |
+| `NEW_DEVICE_LOGIN` | SEGURADOR | Login desde un dispositivo no registrado previamente |
+
+### 7.4 Almacenamiento seguro de tokens
+
+Los tokens JWT de sesión se almacenan como **hash SHA-256** en la tabla `sesiones_activas` (campo `token_jwt`). Esto garantiza que, incluso si un atacante accede a la base de datos, los tokens sean inutilizables sin el secreto de firma.
+
+### 7.5 Consultar auditoría
 
 1. Navegue a **Auditoría**.
 2. Filtre por:
@@ -252,7 +274,10 @@ La tabla `auditoria_global` utiliza un hash SHA-256 encadenado:
    - Fecha de inicio de sesión.
    - Última actividad.
    - Dirección IP.
+   - Dispositivo (user-agent).
    - Estado (activa/expirada).
+
+> **Nota de seguridad:** El campo `token_jwt` muestra un hash SHA-256 del token, no el JWT crudo. Esto protege las sesiones en caso de acceso no autorizado a la base de datos.
 
 ### 8.2 Cerrar sesión de un usuario
 
@@ -270,13 +295,33 @@ La tabla `auditoria_global` utiliza un hash SHA-256 encadenado:
 Los dominios de correo aceptados se definen en el middleware `validateInstitutionalEmail`:
 
 ```javascript
-const WHITELIST_DOMAINS = [
+const ALLOWED_INSTITUTION_EMAIL_DOMAINS = [
   'tesi.edu.mx',
-  'ixtapaluca.tecnm.mx'
+  'ixtapaluca.tecnm.mx',
+  'ixtapaluca.tecnm.edu.mx',
+  'outlook.com',
+  'outlook.es'
 ];
 ```
 
-### 9.2 Configuración CORS
+### 9.2 Variables de entorno de seguridad
+
+En el archivo `.env` del backend, las variables de seguridad crítica son:
+
+```env
+# JWT — Access token secret
+JWT_SECRET=secreto_aleatorio_seguro_128bit
+
+# JWT — Refresh token secret (DEBE ser diferente a JWT_SECRET)
+JWT_REFRESH_SECRET=otro_secreto_aleatorio_diferente
+
+# JWT — Expiración del access token
+JWT_EXPIRES_IN=8h
+```
+
+> **Importante:** `JWT_SECRET` y `JWT_REFRESH_SECRET` deben ser valores **distintos**. Si ambos son iguales, un atacante podría usar un token de acceso para generar tokens de refresco válidos.
+
+### 9.3 Configuración CORS
 
 En `backend/src/app.js` se definen los orígenes permitidos:
 
@@ -294,15 +339,17 @@ const originRegexPatterns = [
 ];
 ```
 
-### 9.3 Rate limiting
+### 9.4 Rate limiting
 
 ```javascript
+// Límite en login: 10 solicitudes cada 15 minutos
+router.post('/login', rateLimit({ windowMs: 15 * 60 * 1000, max: 10 }));
+
 // Límite en forgot-password: 5 solicitudes cada 15 minutos
-app.use('/api/auth/forgot-password', rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: { ok: false, message: 'Demasiadas solicitudes. Intente más tarde.' }
-}));
+router.post('/forgot-password', rateLimit({ windowMs: 15 * 60 * 1000, max: 5 }));
+
+// Límite en register: 5 solicitudes cada hora
+router.post('/register', rateLimit({ windowMs: 60 * 60 * 1000, max: 5 }));
 ```
 
 ---
@@ -350,9 +397,12 @@ El dashboard del administrador muestra:
 
 - Cambie la contraseña por defecto del administrador inmediatamente después de la instalación.
 - Las contraseñas deben cumplir la política: **12-20 caracteres**, mayúscula, minúscula, número y símbolo.
+- **Active MFA (Multi-Factor Authentication)** en la cuenta de administrador. Vaya a Configuración de Seguridad → Activar MFA.
 - No comparta cuentas de administrador.
-- Revise la bitácora de auditoría periódicamente.
+- Revise la bitácora de auditoría periódicamente, especialmente los eventos de seguridad (MFA, reautenticación, dispositivos nuevos).
 - Mantenga actualizadas las dependencias del proyecto.
+- Verifique que `JWT_SECRET` y `JWT_REFRESH_SECRET` sean valores diferentes en el `.env`.
+- Ejecute el script de backup periódicamente: `bash backend/scripts/backup.sh`.
 
 ### 11.2 Gestión de usuarios
 
@@ -379,4 +429,136 @@ El dashboard del administrador muestra:
 
 ---
 
-*Fin del Manual de Administración — SIVACAD v1.0*
+## 12. Autenticación Multi-Factor (MFA)
+
+### 12.1 ¿Qué es MFA?
+
+MFA (Multi-Factor Authentication) agrega una segunda capa de seguridad al inicio de sesión. Además de la contraseña, el usuario debe ingresar un código de 6 dígitos generado por una aplicación de autenticación en su teléfono (Google Authenticator, Authy, etc.).
+
+### 12.2 Configurar MFA
+
+1. Inicie sesión en el sistema.
+2. Navegue a **Configuración de Seguridad** o solicite al endpoint `POST /api/mfa/setup`.
+3. El sistema genera un código QR y una clave secreta.
+4. Escanee el código QR con Google Authenticator o Authy.
+5. Ingrese el código de 6 dígitos para verificar la configuración.
+6. **Guarde los códigos de recuperación** en un lugar seguro (se muestran solo una vez).
+
+### 12.3 Activar MFA
+
+1. Después de configurar, envíe el código TOTP al endpoint `POST /api/mfa/enable`.
+2. Si el código es válido, MFA se activa para su cuenta.
+3. A partir de ese momento, cada login requerirá el código de 6 dígitos.
+
+### 12.4 Login con MFA
+
+1. Ingrese correo y contraseña normalmente.
+2. Si MFA está activado, el sistema retorna `mfaRequired: true`.
+3. El frontend muestra un campo para ingresar el código de 6 dígitos.
+4. El código se envía al endpoint `POST /api/auth/login-mfa` junto con el token temporal.
+5. Si el código es válido, se completa el login con el JWT completo.
+
+### 12.5 Códigos de Recuperación
+
+- Se generan 10 códigos de un solo uso al activar MFA.
+- Si no tiene acceso a su aplicación de autenticación, use un código de recuperación.
+- Cada código solo se puede usar una vez.
+- Si se agotan los códigos, contacte al administrador para deshabilitar MFA.
+
+### 12.6 Deshabilitar MFA
+
+1. Envíe el código TOTP actual al endpoint `POST /api/mfa/disable`.
+2. MFA se desactivará para su cuenta.
+3. Se recomienda mantener MFA activado para mayor seguridad.
+
+### 12.7 Auditoría MFA
+
+Todos los eventos de MFA quedan registrados en la auditoría:
+- `MFA_ENABLED`: cuando un usuario activa MFA.
+- `MFA_DISABLED`: cuando un usuario desactiva MFA.
+- `MFA_LOGIN_SUCCESS`: login exitoso con código MFA.
+- `MFA_LOGIN_FAILED`: código MFA inválido durante login.
+
+---
+
+## 13. Reautenticación para Operaciones Sensibles
+
+### 13.1 ¿Qué es la reautenticación?
+
+La reautenticación es el proceso de revalidar las credenciales del usuario antes de realizar operaciones sensibles como cambio de email, cambio de contraseña o eliminación de cuenta. Esto previene que un atacante con acceso a una sesión activa realice cambios críticos.
+
+### 13.2 ¿Cuándo se requiere?
+
+- Cambio de correo institucional
+- Cambio de contraseña
+- Eliminación de cuenta
+- Asignación o cambio de rol
+- Deshabilitación de MFA
+- Configuración de acceso de emergencia (break-glass)
+
+### 13.3 ¿Cómo funciona?
+
+1. El sistema solicita la contraseña actual del usuario.
+2. Se envía al endpoint `POST /api/auth/reauthenticate` con la contraseña.
+3. Si la contraseña es válida, se retorna un `reauthToken` con expiración de 10 minutos.
+4. Las operaciones sensibles incluyen el header `X-Reauth-Token` con este token.
+5. El middleware `requireReauthentication` verifica el token antes de procesar la operación.
+
+### 13.4 Auditoría de reautenticación
+
+- `REAUTH_SUCCESS`: reautenticación exitosa, token temporal emitido.
+- `REAUTH_FAILED`: contraseña incorrecta durante reautenticación.
+
+---
+
+## 14. Panel del Alumno — Datos Personales
+
+### 14.1 Estructura del Panel
+
+El panel del alumno permite gestionar la información personal, contactos de emergencia, información médica, información laboral y documentos sensibles.
+
+### 14.2 Subsecciones disponibles
+
+| Subsección | Ruta | Descripción |
+|------------|------|-------------|
+| Perfil y configuración | `/app/alumno/perfil` | Nombres, apellidos, CURP, estadísticas |
+| Contactos de emergencia | `/app/contactos-emergencia` | Contactos para situaciones urgentes |
+| Información médica | `/app/alumno-info-medica` | Tipo de sangre, alergias, medicamentos, info psicológica |
+| Información laboral | `/app/alumno-info-laboral` | Empresa, puesto, teléfono, horario |
+| Documentos personales | `/app/alumno-documentos` | Subida y gestión de documentos oficiales |
+
+### 14.3 Restricciones por rol
+
+- Solo el rol **ALUMNO** puede acceder a estas secciones.
+- Un administrador o coordinador que intente acceder recibirá error **403 Forbidden**.
+- Todas las operaciones generan registros de auditoría.
+
+### 14.4 Auditoría del panel
+
+| Evento | Módulo | Descripción |
+|--------|--------|-------------|
+| `PROFILE_CHANGED` | ALUMNO | Actualización de nombres, apellidos o CURP |
+| `CONTACTO_CREADO` | EMERGENCIA | Nuevo contacto de emergencia |
+| `CONTACTO_ACTUALIZADO` | EMERGENCIA | Edición de contacto existente |
+| `CONTACTO_ELIMINADO` | EMERGENCIA | Eliminación de contacto |
+| `INFORMACION_MEDICA_CREADA` | SALUD | Primera carga de información médica |
+| `INFORMACION_MEDICA_ACTUALIZADA` | SALUD | Edición de información médica |
+| `INFORMACION_LABORAL_CREADA` | LABORAL | Primera carga de información laboral |
+| `INFORMACION_LABORAL_ACTUALIZADA` | LABORAL | Edición de información laboral |
+| `DOCUMENTO_SUBIDO` | DOCUMENTOS | Subida de archivo sensible |
+| `DOCUMENTO_ELIMINADO` | DOCUMENTOS | Eliminación de archivo sensible |
+
+### 14.5 Tablas involucradas
+
+| Tabla | Propósito |
+|-------|-----------|
+| `alumnos` | Datos académicos del alumno (nombres, apellidos, CURP) |
+| `usuarios` | Datos de usuario (nombres, apellidos, correo, rol) |
+| `contactos_emergencia` | Contactos de emergencia del alumno |
+| `informacion_medica` | Datos médicos y psicológicos |
+| `informacion_laboral` | Datos de empleo actual |
+| `documentos_sensibles` | Archivos subidos (PDF, imágenes, documentos) |
+
+---
+
+*Fin del Manual de Administración — SIVACAD v3.0*

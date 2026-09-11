@@ -5,6 +5,7 @@ import {
   BarChart3,
   BookOpen,
   Bot,
+  Briefcase,
   ClipboardCheck,
   ClipboardList,
   FileText,
@@ -21,7 +22,8 @@ import {
   Shield,
   AlertTriangle,
   Folders,
-  X
+  X,
+  User
 } from 'lucide-react';
 
 import { useAuth } from '../context/AuthContext';
@@ -155,6 +157,16 @@ const ROLE_SECTIONS = {
       items: [
         { to: '/app/alumno', label: 'Panel del alumno', icon: LayoutDashboard },
         { to: '/app/asistente/alumno', label: 'Asistente académico', icon: Brain }
+      ]
+    },
+    {
+      title: 'Mi información',
+      items: [
+        { to: '/app/alumno/perfil', label: 'Perfil y configuración', icon: User },
+        { to: '/app/contactos-emergencia', label: 'Contactos de emergencia', icon: AlertTriangle },
+        { to: '/app/alumno-info-medica', label: 'Información médica', icon: HeartPulse },
+        { to: '/app/alumno-info-laboral', label: 'Información laboral', icon: Briefcase },
+        { to: '/app/alumno-documentos', label: 'Documentos personales', icon: FileText }
       ]
     },
     {

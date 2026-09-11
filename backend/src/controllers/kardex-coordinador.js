@@ -35,6 +35,7 @@ async function getCatalogosKardex(req, res) {
 async function getKardexGrupo(req, res) {
   try {
     const { idGrupo } = req.params;
+    const idInstitucion = req.user?.id_institucion || 1;
 
     const [grupo] = await pool.query(`
       SELECT g.*, p.nombre_periodo, c.nombre_carrera
@@ -61,15 +62,15 @@ async function getKardexGrupo(req, res) {
         k.folio_kardex,
         k.url_qr,
         (SELECT COUNT(*) FROM kardex_historial_academico h
-         WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada') AS materias_reprobadas,
+         WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada' AND h.id_institucion = ?) AS materias_reprobadas,
         (SELECT COUNT(*) FROM kardex_historial_academico h
-         WHERE h.id_alumno = a.id_alumno AND h.tipo_materia = 'Extraordinario') AS extraordinarios
+         WHERE h.id_alumno = a.id_alumno AND h.tipo_materia = 'Extraordinario' AND h.id_institucion = ?) AS extraordinarios
       FROM grupos_alumnos ga
       JOIN alumnos a ON a.id_alumno = ga.id_alumno
       LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
-      WHERE ga.id_grupo = ? AND ga.estado = 'ACTIVO'
+      WHERE ga.id_grupo = ? AND ga.estado = 'ACTIVO' AND a.id_institucion = ?
       ORDER BY a.apellido_paterno, a.apellido_materno
-    `, [idGrupo]);
+    `, [idInstitucion, idInstitucion, idGrupo, idInstitucion]);
 
     const total = alumnos.length;
     const conRezago = alumnos.filter(a =>
@@ -99,6 +100,7 @@ async function getKardexGrupo(req, res) {
 async function getKardexAlumnoDetalle(req, res) {
   try {
     const { idAlumno } = req.params;
+    const idInstitucion = req.user?.id_institucion || 1;
 
     const [alumno] = await pool.query(`
       SELECT
@@ -115,8 +117,8 @@ async function getKardexAlumnoDetalle(req, res) {
       FROM alumnos a
       JOIN carreras c ON c.id_carrera = a.id_carrera
       LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
-      WHERE a.id_alumno = ?
-    `, [idAlumno]);
+      WHERE a.id_alumno = ? AND a.id_institucion = ?
+    `, [idAlumno, idInstitucion]);
 
     if (alumno.length === 0) {
       return res.status(404).json({ ok: false, message: 'Alumno no encontrado' });
@@ -134,9 +136,9 @@ async function getKardexAlumnoDetalle(req, res) {
       LEFT JOIN periodos p ON p.id_periodo = h.id_periodo
       LEFT JOIN materias m ON m.id_materia = h.id_materia
       LEFT JOIN grupos g ON g.id_grupo = h.id_grupo
-      WHERE h.id_alumno = ?
+      WHERE h.id_alumno = ? AND h.id_institucion = ?
       ORDER BY p.fecha_inicio DESC, m.semestre_sugerido
-    `, [idAlumno]);
+    `, [idAlumno, idInstitucion]);
 
     const totalMaterias = historial.length;
     const acreditadas = historial.filter(h => h.estado === 'Acreditada').length;
@@ -185,6 +187,7 @@ async function getKardexAlumnoDetalle(req, res) {
 async function getResumenPorPeriodo(req, res) {
   try {
     const { idPeriodo } = req.params;
+    const idInstitucion = req.user?.id_institucion || 1;
 
     const [periodo] = await pool.query(
       'SELECT * FROM periodos WHERE id_periodo = ?', [idPeriodo]
@@ -206,7 +209,8 @@ async function getResumenPorPeriodo(req, res) {
       FROM alumnos a
       LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
       JOIN grupos_alumnos ga ON ga.id_alumno = a.id_alumno AND ga.id_periodo = ? AND ga.estado = 'ACTIVO'
-    `, [idPeriodo, idPeriodo]);
+      WHERE a.id_institucion = ?
+    `, [idPeriodo, idInstitucion]);
 
     const [porCarrera] = await pool.query(`
       SELECT
@@ -219,9 +223,10 @@ async function getResumenPorPeriodo(req, res) {
       JOIN carreras c ON c.id_carrera = a.id_carrera
       LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
       JOIN grupos_alumnos ga ON ga.id_alumno = a.id_alumno AND ga.id_periodo = ? AND ga.estado = 'ACTIVO'
+      WHERE a.id_institucion = ?
       GROUP BY c.id_carrera, c.nombre_carrera
       ORDER BY c.nombre_carrera
-    `, [idPeriodo]);
+    `, [idPeriodo, idInstitucion]);
 
     res.json({
       ok: true,
@@ -243,6 +248,7 @@ async function getResumenPorPeriodo(req, res) {
 async function getHistorialPorCarrera(req, res) {
   try {
     const { idCarrera } = req.params;
+    const idInstitucion = req.user?.id_institucion || 1;
 
     const [carrera] = await pool.query(
       'SELECT * FROM carreras WHERE id_carrera = ?', [idCarrera]
@@ -266,9 +272,10 @@ async function getHistorialPorCarrera(req, res) {
       LEFT JOIN grupos_alumnos ga ON ga.id_grupo = g.id_grupo AND ga.estado = 'ACTIVO'
       LEFT JOIN alumnos a ON a.id_alumno = ga.id_alumno
       LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
+      WHERE a.id_institucion = ?
       GROUP BY p.id_periodo, p.nombre_periodo
       ORDER BY p.fecha_inicio DESC
-    `, [idCarrera]);
+    `, [idCarrera, idInstitucion]);
 
     const [tendenciaSemestral] = await pool.query(`
       SELECT
@@ -279,10 +286,10 @@ async function getHistorialPorCarrera(req, res) {
       FROM alumnos a
       LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
       JOIN grupos_alumnos ga ON ga.id_alumno = a.id_alumno AND ga.estado = 'ACTIVO'
-      WHERE a.id_carrera = ?
+      WHERE a.id_carrera = ? AND a.id_institucion = ?
       GROUP BY a.semestre_actual
       ORDER BY a.semestre_actual
-    `, [idCarrera]);
+    `, [idCarrera, idInstitucion]);
 
     const [alumnosRezago] = await pool.query(`
       SELECT
@@ -292,18 +299,18 @@ async function getHistorialPorCarrera(req, res) {
         a.semestre_actual,
         COALESCE(k.promedio_general, 0) AS promedio_general,
         (SELECT COUNT(*) FROM kardex_historial_academico h
-         WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada') AS materias_reprobadas
+         WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada' AND h.id_institucion = ?) AS materias_reprobadas
       FROM alumnos a
       LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
       JOIN grupos_alumnos ga ON ga.id_alumno = a.id_alumno AND ga.estado = 'ACTIVO'
-      WHERE a.id_carrera = ?
+      WHERE a.id_carrera = ? AND a.id_institucion = ?
         AND (COALESCE(k.promedio_general, 0) < 70 OR
              (SELECT COUNT(*) FROM kardex_historial_academico h
-              WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada') > 2)
+              WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada' AND h.id_institucion = ?) > 2)
       GROUP BY a.id_alumno
       ORDER BY COALESCE(k.promedio_general, 0) ASC
       LIMIT 50
-    `, [idCarrera]);
+    `, [idInstitucion, idCarrera, idInstitucion, idInstitucion]);
 
     res.json({
       ok: true,
@@ -326,6 +333,7 @@ async function getHistorialPorCarrera(req, res) {
 async function getValidacionTrayectoria(req, res) {
   try {
     const { idAlumno } = req.params;
+    const idInstitucion = req.user?.id_institucion || 1;
 
     const [alumno] = await pool.query(`
       SELECT a.*, c.nombre_carrera,
@@ -334,8 +342,8 @@ async function getValidacionTrayectoria(req, res) {
       FROM alumnos a
       JOIN carreras c ON c.id_carrera = a.id_carrera
       LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
-      WHERE a.id_alumno = ?
-    `, [idAlumno]);
+      WHERE a.id_alumno = ? AND a.id_institucion = ?
+    `, [idAlumno, idInstitucion]);
 
     if (alumno.length === 0) {
       return res.status(404).json({ ok: false, message: 'Alumno no encontrado' });
@@ -346,9 +354,9 @@ async function getValidacionTrayectoria(req, res) {
       FROM kardex_historial_academico h
       LEFT JOIN periodos p ON p.id_periodo = h.id_periodo
       LEFT JOIN materias m ON m.id_materia = h.id_materia
-      WHERE h.id_alumno = ?
+      WHERE h.id_alumno = ? AND h.id_institucion = ?
       ORDER BY p.fecha_inicio, m.semestre_sugerido
-    `, [idAlumno]);
+    `, [idAlumno, idInstitucion]);
 
     const a = alumno[0];
     const creditosAcreditados = historial
@@ -417,9 +425,12 @@ async function getValidacionTrayectoria(req, res) {
 async function getDiagnosticoRezago(req, res) {
   try {
     const { idPeriodo, idCarrera } = req.query;
+    const idInstitucion = req.user?.id_institucion || 1;
 
     let whereExtra = '';
     const params = [];
+    whereExtra += ' AND a.id_institucion = ?';
+    params.push(idInstitucion);
     if (idPeriodo) { whereExtra += ' AND ga.id_periodo = ?'; params.push(idPeriodo); }
     if (idCarrera) { whereExtra += ' AND a.id_carrera = ?'; params.push(idCarrera); }
 
@@ -434,21 +445,21 @@ async function getDiagnosticoRezago(req, res) {
         COALESCE(k.promedio_general, 0) AS promedio_general,
         COALESCE(k.creditos_acumulados, 0) AS creditos_acumulados,
         (SELECT COUNT(*) FROM kardex_historial_academico h
-         WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada') AS materias_reprobadas,
+         WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada' AND h.id_institucion = ?) AS materias_reprobadas,
         (SELECT COUNT(*) FROM kardex_historial_academico h
-         WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada' AND h.tipo_materia = 'Extraordinario') AS extraordinarios_reprobados
+         WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada' AND h.tipo_materia = 'Extraordinario' AND h.id_institucion = ?) AS extraordinarios_reprobados
       FROM alumnos a
       JOIN carreras c ON c.id_carrera = a.id_carrera
       LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
       JOIN grupos_alumnos ga ON ga.id_alumno = a.id_alumno AND ga.estado = 'ACTIVO'
       WHERE (COALESCE(k.promedio_general, 0) < 70
          OR (SELECT COUNT(*) FROM kardex_historial_academico h
-             WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada') > 2)
+             WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada' AND h.id_institucion = ?) > 2)
         ${whereExtra}
       GROUP BY a.id_alumno
       ORDER BY COALESCE(k.promedio_general, 0) ASC
       LIMIT 100
-    `, params);
+    `, [...params, idInstitucion, idInstitucion, idInstitucion]);
 
     const totalConRezago = alumnosRezago.length;
     const promedioRezago = totalConRezago > 0
@@ -459,8 +470,10 @@ async function getDiagnosticoRezago(req, res) {
       SELECT COUNT(DISTINCT a.id_alumno) AS total
       FROM alumnos a
       JOIN grupos_alumnos ga ON ga.id_alumno = a.id_alumno AND ga.estado = 'ACTIVO'
-      ${whereExtra.replace(/ga\./g, 'ga.')}
-    `, params);
+      WHERE a.id_institucion = ?
+      ${idPeriodo ? 'AND ga.id_periodo = ?' : ''}
+      ${idCarrera ? 'AND a.id_carrera = ?' : ''}
+    `, [idInstitucion, ...(idPeriodo ? [idPeriodo] : []), ...(idCarrera ? [idCarrera] : [])]);
 
     const totalAlumnos = totalActivos[0]?.total || 0;
     const porcentajeRezago = totalAlumnos > 0
@@ -488,9 +501,12 @@ async function getDiagnosticoRezago(req, res) {
 async function getDiagnosticoIrregularidades(req, res) {
   try {
     const { idPeriodo, idCarrera } = req.query;
+    const idInstitucion = req.user?.id_institucion || 1;
 
     let whereExtra = '';
     const params = [];
+    whereExtra += ' AND a.id_institucion = ?';
+    params.push(idInstitucion);
     if (idPeriodo) { whereExtra += ' AND ga.id_periodo = ?'; params.push(idPeriodo); }
     if (idCarrera) { whereExtra += ' AND a.id_carrera = ?'; params.push(idCarrera); }
 
@@ -505,20 +521,20 @@ async function getDiagnosticoIrregularidades(req, res) {
         CASE
           WHEN COALESCE(k.promedio_general, 0) < 60 THEN 'Promedio crítico'
           WHEN (SELECT COUNT(*) FROM kardex_historial_academico h
-                WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada') > 3 THEN 'Exceso de reprobación'
+                WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada' AND h.id_institucion = ?) > 3 THEN 'Exceso de reprobación'
           WHEN (SELECT COUNT(*) FROM kardex_historial_academico h
-                WHERE h.id_alumno = a.id_alumno AND h.tipo_materia = 'Extraordinario') > 2 THEN 'Múltiples extraordinarios'
+                WHERE h.id_alumno = a.id_alumno AND h.tipo_materia = 'Extraordinario' AND h.id_institucion = ?) > 2 THEN 'Múltiples extraordinarios'
           WHEN a.estatus_academico = 'Irregular' THEN 'Estatus irregular'
           WHEN (COALESCE(k.promedio_general, 0) >= 70 AND COALESCE(k.promedio_general, 0) < 80
                 AND (SELECT COUNT(*) FROM kardex_historial_academico h
-                     WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada') > 0)
+                     WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada' AND h.id_institucion = ?) > 0)
             THEN 'Rendimiento borderline'
           ELSE 'Sin irregularidad'
         END AS tipo_irregularidad,
         (SELECT COUNT(*) FROM kardex_historial_academico h
-         WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada') AS materias_reprobadas,
+         WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada' AND h.id_institucion = ?) AS materias_reprobadas,
         (SELECT COUNT(*) FROM kardex_historial_academico h
-         WHERE h.id_alumno = a.id_alumno AND h.tipo_materia = 'Extraordinario') AS extraordinarios
+         WHERE h.id_alumno = a.id_alumno AND h.tipo_materia = 'Extraordinario' AND h.id_institucion = ?) AS extraordinarios
       FROM alumnos a
       JOIN carreras c ON c.id_carrera = a.id_carrera
       LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
@@ -526,14 +542,14 @@ async function getDiagnosticoIrregularidades(req, res) {
       WHERE (
         COALESCE(k.promedio_general, 0) < 80
         OR (SELECT COUNT(*) FROM kardex_historial_academico h
-            WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada') > 0
+            WHERE h.id_alumno = a.id_alumno AND h.estado = 'No Acreditada' AND h.id_institucion = ?) > 0
         OR a.estatus_academico = 'Irregular'
       )
       ${whereExtra}
       GROUP BY a.id_alumno
       ORDER BY COALESCE(k.promedio_general, 0) ASC
       LIMIT 100
-    `, params);
+    `, [...params, idInstitucion, idInstitucion, idInstitucion, idInstitucion, idInstitucion, idInstitucion]);
 
     const agrupadas = {};
     for (const irr of irregularidades) {

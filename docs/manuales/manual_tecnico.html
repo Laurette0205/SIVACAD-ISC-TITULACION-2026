@@ -3,90 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manual Técnico — SIVACAD</title>
+<title>SIVACAD — Manual</title>
 <style>
-  :root { --bg: #ffffff; --text: #1e293b; --accent: #2563eb; --border: #e2e8f0; --code-bg: #f1f5f9; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; padding: 2.5rem; max-width: 1000px; margin: 0 auto; }
-  h1 { font-size: 2rem; color: #0f172a; border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 0.25rem; }
-  .subtitle { color: #64748b; margin-bottom: 2rem; font-size: 0.95rem; }
-  h2 { font-size: 1.5rem; color: #0f172a; margin: 2.5rem 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; page-break-before: always; }
-  h2:first-of-type { page-break-before: avoid; }
-  h3 { font-size: 1.15rem; color: #1e293b; margin: 1.5rem 0 0.5rem; }
-  h4 { font-size: 1rem; color: #334155; margin: 1rem 0 0.3rem; }
-  p { margin-bottom: 0.8rem; }
-  ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
-  li { margin-bottom: 0.3rem; }
-  code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
-  pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 0.8rem 0; font-size: 0.85rem; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; }
-  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
-  th { background: #1e3a5f; color: #fff; padding: 0.6rem; text-align: left; }
-  td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); }
-  tr:nth-child(even) { background: #f8fafc; }
-  .toc { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem 2rem; margin: 2rem 0; }
-  .toc h2 { margin-top: 0; page-break-before: avoid; border-bottom: none; }
-  .toc a { color: var(--accent); text-decoration: none; }
-  .header-inst { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--accent); }
-  .header-inst h1 { border-bottom: none; margin-bottom: 0.2rem; }
-  .header-inst .sistema { font-size: 1.1rem; font-weight: 600; color: #0f172a; }
-  .header-inst .autoras { font-size: 0.9rem; color: #64748b; }
-  .header-inst .version { font-size: 0.8rem; color: #94a3b8; margin-top: 0.3rem; }
-  .footer-page { text-align: center; font-size: 0.75rem; color: #94a3b8; margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1rem; }
-  @media print {
-    @page { margin: 2cm 2.5cm 2.5cm 2.5cm; size: A4; }
-    body { padding: 0; font-size: 11pt; line-height: 1.5; color: #000; background: #fff; }
-    h1 { font-size: 18pt; }
-    h2 { font-size: 14pt; page-break-before: always; margin-top: 0; padding-top: 0; }
-    h2:first-of-type { page-break-before: avoid; }
-    h3 { font-size: 12pt; page-break-after: avoid; }
-    h4 { font-size: 11pt; page-break-after: avoid; }
-    p, li { font-size: 11pt; }
-    table { font-size: 9pt; page-break-inside: avoid; }
-    tr { page-break-inside: avoid; }
-    pre { font-size: 8pt; white-space: pre-wrap; word-break: break-word; page-break-inside: avoid; }
-    code { font-size: 8pt; }
-    .toc { page-break-after: always; }
-    .toc h2 { page-break-before: avoid; }
-    .header-inst { page-break-before: avoid; }
-    a { color: #000; text-decoration: none; }
-    .print-footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 8pt; color: #666; border-top: 0.5pt solid #ccc; padding: 4pt 0 2pt; }
-  }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; line-height: 1.6; color: #1a1a2e; background: #f8f9fa; }
+  h1 { color: #0f3460; border-bottom: 3px solid #0f3460; padding-bottom: 0.5rem; }
+  h2 { color: #16213e; margin-top: 2rem; border-left: 4px solid #e94560; padding-left: 0.75rem; }
+  h3 { color: #533483; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+  th, td { border: 1px solid #ddd; padding: 0.5rem 0.75rem; text-align: left; }
+  th { background: #0f3460; color: white; }
+  tr:nth-child(even) { background: #f2f2f2; }
+  pre { background: #1a1a2e; color: #a8e6cf; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+  code { background: #e8e8e8; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; }
+  pre code { background: none; padding: 0; }
+  blockquote { border-left: 4px solid #e94560; margin: 1rem 0; padding: 0.5rem 1rem; background: #fff3f3; border-radius: 0 8px 8px 0; }
+  li { margin: 0.25rem 0; }
+  hr { border: none; border-top: 2px solid #ddd; margin: 2rem 0; }
+  a { color: #e94560; }
+  strong { color: #16213e; }
 </style>
 </head>
 <body>
-
-<div class="header-inst">
-  <h1>Manual Técnico</h1>
-  <div class="sistema">Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos (SIVACAD)</div>
-  <div class="autoras">Autoras: Bárcenas González Laura Casandra &amp; Morales Ibarra Sandivel</div>
-  <div class="autoras">TESI Ixtapaluca — Ingeniería en Sistemas Computacionales</div>
-  <div class="version">Versión 1.0 — Julio 2026</div>
-</div>
-
-<div class="toc">
-  <h2>Índice</h2>
-  <ol>
-    <li><a href="#s1">Introducción</a></li>
-    <li><a href="#s2">Arquitectura General</a></li>
-    <li><a href="#s3">Stack Tecnológico</a></li>
-    <li><a href="#s4">Estructura del Proyecto</a></li>
-    <li><a href="#s5">Frontend — React + Vite</a></li>
-    <li><a href="#s6">Backend — Node.js + Express</a></li>
-    <li><a href="#s7">Base de Datos — MySQL 8.0</a></li>
-    <li><a href="#s8">Servicios Externos</a></li>
-    <li><a href="#s9">Rutas y Endpoints</a></li>
-    <li><a href="#s10">Configuración y Variables de Entorno</a></li>
-    <li><a href="#s11">Relación Frontend-Backend</a></li>
-    <li><a href="#s12">Dependencias y Librerías</a></li>
-  </ol>
-</div>
-
-<h2 id="s1">1. Introducción</h2>
+<h1>Manual Técnico — SIVACAD</h1>
+<p><strong>Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos</strong></p>
+<p><strong>Autoras:</strong> Bárcenas González Laura Casandra &amp; Morales Ibarra Sandivel<br><strong>Institución:</strong> TESI Ixtapaluca — Ingeniería en Sistemas Computacionales<br><strong>Versión:</strong> 3.0 — Septiembre 2026</p>
+<hr>
+<h2>Índice</h2>
+<ol>
+<li><a href="#1-introducci%C3%B3n">Introducción</a></li>
+<li><a href="#2-arquitectura-general">Arquitectura General</a></li>
+<li><a href="#3-stack-tecnol%C3%B3gico">Stack Tecnológico</a></li>
+<li><a href="#4-estructura-del-proyecto">Estructura del Proyecto</a></li>
+<li><a href="#5-frontend--react--vite">Frontend — React + Vite</a></li>
+<li><a href="#6-backend--nodejs--express">Backend — Node.js + Express</a></li>
+<li><a href="#7-base-de-datos--mysql-80">Base de Datos — MySQL 8.0</a></li>
+<li><a href="#8-servicios-externos">Servicios Externos</a></li>
+<li><a href="#9-rutas-y-endpoints">Rutas y Endpoints</a></li>
+<li><a href="#10-configuraci%C3%B3n-y-variables-de-entorno">Configuración y Variables de Entorno</a></li>
+<li><a href="#11-relaci%C3%B3n-frontend-backend">Relación Frontend-Backend</a></li>
+<li><a href="#12-pol%C3%ADtica-centralizada-de-contrase%C3%B1as">Política Centralizada de Contraseñas</a></li>
+<li><a href="#13-dependencias-y-librer%C3%ADas">Dependencias y Librerías</a></li>
+<li><a href="#14-arquitectura-de-seguridad-detallada">Arquitectura de Seguridad Detallada</a></li>
+</ol>
+<hr>
+<h2>1. Introducción</h2>
 <p>Este manual describe la arquitectura interna, el stack tecnológico y el funcionamiento técnico del Sistema de Valoración y Calificación del Desempeño de Docentes y Alumnos (SIVACAD). Está dirigido a desarrolladores, analistas técnicos y personal de soporte que requiera comprender, mantener o extender el sistema.</p>
-
-<h2 id="s2">2. Arquitectura General</h2>
-<p>SIVACAD sigue una arquitectura de tres capas (presentación, lógica de negocio, datos) más servicios externos:</p>
-<pre>┌──────────────┐     HTTP/JSON     ┌──────────────┐     SQL     ┌──────────────┐
+<hr>
+<h2>2. Arquitectura General</h2>
+<p>SIVACAD sigue una <strong>arquitectura de tres capas</strong> (presentación, lógica de negocio, datos) más servicios externos:</p>
+<pre><code>┌──────────────┐     HTTP/JSON     ┌──────────────┐     SQL     ┌──────────────┐
 │  Frontend    │ ────────────────→ │   Backend    │ ──────────→ │    MySQL     │
 │  React/Vite  │ ←─────────────── │  Express.js  │ ←───────── │    8.0.0     │
 │  Puerto 5173 │                  │  Puerto 3000 │             │  Puerto 3306 │
@@ -104,400 +69,1125 @@
                                     ┌──────────────┐
                                     │  SMTP O365   │
                                     │  Nodemailer  │
-                                    └──────────────┘</pre>
-
+                                    └──────────────┘
+</code></pre>
 <h3>Principios arquitectónicos</h3>
 <ul>
-  <li><strong>Modularidad:</strong> Cada módulo es independiente y se monta dinámicamente via <code>mountIfAvailable()</code>.</li>
-  <li><strong>Seguridad por capas:</strong> JWT + bcrypt + Helmet + CORS + rate limiting + consultas parametrizadas + auditoría SHA-256.</li>
-  <li><strong>Multi-lenguaje:</strong> JavaScript (frontend/backend), Python (ML), PHP (documentos).</li>
-  <li><strong>Responsive:</strong> CSS vanilla con 3 breakpoints, off-canvas drawer en móvil.</li>
+<li><strong>Modularidad:</strong> Cada módulo es independiente y se monta dinámicamente via <code>mountIfAvailable()</code>.</li>
+<li><strong>Seguridad por capas:</strong> JWT + bcrypt + Helmet + CORS + rate limiting + consultas parametrizadas + auditoría SHA-256.</li>
+<li><strong>Multi-lenguaje:</strong> JavaScript (frontend/backend), Python (ML), PHP (documentos).</li>
+<li><strong>Responsive:</strong> CSS vanilla con 3 breakpoints, off-canvas drawer en móvil.</li>
 </ul>
-
-<h2 id="s3">3. Stack Tecnológico</h2>
+<hr>
+<h2>3. Stack Tecnológico</h2>
 <table>
-  <tr><th>Capa</th><th>Tecnología</th><th>Versión</th><th>Propósito</th></tr>
-  <tr><td>Frontend</td><td>React</td><td>18.x</td><td>Interfaz de usuario SPA</td></tr>
-  <tr><td>Frontend</td><td>Vite</td><td>5.x</td><td>Bundler y dev server</td></tr>
-  <tr><td>Frontend</td><td>React Router</td><td>6.x</td><td>Enrutamiento del lado del cliente</td></tr>
-  <tr><td>Frontend</td><td>CSS vanilla</td><td>—</td><td>Estilos responsive (~2870 líneas)</td></tr>
-  <tr><td>Backend</td><td>Node.js</td><td>18+</td><td>Lógica de negocio</td></tr>
-  <tr><td>Backend</td><td>Express.js</td><td>4.x</td><td>Framework HTTP</td></tr>
-  <tr><td>Backend</td><td>MySQL2</td><td>—</td><td>Conexión a base de datos</td></tr>
-  <tr><td>Backend</td><td>JWT (jsonwebtoken)</td><td>—</td><td>Autenticación por tokens</td></tr>
-  <tr><td>Backend</td><td>bcrypt</td><td>—</td><td>Hash de contraseñas (12 rounds)</td></tr>
-  <tr><td>Backend</td><td>Helmet</td><td>—</td><td>Seguridad HTTP headers</td></tr>
-  <tr><td>Backend</td><td>Nodemailer</td><td>—</td><td>Envío de correos SMTP</td></tr>
-  <tr><td>ML</td><td>Python 3</td><td>3.10+</td><td>Predicción de deserción/bienestar</td></tr>
-  <tr><td>ML</td><td>Flask</td><td>—</td><td>API REST para modelos ML</td></tr>
-  <tr><td>ML</td><td>scikit-learn</td><td>—</td><td>Algoritmos de ML (Random Forest)</td></tr>
-  <tr><td>Documentos</td><td>PHP 8</td><td>8.x</td><td>Generación PDF/Excel vía Dompdf</td></tr>
-  <tr><td>Documentos</td><td>PDFKit</td><td>—</td><td>PDF alternativo desde Node.js</td></tr>
-  <tr><td>Documentos</td><td>ExcelJS</td><td>—</td><td>Excel desde Node.js</td></tr>
-  <tr><td>IA</td><td>Gemini API</td><td>—</td><td>OCR, chatbot, bienestar, asistente</td></tr>
-  <tr><td>BD</td><td>MySQL</td><td>8.0</td><td>BD relacional (67 tablas)</td></tr>
-  <tr><td>Otros</td><td>QRCode</td><td>—</td><td>Generación de códigos QR</td></tr>
-  <tr><td>Otros</td><td>Puppeteer</td><td>—</td><td>PDF avanzado desde HTML</td></tr>
-</table>
-
-<h2 id="s4">4. Estructura del Proyecto</h2>
-<pre>SIVACAD-ISC/
+<thead>
+<tr>
+<th>Capa</th>
+<th>Tecnología</th>
+<th>Versión</th>
+<th>Propósito</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Frontend</td>
+<td>React</td>
+<td>18.x</td>
+<td>Interfaz de usuario SPA</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td>Vite</td>
+<td>5.x</td>
+<td>Bundler y dev server</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td>React Router</td>
+<td>6.x</td>
+<td>Enrutamiento del lado del cliente</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td>CSS vanilla</td>
+<td>—</td>
+<td>Estilos responsive (~2870 líneas)</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>Node.js</td>
+<td>18+</td>
+<td>Lógica de negocio</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>Express.js</td>
+<td>4.x</td>
+<td>Framework HTTP</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>MySQL2</td>
+<td>—</td>
+<td>Conexión a base de datos</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>JWT (jsonwebtoken)</td>
+<td>—</td>
+<td>Autenticación por tokens</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>bcrypt</td>
+<td>—</td>
+<td>Hash de contraseñas (12 rounds)</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>Helmet</td>
+<td>—</td>
+<td>Seguridad HTTP headers</td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>Nodemailer</td>
+<td>—</td>
+<td>Envío de correos SMTP</td>
+</tr>
+<tr>
+<td>ML</td>
+<td>Python 3</td>
+<td>3.10+</td>
+<td>Predicción de deserción/bienestar</td>
+</tr>
+<tr>
+<td>ML</td>
+<td>Flask</td>
+<td>—</td>
+<td>API REST para modelos ML</td>
+</tr>
+<tr>
+<td>ML</td>
+<td>scikit-learn</td>
+<td>—</td>
+<td>Algoritmos de ML (Random Forest)</td>
+</tr>
+<tr>
+<td>Documentos</td>
+<td>PHP 8</td>
+<td>8.x</td>
+<td>Generación PDF/Excel vía Dompdf</td>
+</tr>
+<tr>
+<td>Documentos</td>
+<td>PDFKit</td>
+<td>—</td>
+<td>PDF alternativo desde Node.js</td>
+</tr>
+<tr>
+<td>Documentos</td>
+<td>ExcelJS</td>
+<td>—</td>
+<td>Excel desde Node.js</td>
+</tr>
+<tr>
+<td>IA</td>
+<td>Gemini API</td>
+<td>—</td>
+<td>OCR, chatbot, bienestar, asistente</td>
+</tr>
+<tr>
+<td>BD</td>
+<td>MySQL</td>
+<td>8.0</td>
+<td>Base de datos relacional (70 tablas)</td>
+</tr>
+<tr>
+<td>Otros</td>
+<td>QRCode (qrcode)</td>
+<td>—</td>
+<td>Generación de códigos QR</td>
+</tr>
+<tr>
+<td>Otros</td>
+<td>Puppeteer</td>
+<td>—</td>
+<td>PDF avanzado desde HTML</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>4. Estructura del Proyecto</h2>
+<pre><code>SIVACAD-ISC/
 ├── backend/
 │   ├── src/
 │   │   ├── server.js              # Punto de entrada
 │   │   ├── app.js                 # Configuración Express
 │   │   ├── config/db.js           # Pool de conexiones MySQL2
 │   │   ├── middleware/
-│   │   │   ├── auth.js            # JWT + RBAC + dominio email
-│   │   │   ├── auditoria.js       # Log de operaciones
+│   │   │   ├── auth.js            # JWT + RBAC + verifyRoleAgainstDB + requireReauthentication
+│   │   │   ├── auditoria.js       # Log de operaciones + hash SHA-256 de tokens
+│   │   │   ├── seguridad.js       # Rate limiter, XSS, IP block, device tracking
+│   │   │   ├── institution.js     # Multi-institución, resolveInstitution
 │   │   │   └── upload.js          # Multer config
 │   │   ├── routes/
 │   │   │   ├── index.js           # mountIfAvailable() central
-│   │   │   ├── auth.js
-│   │   │   ├── alumnos.js
-│   │   │   ├── docentes.js
-│   │   │   ├── periodos.js
-│   │   │   ├── grupos.js
-│   │   │   ├── inscripciones.js
-│   │   │   ├── kardex.js
-│   │   │   ├── evaluaciones.js
-│   │   │   ├── actasOCR.js
-│   │   │   ├── tramites.js
-│   │   │   ├── chatbot.js
-│   │   │   ├── asistente.js
-│   │   │   ├── iaDesercion*.js    # 4 sub-routers
-│   │   │   ├── iaBienestar.js
-│   │   │   ├── bienestarAdmin.js
-│   │   │   ├── iaBecas.js
-│   │   │   ├── reportes.js
-│   │   │   ├── dashboard.js
-│   │   │   ├── usuarios.js
-│   │   │   └── otros.js
+│   │   │   ├── auth.js            # Login, Register, Forgot/Reset, LoginMFA, Reauthenticate
+│   │   │   ├── mfa.js             # MFA: setup, enable, disable, verify, status
+│   │   │   ├── alumnos.js         # CRUD alumnos
+│   │   │   ├── alumnoPerfil.js    # Perfil, kardex, estadísticas del alumno
+│   │   │   ├── docentes.js        # CRUD docentes
+│   │   │   ├── periodos.js        # CRUD periodos
+│   │   │   ├── grupos.js          # CRUD grupos
+│   │   │   ├── inscripciones.js   # Inscripciones + reinscripciones
+│   │   │   ├── kardex.js          # Kardex, fotos, QR, PDF/Excel
+│   │   │   ├── evaluaciones.js    # 5 tipos, 4 estados
+│   │   │   ├── actasOCR.js        # OCR con Gemini
+│   │   │   ├── tramites.js        # Baja, cambio escuela/carrera
+│   │   │   ├── chatbot.js         # Chatbot Gemini
+│   │   │   ├── asistente.js       # Asistente con tools + RAG
+│   │   │   ├── iaDesercion*.js    # 4 sub-routers por rol
+│   │   │   ├── iaBienestar.js     # Check-in, chat, escalación
+│   │   │   ├── bienestarAdmin.js  # Supervisión admin
+│   │   │   ├── iaBecas.js         # Becas, búsqueda, elegibilidad
+│   │   │   ├── reportes.js        # PDF/Excel + reportes seguridad
+│   │   │   ├── dashboard.js       # Resumen por rol
+│   │   │   ├── usuarios.js        # CRUD usuarios (solo admin)
+│   │   │   ├── instituciones.js   # Gestión multi-institución
+│   │   │   ├── breakGlass.js      # Acceso de emergencia
+│   │   │   └── otros.js           # Utilidades
 │   │   ├── controllers/           # Lógica de negocio
-│   │   ├── services/              # mailer.js, jwt.js, mlBridge.js
+│   │   ├── services/              # mailer.js, jwt.js, mlBridge.js, mfa.js, breakGlass.js, privacyManager.js
 │   │   └── templates/             # Handlebars para PDF
+│   ├── scripts/
+│   │   └── backup.sh              # Script de backup automático
 │   ├── ml/                        # Flask ML + modelos .pkl
 │   ├── php-kardex/                # PHP Dompdf/PhpSpreadsheet
 │   └── uploads/                   # Archivos subidos
 ├── frontend/
 │   ├── src/
-│   │   ├── main.jsx
-│   │   ├── App.jsx
+│   │   ├── main.jsx               # Punto de entrada React
+│   │   ├── App.jsx                # Router + providers
 │   │   ├── context/
-│   │   │   ├── AuthContext.jsx
-│   │   │   └── ThemeContext.jsx
-│   │   ├── services/api.js
-│   │   ├── components/            # 15+ reutilizables
+│   │   │   ├── AuthContext.jsx     # Sesión, login, logout
+│   │   │   └── ThemeContext.jsx    # Tema claro/oscuro
+│   │   ├── services/
+│   │   │   └── api.js             # 80+ métodos HTTP
+│   │   ├── components/            # 15+ componentes reutilizables
 │   │   ├── pages/                 # 40+ páginas
-│   │   └── styles/global.css      # ~2870 líneas
+│   │   └── styles/
+│   │       └── global.css         # ~2870 líneas CSS vanilla
 │   └── vite.config.js
 ├── database/
-│   ├── sivacad_isc.sql
-│   └── migrations/
+│   ├── sivacad_isc.sql            # Esquema completo
+│   └── migrations/                # Migraciones incrementales
 ├── docs/
-│   ├── diagrams/                  # Documentación técnica
-│   └── manuales/                  # 5 manuales del sistema
-└── README.md</pre>
-
-<h2 id="s5">5. Frontend — React + Vite</h2>
-
+│   ├── diagrams/
+│   │   ├── index.html             # 39 secciones con diagramas
+│   │   └── images/                # 76 capturas de diagramas
+│   └── manuales/                  # Manuales del sistema
+│       ├── manual_usuario.md
+│       ├── manual_tecnico.md
+│       ├── manual_administracion.md
+│       ├── manual_instalacion.md
+│       └── manual_mantenimiento.md
+└── README.md
+</code></pre>
+<hr>
+<h2>5. Frontend — React + Vite</h2>
 <h3>5.1 Enrutamiento</h3>
-<p>Definido en <code>App.jsx</code> usando React Router v6 con rutas públicas (/login, /register, /forgot-password, /reset-password/:token, /terminos, /aviso-privacidad) y protegidas (/app/* envuelto en ProtectedRoute + AppShell).</p>
-
+<p>Definido en <code>App.jsx</code> usando React Router v6:</p>
+<pre><code class="language-jsx">&lt;BrowserRouter&gt;
+  &lt;Routes&gt;
+    &lt;Route path=&quot;/&quot; element={&lt;Navigate to=&quot;/login&quot; /&gt;} /&gt;
+    &lt;Route path=&quot;/login&quot; element={&lt;LoginPage /&gt;} /&gt;
+    &lt;Route path=&quot;/register&quot; element={&lt;RegisterPage /&gt;} /&gt;
+    &lt;Route path=&quot;/forgot-password&quot; element={&lt;ForgotPasswordPage /&gt;} /&gt;
+    &lt;Route path=&quot;/reset-password/:token&quot; element={&lt;ResetPasswordPage /&gt;} /&gt;
+    &lt;Route path=&quot;/terminos&quot; element={&lt;TerminosPage /&gt;} /&gt;
+    &lt;Route path=&quot;/aviso-privacidad&quot; element={&lt;AvisoPrivacidadPage /&gt;} /&gt;
+    &lt;Route path=&quot;/app/*&quot; element={&lt;ProtectedRoute&gt;&lt;AppShell /&gt;&lt;/ProtectedRoute&gt;} /&gt;
+  &lt;/Routes&gt;
+&lt;/BrowserRouter&gt;
+</code></pre>
 <h3>5.2 Autenticación (AuthContext.jsx)</h3>
 <ul>
-  <li>Almacena token JWT y datos del usuario en React state + localStorage.</li>
-  <li>Provee funciones: <code>login()</code>, <code>logout()</code>, <code>isAuthenticated()</code>.</li>
-  <li>Al recibir 401, dispara evento <code>sivacad:auth-error</code> y limpia sesión.</li>
+<li>Almacena <code>token</code> JWT y datos del <code>user</code> en React state + localStorage.</li>
+<li>Provee funciones: <code>login()</code>, <code>logout()</code>, <code>isAuthenticated()</code>, <code>validarContrasena()</code>.</li>
+<li>Al iniciar sesión, redirige según el rol del usuario.</li>
+<li>Al recibir 401, dispara evento <code>sivacad:auth-error</code> y limpia sesión.</li>
+<li><code>validarContrasena()</code> valida contra la política centralizada definida en <code>shared/security/password-policy.json</code>.</li>
 </ul>
-
 <h3>5.3 Peticiones HTTP (api.js)</h3>
 <ul>
-  <li>Función central <code>request(path, { token, method, body })</code>.</li>
-  <li>Inyecta header <code>Authorization: Bearer &lt;token&gt;</code> automáticamente.</li>
-  <li>Timeout default de 15 segundos. Manejo centralizado de errores HTTP.</li>
+<li>Función central <code>request(path, { token, method, body })</code>.</li>
+<li>Inyecta header <code>Authorization: Bearer &lt;token&gt;</code> automáticamente.</li>
+<li>Timeout default de 15 segundos.</li>
+<li>Manejo centralizado de errores HTTP.</li>
 </ul>
-
 <h3>5.4 Componentes reutilizables</h3>
 <ul>
-  <li><strong>AppShell:</strong> Layout principal con sidebar colapsable y menú off-canvas en móvil.</li>
-  <li><strong>ProtectedRoute:</strong> Verifica sesión activa antes de renderizar.</li>
-  <li><strong>SectionCard, DataTable, Modal:</strong> Componentes de UI genéricos.</li>
-  <li><strong>LoadingSpinner, StatusBadge, MetricCard:</strong> Indicadores visuales.</li>
+<li><strong>AppShell:</strong> Layout principal con sidebar colapsable, topbar y área de contenido. Implementa menú off-canvas en móvil.</li>
+<li><strong>ProtectedRoute:</strong> Verifica sesión activa antes de renderizar.</li>
+<li><strong>SectionCard, DataTable, Modal:</strong> Componentes de UI genéricos.</li>
+<li><strong>LoadingSpinner, StatusBadge, MetricCard:</strong> Indicadores visuales.</li>
+<li><strong>KardexPreview, DesercionPreview:</strong> Vistas previas de módulos.</li>
 </ul>
-
 <h3>5.5 Estilos (global.css)</h3>
 <ul>
-  <li>Aproximadamente 2870 líneas de CSS vanilla, sin frameworks.</li>
-  <li>Breakpoints: 1200px (escritorio), 820px (tablet), 720px (móvil).</li>
-  <li>Modo oscuro con variables CSS. Drawer off-canvas para móvil.</li>
+<li>Aproximadamente 2870 líneas de CSS vanilla organizadas por sección.</li>
+<li>Sin framework CSS (no Tailwind, no Bootstrap).</li>
+<li>Breakpoints: 1200px (escritorio), 820px (tablet), 720px (móvil).</li>
+<li>Modo oscuro con variables CSS (<code>--bg-dark</code>, <code>--text-dark</code>, etc.).</li>
+<li>Drawer off-canvas para navegación móvil.</li>
 </ul>
-
-<h2 id="s6">6. Backend — Node.js + Express</h2>
-
+<hr>
+<h2>6. Backend — Node.js + Express</h2>
 <h3>6.1 Punto de entrada (server.js)</h3>
-<pre>const app = require('./app');
+<pre><code class="language-javascript">const app = require(&#39;./app&#39;);
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));</pre>
-
+app.listen(PORT, () =&gt; console.log(`Servidor en puerto ${PORT}`));
+</code></pre>
 <h3>6.2 Configuración Express (app.js)</h3>
 <ul>
-  <li>Middleware global: <code>express.json()</code>, <code>helmet()</code>, <code>cors()</code> con lista blanca + regex LAN.</li>
-  <li>Montaje de rutas: <code>app.use('/api', routesIndex)</code>.</li>
-  <li>Manejo de errores 404 genérico. Rate limiting en rutas sensibles.</li>
+<li>Middleware global: <code>express.json()</code>, <code>helmet()</code>, <code>cors()</code> con lista blanca + regex LAN.</li>
+<li>Montaje de rutas: <code>app.use(&#39;/api&#39;, routesIndex)</code>.</li>
+<li>Manejo de errores 404 genérico.</li>
+<li>Rate limiting en rutas sensibles (5 req/15 min en forgot-password).</li>
 </ul>
-
 <h3>6.3 Sistema de montaje dinámico (routes/index.js)</h3>
-<pre>function mountIfAvailable(routePath, modulePath) {
+<pre><code class="language-javascript">function mountIfAvailable(routePath, modulePath) {
   try {
     const mod = require(modulePath);
     router.use(routePath, mod);
-  } catch (e) { /* Silently skip */ }
-}</pre>
-
-<h3>6.4 Middleware de autenticación</h3>
+  } catch (e) {
+    // Silently skip if module file doesn&#39;t exist
+  }
+}
+</code></pre>
+<p>Esto permite habilitar/deshabilitar módulos agregando o quitando archivos.</p>
+<h3>6.4 Middleware de autenticación (middleware/auth.js)</h3>
 <ul>
-  <li><strong>authenticateToken:</strong> Verifica JWT, extrae id_usuario, correo, rol.</li>
-  <li><strong>validateInstitutionalEmail:</strong> Valida dominio del correo.</li>
-  <li><strong>checkRole('admin', 'coordinador'):</strong> Autorización RBAC.</li>
-  <li><strong>auditLog:</strong> Registra operaciones en bitácora.</li>
+<li><strong>auth (authenticateToken):</strong> Verifica JWT con HS256, extrae <code>id_usuario</code>, <code>correo</code>, <code>rol</code>, <code>id_institucion</code>. Verifica que el token no esté en la blacklist.</li>
+<li><strong>validateInstitutionalEmail:</strong> Valida dominio del correo contra lista blanca (tesi.edu.mx, ixtapaluca.tecnm.mx, outlook.com, outlook.es).</li>
+<li><strong>role(...roles):</strong> Middleware de autorización RBAC con coincidencia case-insensitive.</li>
+<li><strong>verifyRoleAgainstDB:</strong> Verifica que el rol del token aún coincida con la BD (protege contra cuentas cuyo rol cambió después de emitir el token). Se aplica a rutas críticas: break-glass, instituciones, kardex admin. Falla seguro: deniega acceso si la BD no responde.</li>
+<li><strong>requireReauthentication:</strong> Requiere header <code>X-Reauth-Token</code> con JWT temporal de 10 minutos. Usado antes de operaciones sensibles (cambio de email, eliminación de cuenta, cambio de rol).</li>
+<li><strong>auditLog:</strong> Registra operaciones en <code>bitacora_auditoria</code>.</li>
 </ul>
-
 <h3>6.5 Seguridad</h3>
+<p>Los controles de seguridad implementados en SIVACAD se organizan en capas:</p>
+<p><strong>Autenticación y Sesión:</strong></p>
 <ul>
-  <li>Contraseñas hasheadas con bcrypt (12 rounds).</li>
-  <li>Tokens JWT firmados con HMAC-SHA256.</li>
-  <li>Consultas parametrizadas con mysql2 (previene inyección SQL).</li>
-  <li>Transacciones ACID con COMMIT/ROLLBACK.</li>
-  <li>Headers de seguridad via Helmet. CORS + rate limiting.</li>
-  <li><strong>Política centralizada de contraseñas:</strong> Reglas en <code>shared/security/password-policy.json</code> (12-20 caracteres, mayúscula, minúscula, número, símbolo).</li>
+<li>Contraseñas hasheadas con bcrypt (12 rounds de salt).</li>
+<li>Tokens JWT firmados con HMAC-SHA256, algoritmo forzado (rechaza RS256, none).</li>
+<li>Secretos JWT separados: <code>JWT_SECRET</code> para tokens de acceso (8h) y <code>JWT_REFRESH_SECRET</code> para tokens de refresco (30d). Cada secret es independiente y no comparten valor.</li>
+<li>Tokens de sesión hasheados con SHA-256 antes de almacenarlos en <code>sesiones_activas</code> (nunca se almacena el JWT crudo).</li>
+<li>Blacklist de tokens: al cerrar sesión, el token se agrega a una blacklist invalidándolo inmediatamente.</li>
+<li>Bloqueo de cuenta: 5 intentos fallidos → bloqueo de 30 minutos.</li>
+<li>Autenticación Multi-Factor (MFA): TOTP (RFC 6238) con secretos cifrados AES-256-CBC, códigos de recuperación, verificación en login.</li>
 </ul>
-
-<h2 id="s7">7. Base de Datos — MySQL 8.0</h2>
-
+<p><strong>Autorización:</strong></p>
+<ul>
+<li>RBAC con 5 roles: ADMINISTRADOR, COORDINADOR, DOCENTE, SOPORTE, ALUMNO.</li>
+<li><code>verifyRoleAgainstDB</code>: verifica que el rol del token coincida con la BD en rutas críticas.</li>
+<li>Registro público restringido a rol ALUMNO (previene escalación de privilegios).</li>
+<li>Reautenticación antes de operaciones sensibles (token temporal de 10 min).</li>
+</ul>
+<p><strong>Protección de Transporte:</strong></p>
+<ul>
+<li>Headers de seguridad via Helmet: X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy.</li>
+<li>Content Security Policy (CSP): scriptSrc sin <code>unsafe-inline</code>, sin <code>unsafe-eval</code>.</li>
+<li>CORS con lista blanca de orígenes + regex para IPs LAN.</li>
+<li>HTTPS forzado en producción (Nginx + Certbot).</li>
+</ul>
+<p><strong>Protección de Datos:</strong></p>
+<ul>
+<li>Consultas parametrizadas con mysql2 (previene inyección SQL).</li>
+<li>Transacciones ACID con COMMIT/ROLLBACK.</li>
+<li>XSS sanitizer: escape de HTML en body, query y params antes de procesar.</li>
+<li>Rate limiting por ruta: login (10/15min), forgot-password (5/15min), register (5/1h), refresh (30/15min).</li>
+</ul>
+<p><strong>Monitoreo y Auditoría:</strong></p>
+<ul>
+<li>Auditoría global con hash SHA-256 encadenado (integridad y no-repudio).</li>
+<li>9 eventos de auditoría de seguridad: MFA_ENABLED, MFA_DISABLED, MFA_ENABLE_FAILED, MFA_LOGIN_SUCCESS, MFA_LOGIN_FAILED, REAUTH_SUCCESS, REAUTH_FAILED, PROFILE_CHANGED, NEW_DEVICE_LOGIN.</li>
+<li>Detección de dispositivo nuevo: al hacer login desde un dispositivo no registrado, se genera un evento de auditoría WARNING.</li>
+<li>Registro de intentos sospechosos con IP, user-agent y fingerprint del dispositivo.</li>
+</ul>
+<p><strong>Acceso de Emergencia:</strong></p>
+<ul>
+<li>Break-glass access: PIN numérico de 8 dígitos con expiración máxima de 24 horas.</li>
+<li>Registro completo de emisión, uso y revocación de credenciales de emergencia.</li>
+</ul>
+<p><strong>Privacidad:</strong></p>
+<ul>
+<li>Anonimización de datos personales con identificador aleatorio (random hex), sin exponer el ID real del usuario.</li>
+<li>Eliminación de datos sensibles de bienestar y chatbot durante la anonimización.</li>
+</ul>
+<hr>
+<h2>7. Base de Datos — MySQL 8.0</h2>
 <h3>7.1 Esquema general</h3>
 <ul>
-  <li><strong>Motor:</strong> InnoDB (transaccional, integridad referencial).</li>
-  <li><strong>Charset:</strong> utf8mb4_unicode_ci.</li>
-  <li><strong>Total de tablas:</strong> 67.</li>
-  <li><strong>Convención:</strong> snake_case con prefijos modulares (kardex_*, evaluacion_*, ia_*).</li>
+<li><strong>Motor:</strong> InnoDB (transaccional, integridad referencial).</li>
+<li><strong>Charset:</strong> utf8mb4_unicode_ci.</li>
+<li><strong>Total de tablas:</strong> 70.</li>
+<li><strong>Convención de nombres:</strong> snake_case con prefijos modulares (<code>kardex_*</code>, <code>evaluacion_*</code>, <code>ia_*</code>, <code>reinscripcion_*</code>).</li>
 </ul>
-
 <h3>7.2 Grupos de tablas</h3>
 <table>
-  <tr><th>Grupo</th><th>Tablas clave</th><th>Propósito</th></tr>
-  <tr><td>Núcleo</td><td>usuarios, roles, alumnos, docentes</td><td>Identidad y perfiles</td></tr>
-  <tr><td>Académico</td><td>carreras, periodos, grupos, materias</td><td>Estructura académica</td></tr>
-  <tr><td>Inscripciones</td><td>inscripciones, reinscripciones</td><td>Control escolar</td></tr>
-  <tr><td>Kardex</td><td>kardex_alumno, kardex_historial_academico</td><td>Historial académico</td></tr>
-  <tr><td>Evaluaciones</td><td>evaluacion_plantillas, evaluaciones, respuestas</td><td>Evaluación</td></tr>
-  <tr><td>OCR</td><td>actas_ocr_cargas, actas_ocr_datos</td><td>Procesamiento actas</td></tr>
-  <tr><td>Trámites</td><td>tramites, tramites_documentos</td><td>Gestión trámites</td></tr>
-  <tr><td>IA Deserción</td><td>ia_alertas_desercion, ia_seguimientos</td><td>Predicción deserción</td></tr>
-  <tr><td>IA Bienestar</td><td>8 tablas (sesiones, checkins, mensajes, alertas)</td><td>Bienestar estudiantil</td></tr>
-  <tr><td>IA Becas</td><td>becas_fuentes, becas_chunks</td><td>Catálogo becas</td></tr>
-  <tr><td>Auditoría</td><td>bitacora, auditoria_global, sesiones_activas</td><td>Trazabilidad</td></tr>
-</table>
-
+<thead>
+<tr>
+<th>Grupo</th>
+<th>Tablas clave</th>
+<th>Propósito</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Núcleo</td>
+<td><code>usuarios</code>, <code>roles</code>, <code>alumnos</code>, <code>docentes</code></td>
+<td>Identidad y perfiles</td>
+</tr>
+<tr>
+<td>Académico</td>
+<td><code>carreras</code>, <code>periodos</code>, <code>grupos</code>, <code>materias</code></td>
+<td>Estructura académica</td>
+</tr>
+<tr>
+<td>Inscripciones</td>
+<td><code>inscripciones</code>, <code>reinscripciones</code></td>
+<td>Control escolar</td>
+</tr>
+<tr>
+<td>Kardex</td>
+<td><code>kardex_alumno</code>, <code>kardex_historial_academico</code></td>
+<td>Historial académico</td>
+</tr>
+<tr>
+<td>Evaluaciones</td>
+<td><code>evaluacion_plantillas</code>, <code>evaluaciones</code>, <code>respuestas_evaluacion</code></td>
+<td>Evaluación</td>
+</tr>
+<tr>
+<td>OCR</td>
+<td><code>actas_ocr_cargas</code>, <code>actas_ocr_datos</code></td>
+<td>Procesamiento de actas</td>
+</tr>
+<tr>
+<td>Trámites</td>
+<td><code>tramites</code>, <code>tramites_documentos</code></td>
+<td>Gestión de trámites</td>
+</tr>
+<tr>
+<td>IA Deserción</td>
+<td><code>ia_alertas_desercion</code>, <code>ia_seguimientos_desercion</code></td>
+<td>Predicción deserción</td>
+</tr>
+<tr>
+<td>IA Bienestar</td>
+<td>8 tablas (sesiones, checkins, mensajes, alertas, derivaciones)</td>
+<td>Bienestar estudiantil</td>
+</tr>
+<tr>
+<td>IA Becas</td>
+<td><code>becas_fuentes</code>, <code>becas_chunks</code></td>
+<td>Catálogo de becas</td>
+</tr>
+<tr>
+<td>Auditoría</td>
+<td><code>bitacora_auditoria</code>, <code>auditoria_global</code>, <code>sesiones_activas</code></td>
+<td>Trazabilidad</td>
+</tr>
+<tr>
+<td>Seguridad</td>
+<td><code>mfa_config</code>, <code>dispositivos_conocidos</code>, <code>tokens_blacklist</code>, <code>intentos_sospechosos</code>, <code>break_glass_credentials</code></td>
+<td>Control de acceso, MFA, sesiones</td>
+</tr>
+<tr>
+<td>Datos Personales</td>
+<td><code>informacion_medica</code>, <code>informacion_laboral</code>, <code>documentos_sensibles</code>, <code>contactos_emergencia</code></td>
+<td>Panel del alumno</td>
+</tr>
+</tbody></table>
 <h3>7.3 Conexión (config/db.js)</h3>
-<pre>const pool = mysql2.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'sivacad_isc',
+<pre><code class="language-javascript">const pool = mysql2.createPool({
+  host: process.env.DB_HOST || &#39;localhost&#39;,
+  user: process.env.DB_USER || &#39;root&#39;,
+  password: process.env.DB_PASSWORD || &#39;&#39;,
+  database: process.env.DB_NAME || &#39;sivacad_isc&#39;,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
-});</pre>
-
-<h2 id="s8">8. Servicios Externos</h2>
-
+});
+</code></pre>
+<hr>
+<h2>8. Servicios Externos</h2>
 <h3>8.1 Gemini API (Google AI)</h3>
 <ul>
-  <li><strong>Uso:</strong> OCR de actas, chatbot, asistente, chat de bienestar.</li>
-  <li><strong>Autenticación:</strong> API Key en <code>GEMINI_API_KEY</code>.</li>
-  <li><strong>Modelo:</strong> gemini-2.0-flash.</li>
+<li><strong>Uso:</strong> OCR de actas, chatbot general, asistente académico, chat de bienestar.</li>
+<li><strong>Autenticación:</strong> API Key en variable de entorno <code>GEMINI_API_KEY</code>.</li>
+<li><strong>Modelo:</strong> <code>gemini-2.0-flash</code> (o versión disponible).</li>
+<li><strong>Prompt:</strong> Prompt institucional con reglas (solo temas académicos, no inventar datos).</li>
 </ul>
-
 <h3>8.2 Flask ML (Python)</h3>
 <ul>
-  <li><strong>Uso:</strong> Predicción de deserción (binaria y multiclase).</li>
-  <li><strong>Puerto:</strong> 5001. Comunicación vía HTTP POST.</li>
-  <li><strong>Modelos:</strong> Random Forest, XGBoost (archivos .pkl).</li>
+<li><strong>Uso:</strong> Predicción de deserción (binaria y multiclase).</li>
+<li><strong>Puerto:</strong> 5001.</li>
+<li><strong>Comunicación:</strong> Backend Node.js → HTTP POST → Flask API.</li>
+<li><strong>Modelos:</strong> Random Forest, XGBoost (archivos .pkl).</li>
+<li><strong>Rutas:</strong> <code>/predict/desercion</code>, <code>/health</code>.</li>
 </ul>
-
 <h3>8.3 PHP CLI (Dompdf / PhpSpreadsheet)</h3>
 <ul>
-  <li><strong>Uso:</strong> Generación de PDF y Excel con formato institucional.</li>
-  <li><strong>Comunicación:</strong> Backend ejecuta PHP via <code>exec()</code>.</li>
+<li><strong>Uso:</strong> Generación de PDF con formato institucional y Excel con múltiples hojas.</li>
+<li><strong>Comunicación:</strong> Backend ejecuta PHP via <code>exec()</code> o <code>child_process.spawn()</code>.</li>
+<li><strong>Ruta:</strong> <code>backend/php-kardex/</code>.</li>
 </ul>
-
 <h3>8.4 SMTP Office 365 (Nodemailer)</h3>
-<p>Envío de correos de recuperación de contraseña. Configuración por变量 de entorno.</p>
-
+<ul>
+<li><strong>Uso:</strong> Envío de correos de recuperación de contraseña.</li>
+<li><strong>Configuración:</strong> Host, puerto, usuario, contraseña en .env.</li>
+</ul>
 <h3>8.5 Puppeteer</h3>
-<p>Generación alternativa de PDF desde HTML renderizado.</p>
-
-<h2 id="s9">9. Rutas y Endpoints</h2>
+<ul>
+<li><strong>Uso:</strong> Generación alternativa de PDF desde HTML renderizado.</li>
+<li><strong>Alternativa a:</strong> PHP Dompdf (cuando se necesita mayor fidelidad visual).</li>
+</ul>
+<hr>
+<h2>9. Rutas y Endpoints</h2>
+<h3>9.1 Prefijos de rutas montados en /api</h3>
 <table>
-  <tr><th>Ruta</th><th>Módulo</th><th>Roles con acceso</th></tr>
-  <tr><td>/auth/*</td><td>Autenticación</td><td>Público</td></tr>
-  <tr><td>/dashboard/*</td><td>Dashboard</td><td>Todos</td></tr>
-  <tr><td>/alumnos/*</td><td>Alumnos</td><td>Admin, Coord</td></tr>
-  <tr><td>/docentes/*</td><td>Docentes</td><td>Admin, Coord</td></tr>
-  <tr><td>/periodos/*</td><td>Periodos</td><td>Admin, Coord</td></tr>
-  <tr><td>/grupos/*</td><td>Grupos</td><td>Admin, Coord</td></tr>
-  <tr><td>/inscripciones/*</td><td>Inscripciones</td><td>Todos (según acción)</td></tr>
-  <tr><td>/kardex/*</td><td>Kardex</td><td>Todos (según acción)</td></tr>
-  <tr><td>/evaluaciones/*</td><td>Evaluaciones</td><td>Todos (según acción)</td></tr>
-  <tr><td>/actas-ocr/*</td><td>Actas OCR</td><td>Admin, Coord</td></tr>
-  <tr><td>/tramites/*</td><td>Trámites</td><td>Todos (según acción)</td></tr>
-  <tr><td>/chatbot/*</td><td>Chatbot</td><td>Todos</td></tr>
-  <tr><td>/asistente/*</td><td>Asistente</td><td>Todos</td></tr>
-  <tr><td>/ia/desercion/*</td><td>IA Deserción</td><td>Todos (4 sub-routers)</td></tr>
-  <tr><td>/ia/bienestar/*</td><td>IA Bienestar</td><td>Alumno</td></tr>
-  <tr><td>/bienestar-admin/*</td><td>Bienestar Admin</td><td>Admin, Coord, Soporte</td></tr>
-  <tr><td>/ia/becas/*</td><td>IA Becas</td><td>Todos</td></tr>
-  <tr><td>/reportes/*</td><td>Reportes</td><td>Todos</td></tr>
-  <tr><td>/usuarios/*</td><td>Usuarios</td><td>Admin</td></tr>
-  <tr><td>/auditoria/*</td><td>Auditoría</td><td>Admin, Soporte</td></tr>
-</table>
+<thead>
+<tr>
+<th>Ruta</th>
+<th>Módulo</th>
+<th>Roles con acceso</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/auth/*</code></td>
+<td>Autenticación</td>
+<td>Público</td>
+</tr>
+<tr>
+<td><code>/dashboard/*</code></td>
+<td>Dashboard</td>
+<td>Todos</td>
+</tr>
+<tr>
+<td><code>/alumnos/*</code></td>
+<td>Alumnos</td>
+<td>Admin, Coord</td>
+</tr>
+<tr>
+<td><code>/docentes/*</code></td>
+<td>Docentes</td>
+<td>Admin, Coord</td>
+</tr>
+<tr>
+<td><code>/periodos/*</code></td>
+<td>Periodos</td>
+<td>Admin, Coord</td>
+</tr>
+<tr>
+<td><code>/grupos/*</code></td>
+<td>Grupos</td>
+<td>Admin, Coord</td>
+</tr>
+<tr>
+<td><code>/inscripciones/*</code></td>
+<td>Inscripciones</td>
+<td>Todos (según acción)</td>
+</tr>
+<tr>
+<td><code>/kardex/*</code></td>
+<td>Kardex</td>
+<td>Todos (según acción)</td>
+</tr>
+<tr>
+<td><code>/evaluaciones/*</code></td>
+<td>Evaluaciones</td>
+<td>Todos (según acción)</td>
+</tr>
+<tr>
+<td><code>/actas-ocr/*</code></td>
+<td>Actas OCR</td>
+<td>Admin, Coord</td>
+</tr>
+<tr>
+<td><code>/tramites/*</code></td>
+<td>Trámites</td>
+<td>Todos (según acción)</td>
+</tr>
+<tr>
+<td><code>/chatbot/*</code></td>
+<td>Chatbot</td>
+<td>Todos</td>
+</tr>
+<tr>
+<td><code>/asistente/*</code></td>
+<td>Asistente Académico</td>
+<td>Todos</td>
+</tr>
+<tr>
+<td><code>/ia/desercion/*</code></td>
+<td>IA Deserción</td>
+<td>Todos (4 sub-routers por rol)</td>
+</tr>
+<tr>
+<td><code>/ia/bienestar/*</code></td>
+<td>IA Bienestar</td>
+<td>Alumno</td>
+</tr>
+<tr>
+<td><code>/bienestar-admin/*</code></td>
+<td>Bienestar Admin</td>
+<td>Admin, Coord, Soporte</td>
+</tr>
+<tr>
+<td><code>/ia/becas/*</code></td>
+<td>IA Becas</td>
+<td>Todos</td>
+</tr>
+<tr>
+<td><code>/reportes/*</code></td>
+<td>Reportes</td>
+<td>Todos</td>
+</tr>
+<tr>
+<td><code>/usuarios/*</code></td>
+<td>Usuarios</td>
+<td>Admin</td>
+</tr>
+<tr>
+<td><code>/auditoria/*</code></td>
+<td>Auditoría</td>
+<td>Admin, Soporte</td>
+</tr>
+<tr>
+<td><code>/mfa/*</code></td>
+<td>MFA (setup, enable, disable, verify, status)</td>
+<td>Todos autenticados</td>
+</tr>
+<tr>
+<td><code>/alumno-perfil/*</code></td>
+<td>Perfil del alumno</td>
+<td>Alumno</td>
+</tr>
+<tr>
+<td><code>/instituciones/*</code></td>
+<td>Gestión multi-institución</td>
+<td>Admin</td>
+</tr>
+<tr>
+<td><code>/break-glass/*</code></td>
+<td>Acceso de emergencia</td>
+<td>Admin, Coord</td>
+</tr>
+<tr>
+<td><code>/contactos/*</code></td>
+<td>Contactos de crisis</td>
+<td>Todos</td>
+</tr>
+<tr>
+<td><code>/alumno-info-medica/*</code></td>
+<td>Info médica del alumno</td>
+<td>Alumno</td>
+</tr>
+<tr>
+<td><code>/alumno-info-laboral/*</code></td>
+<td>Info laboral del alumno</td>
+<td>Alumno</td>
+</tr>
+<tr>
+<td><code>/alumno-documentos/*</code></td>
+<td>Documentos sensibles del alumno</td>
+<td>Alumno</td>
+</tr>
+<tr>
+<td><code>/contactos-emergencia/*</code></td>
+<td>Contactos de emergencia</td>
+<td>Todos autenticados</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>10. Configuración y Variables de Entorno</h2>
+<h3>10.1 Archivo .env (backend)</h3>
+<pre><code class="language-env"># Puerto del servidor
+PORT=3000
 
-<h2 id="s10">10. Configuración y Variables de Entorno</h2>
-
-<h3>10.1 Backend (.env)</h3>
-<pre>PORT=3000
+# Base de datos
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=
 DB_NAME=sivacad_isc
+
+# JWT
 JWT_SECRET=tu_secreto_jwt_aqui
-JWT_EXPIRES_IN=24h
+JWT_REFRESH_SECRET=otro_secreto_diferente_a_jwt_secret
+JWT_EXPIRES_IN=8h
+
+# Gemini API
 GEMINI_API_KEY=tu_api_key_gemini
+
+# SMTP Office 365
 SMTP_HOST=smtp.office365.com
 SMTP_PORT=587
 SMTP_USER=correo@tesi.edu.mx
 SMTP_PASS=contraseña_correo
+
+# Frontend URL (para enlaces en correos)
 FRONTEND_URL=http://localhost:5173
-FLASK_ML_URL=http://localhost:5001</pre>
 
-<h3>10.2 Frontend (.env)</h3>
-<pre>VITE_API_URL=http://localhost:3000/api</pre>
-
-<h2 id="s11">11. Relación Frontend-Backend</h2>
-
+# Flask ML
+FLASK_ML_URL=http://localhost:5001
+</code></pre>
+<h3>10.2 Archivo .env (frontend)</h3>
+<pre><code class="language-env">VITE_API_URL=http://localhost:3000/api
+</code></pre>
+<hr>
+<h2>11. Relación Frontend-Backend</h2>
 <h3>11.1 Flujo de petición típico</h3>
-<ol>
-  <li>Usuario interactúa con componente React</li>
-  <li>Componente llama a api.js → request('/alumnos', { token })</li>
-  <li>api.js inyecta header Authorization: Bearer &lt;token&gt;</li>
-  <li>Petición HTTP a VITE_API_URL + '/alumnos'</li>
-  <li>Backend recibe en Express Router</li>
-  <li>Middleware auth.js verifica JWT y rol</li>
-  <li>Controlador ejecuta lógica de negocio + consulta MySQL</li>
-  <li>Backend responde JSON { ok: true, data: [...] }</li>
-  <li>api.js retorna response.data al componente</li>
-  <li>Componente actualiza estado y renderiza</li>
-</ol>
-
+<pre><code>1. Usuario interactúa con componente React
+2. Componente llama a api.js → request(&#39;/alumnos&#39;, { token })
+3. api.js inyecta header Authorization: Bearer &lt;token&gt;
+4. Petición HTTP a VITE_API_URL + &#39;/alumnos&#39;
+5. Backend recibe en Express Router
+6. Middleware auth.js verifica JWT y rol
+7. Controlador ejecuta lógica de negocio + consulta MySQL
+8. Backend responde JSON { ok: true, data: [...] }
+9. api.js retorna response.data al componente
+10. Componente actualiza estado y renderiza
+</code></pre>
 <h3>11.2 Manejo de errores</h3>
 <table>
-  <tr><th>Código</th><th>Significado</th><th>Acción del frontend</th></tr>
-  <tr><td>200</td><td>Éxito</td><td>Procesa datos normalmente</td></tr>
-  <tr><td>201</td><td>Creado exitosamente</td><td>Notificación de éxito</td></tr>
-  <tr><td>400</td><td>Error de validación</td><td>Muestra mensaje del servidor</td></tr>
-  <tr><td>401</td><td>No autorizado</td><td>Limpia sesión, redirige a /login</td></tr>
-  <tr><td>403</td><td>Sin permisos</td><td>Muestra "Acceso denegado"</td></tr>
-  <tr><td>404</td><td>No encontrado</td><td>Muestra "No encontrado"</td></tr>
-  <tr><td>429</td><td>Demasiadas solicitudes</td><td>Muestra "Intente más tarde"</td></tr>
-  <tr><td>500</td><td>Error del servidor</td><td>Muestra "Error interno"</td></tr>
-</table>
-
-<h2 id="s12">12. Política Centralizada de Contraseñas</h2>
-
+<thead>
+<tr>
+<th>Código</th>
+<th>Significado</th>
+<th>Acción del frontend</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>200</td>
+<td>Éxito</td>
+<td>Procesa datos normalmente</td>
+</tr>
+<tr>
+<td>201</td>
+<td>Creado exitosamente</td>
+<td>Muestra notificación de éxito</td>
+</tr>
+<tr>
+<td>400</td>
+<td>Error de validación</td>
+<td>Muestra mensaje de error del servidor</td>
+</tr>
+<tr>
+<td>401</td>
+<td>No autorizado / Token expirado</td>
+<td>Limpia sesión, redirige a /login</td>
+</tr>
+<tr>
+<td>403</td>
+<td>Sin permisos</td>
+<td>Muestra &quot;Acceso denegado&quot;</td>
+</tr>
+<tr>
+<td>404</td>
+<td>Recurso no encontrado</td>
+<td>Muestra &quot;No encontrado&quot;</td>
+</tr>
+<tr>
+<td>429</td>
+<td>Demasiadas solicitudes</td>
+<td>Muestra &quot;Intente más tarde&quot;</td>
+</tr>
+<tr>
+<td>500</td>
+<td>Error del servidor</td>
+<td>Muestra &quot;Error interno&quot;</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>12. Política Centralizada de Contraseñas</h2>
 <h3>12.1 Arquitectura</h3>
-<p>La fuente de verdad es <code>shared/security/password-policy.json</code>. Tanto backend como frontend leen esta configuración para garantizar consistencia.</p>
-
+<p>Desde la versión 1.1, SIVACAD implementa una política de contraseñas centralizada. La fuente de verdad es un archivo JSON compartido que define las reglas de validación:</p>
+<pre><code>shared/security/password-policy.json
+</code></pre>
+<p>Tanto el backend como el frontend leen esta configuración para garantizar consistencia en todos los puntos de entrada.</p>
 <h3>12.2 Configuración</h3>
-<pre>{
-  "minLength": 12,
-  "maxLength": 20,
-  "requireUppercase": true,
-  "requireLowercase": true,
-  "requireNumber": true,
-  "requireSymbol": true
-}</pre>
-
+<pre><code class="language-json">{
+  &quot;minLength&quot;: 12,
+  &quot;maxLength&quot;: 20,
+  &quot;requireUppercase&quot;: true,
+  &quot;requireLowercase&quot;: true,
+  &quot;requireNumber&quot;: true,
+  &quot;requireSymbol&quot;: true
+}
+</code></pre>
 <h3>12.3 Archivos de implementación</h3>
 <table>
-  <tr><th>Archivo</th><th>Capa</th><th>Función</th></tr>
-  <tr><td><code>shared/security/password-policy.json</code></td><td>Compartido</td><td>Fuente única de verdad</td></tr>
-  <tr><td><code>backend/src/security/passwordPolicy.js</code></td><td>Backend</td><td>getPasswordPolicy(), validatePassword()</td></tr>
-  <tr><td><code>frontend/src/security/passwordPolicy.js</code></td><td>Frontend</td><td>getPasswordPolicy(), validatePassword()</td></tr>
-  <tr><td><code>backend/src/controllers/auth.js</code></td><td>Backend</td><td>Validación en registro y reset</td></tr>
-  <tr><td><code>frontend/src/pages/RegisterPage.jsx</code></td><td>Frontend</td><td>Validación en tiempo real</td></tr>
-</table>
-
+<thead>
+<tr>
+<th>Archivo</th>
+<th>Capa</th>
+<th>Función</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>shared/security/password-policy.json</code></td>
+<td>Compartido</td>
+<td>Fuente única de verdad</td>
+</tr>
+<tr>
+<td><code>backend/src/security/passwordPolicy.js</code></td>
+<td>Backend</td>
+<td><code>getPasswordPolicy()</code>, <code>validatePassword()</code></td>
+</tr>
+<tr>
+<td><code>frontend/src/security/passwordPolicy.js</code></td>
+<td>Frontend</td>
+<td><code>getPasswordPolicy()</code>, <code>validatePassword()</code>, <code>getPasswordRequirementsText()</code></td>
+</tr>
+<tr>
+<td><code>backend/src/controllers/auth.js</code></td>
+<td>Backend</td>
+<td>Validación en registro y reset-password</td>
+</tr>
+<tr>
+<td><code>backend/src/middleware/validate.js</code></td>
+<td>Backend</td>
+<td>Middleware de validación</td>
+</tr>
+<tr>
+<td><code>frontend/src/pages/RegisterPage.jsx</code></td>
+<td>Frontend</td>
+<td>Validación en tiempo real en registro</td>
+</tr>
+<tr>
+<td><code>frontend/src/pages/ResetPasswordPage.jsx</code></td>
+<td>Frontend</td>
+<td>Validación en restablecimiento</td>
+</tr>
+<tr>
+<td><code>frontend/src/context/AuthContext.jsx</code></td>
+<td>Frontend</td>
+<td><code>validarContrasena()</code> global</td>
+</tr>
+</tbody></table>
 <h3>12.4 Flujo de validación</h3>
 <ol>
-  <li>Usuario escribe contraseña en Registro o Reset.</li>
-  <li>Frontend valida en tiempo real con <code>validatePassword()</code>.</li>
-  <li>Al enviar, Backend re-valida con <code>validatePassword()</code>.</li>
-  <li>Si es válida: <code>bcrypt.hash(contrasena, 12)</code> → almacenar.</li>
-  <li>Si no es válida: retorna error 400.</li>
+<li>El usuario escribe una contraseña en el formulario de Registro o Reset.</li>
+<li>El frontend valida en tiempo real con <code>validatePassword()</code> y muestra requisitos cumplidos/pendientes.</li>
+<li>Al enviar, el backend re-valida con <code>validatePassword()</code>.</li>
+<li>Si es válida: <code>bcrypt.hash(contrasena, 12)</code> → almacenar en BD.</li>
+<li>Si no es válida: retorna error 400 con mensaje descriptivo.</li>
 </ol>
-
-<h2 id="s13">13. Dependencias y Librerías</h2>
-
-<h3>12.1 Backend (package.json)</h3>
-<pre>{
-  "dependencies": {
-    "express": "^4.18.2",
-    "mysql2": "^3.6.0",
-    "jsonwebtoken": "^9.0.2",
-    "bcryptjs": "^2.4.3",
-    "helmet": "^7.1.0",
-    "cors": "^2.8.5",
-    "express-rate-limit": "^7.1.4",
-    "nodemailer": "^6.9.7",
-    "multer": "^1.4.5-lts.1",
-    "qrcode": "^1.5.3",
-    "pdfkit": "^0.13.0",
-    "exceljs": "^4.4.0",
-    "@google/generative-ai": "^0.21.0",
-    "dotenv": "^16.3.1",
-    "morgan": "^1.10.0",
-    "handlebars": "^4.7.8",
-    "puppeteer": "^21.6.0"
+<hr>
+<h2>13. Dependencias y Librerías</h2>
+<h3>13.1 Backend (package.json)</h3>
+<pre><code class="language-json">{
+  &quot;dependencies&quot;: {
+    &quot;express&quot;: &quot;^4.18.2&quot;,
+    &quot;mysql2&quot;: &quot;^3.6.0&quot;,
+    &quot;jsonwebtoken&quot;: &quot;^9.0.2&quot;,
+    &quot;bcryptjs&quot;: &quot;^2.4.3&quot;,
+    &quot;helmet&quot;: &quot;^7.1.0&quot;,
+    &quot;cors&quot;: &quot;^2.8.5&quot;,
+    &quot;express-rate-limit&quot;: &quot;^7.1.4&quot;,
+    &quot;nodemailer&quot;: &quot;^6.9.7&quot;,
+    &quot;multer&quot;: &quot;^1.4.5-lts.1&quot;,
+    &quot;qrcode&quot;: &quot;^1.5.3&quot;,
+    &quot;pdfkit&quot;: &quot;^0.13.0&quot;,
+    &quot;exceljs&quot;: &quot;^4.4.0&quot;,
+    &quot;@google/generative-ai&quot;: &quot;^0.21.0&quot;,
+    &quot;dotenv&quot;: &quot;^16.3.1&quot;,
+    &quot;morgan&quot;: &quot;^1.10.0&quot;,
+    &quot;handlebars&quot;: &quot;^4.7.8&quot;,
+    &quot;puppeteer&quot;: &quot;^21.6.0&quot;
   }
-}</pre>
-
-<h3>12.2 Frontend (package.json)</h3>
-<pre>{
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.0",
-    "axios": "^1.6.2"
+}
+</code></pre>
+<h3>13.2 Frontend (package.json)</h3>
+<pre><code class="language-json">{
+  &quot;dependencies&quot;: {
+    &quot;react&quot;: &quot;^18.2.0&quot;,
+    &quot;react-dom&quot;: &quot;^18.2.0&quot;,
+    &quot;react-router-dom&quot;: &quot;^6.20.0&quot;,
+    &quot;react-scripts&quot;: &quot;5.0.1&quot;,
+    &quot;axios&quot;: &quot;^1.6.2&quot;
   },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.2.0",
-    "vite": "^5.0.0"
+  &quot;devDependencies&quot;: {
+    &quot;@vitejs/plugin-react&quot;: &quot;^4.2.0&quot;,
+    &quot;vite&quot;: &quot;^5.0.0&quot;,
+    &quot;@types/react&quot;: &quot;^18.2.0&quot;,
+    &quot;@types/react-dom&quot;: &quot;^18.2.0&quot;
   }
-}</pre>
-
-<h3>12.3 Python ML (requirements.txt)</h3>
-<pre>flask==3.0.0
+}
+</code></pre>
+<h3>13.3 Python ML (requirements.txt)</h3>
+<pre><code>flask==3.0.0
 flask-cors==4.0.0
 scikit-learn==1.3.2
 pandas==2.1.4
 numpy==1.26.2
 joblib==1.3.2
 xgboost==2.0.1
-imbalanced-learn==0.11.0</pre>
+imbalanced-learn==0.11.0
+</code></pre>
+<hr>
+<h2>14. Arquitectura de Seguridad Detallada</h2>
+<h3>14.1 Flujo de Autenticación Completo</h3>
+<pre><code>┌──────────┐    ┌──────────┐    ┌──────────────┐    ┌──────────────┐
+│ Usuario  │───→│ Frontend │───→│ Backend      │───→│ MySQL        │
+│ (login)  │    │ (React)  │    │ (Express)    │    │ (8.0)        │
+└──────────┘    └──────────┘    └──────────────┘    └──────────────┘
+                                     │
+                   ┌─────────────────┼─────────────────┐
+                   ▼                 ▼                  ▼
+            ┌────────────┐  ┌──────────────┐  ┌──────────────┐
+            │ 1. Validar │  │ 4. Verificar │  │ 7. Almacenar │
+            │ email inst.│  │ MFA (si      │  │ sesión con   │
+            │ 2. Buscar  │  │ activo)      │  │ hash SHA-256 │
+            │ usuario    │  │ 5. Generar   │  │              │
+            │ 3. Verificar│  │ JWT + Refresh│  │              │
+            │ password   │  │ 6. Verificar │  │              │
+            │ bcrypt     │  │ dispositivo  │  │              │
+            │            │  │ nuevo        │  │              │
+            └────────────┘  └──────────────┘  └──────────────┘
+</code></pre>
+<p><strong>Pasos detallados:</strong></p>
+<ol>
+<li><p><strong>Validación de email institucional:</strong> El middleware <code>validateInstitutionalEmail</code> verifica que el dominio del correo esté en la lista blanca (tesi.edu.mx, ixtapaluca.tecnm.mx, outlook.com, outlook.es).</p>
+</li>
+<li><p><strong>Búsqueda de usuario:</strong> Se consulta la tabla <code>usuarios</code> con <code>correo_institucional</code> normalizado (lowercase, trim).</p>
+</li>
+<li><p><strong>Verificación de password:</strong> <code>bcrypt.compare(contrasena, hash)</code> con los 12 rounds de salt. Si falla, se registra intento fallido en <code>intentos_login</code> y se verifica si alcanza el umbral de bloqueo (5 intentos → 30 min).</p>
+</li>
+<li><p><strong>Verificación MFA (si está activo):</strong> Si el usuario tiene <code>mfa_config.activo = 1</code>, se retorna <code>mfaRequired: true</code> con un token temporal de 5 minutos (<code>type: &#39;mfa_pending&#39;</code>). El frontend muestra el formulario de código de 6 dígitos.</p>
+</li>
+<li><p><strong>Generación de tokens:</strong> <code>signToken()</code> genera el JWT de acceso (expiración 8h, payload: id_usuario, correo, rol, rol_id, id_institucion). <code>signRefreshToken()</code> genera el token de refresco (expiración 30d, payload: id_usuario, type: &#39;refresh&#39;) con <code>JWT_REFRESH_SECRET</code> separado.</p>
+</li>
+<li><p><strong>Verificación de dispositivo:</strong> <code>trackDevice()</code> compara el fingerprint del dispositivo (UA + IP + Accept-Language hasheado con SHA-256) contra la tabla <code>dispositivos_conocidos</code>. Si es nuevo, registra evento <code>NEW_DEVICE_LOGIN</code> en auditoría.</p>
+</li>
+<li><p><strong>Almacenamiento de sesión:</strong> El token JWT se hashea con SHA-256 antes de insertarlo en <code>sesiones_activas</code>. Nunca se almacena el JWT crudo.</p>
+</li>
+</ol>
+<h3>14.2 Flujo MFA (Multi-Factor Authentication)</h3>
+<pre><code>SETUP:  POST /api/mfa/setup → genera secreto TOTP + QR code + recovery codes
+ENABLE: POST /api/mfa/enable { token } → verifica TOTP, activa MFA
+LOGIN:  POST /api/auth/login → retorna { mfaRequired: true, mfaToken }
+        POST /api/auth/login-mfa { mfaToken, codigo } → verifica TOTP, retorna JWT completo
+STATUS: GET /api/mfa/status → { configured, active, recoveryCodesRemaining }
+DISABLE: POST /api/mfa/disable { token } → desactiva MFA
+</code></pre>
+<p><strong>Detalles técnicos:</strong></p>
+<ul>
+<li>El secreto TOTP se genera con <code>speakeasy.generateSecret()</code> y se cifra con AES-256-CBC antes de almacenarlo en <code>mfa_config.secret_encrypted</code>.</li>
+<li>Los códigos de recuperación se generan como hashes SHA-256 (nunca se almacenan en texto plano).</li>
+<li>La verificación usa <code>speakeasy.totp.verify()</code> con ventana de ±1 шаг (30 segundos).</li>
+<li>Los secretos se cifran usando una clave derivada de <code>JWT_SECRET</code> + <code>JWT_REFRESH_SECRET</code> via PBKDF2.</li>
+</ul>
+<h3>14.3 Separación de Secretos JWT</h3>
+<p><strong>¿Por qué?</strong> Si un atacante obtiene acceso al JWT de un usuario, y ambos tokens (acceso y refresco) usan el mismo secreto, podría generar tokens de refresco válidos. Con secretos separados, comprometer uno no afecta al otro.</p>
+<p><strong>Implementación:</strong></p>
+<pre><code class="language-javascript">// jwt.js
+const accessSecret = process.env.JWT_SECRET;        // Para tokens de acceso (8h)
+const refreshSecret = process.env.JWT_REFRESH_SECRET; // Para tokens de refresco (30d)
 
-<div class="footer-page">Fin del Manual Técnico — SIVACAD v1.0 — TESI Ixtapaluca — ISC 2026</div>
+exports.signToken = (payload, expiresIn) =&gt; 
+  jwt.sign(payload, accessSecret, { algorithm: &#39;HS256&#39;, expiresIn });
 
-<div class="print-footer">SIVACAD &mdash; Manual Técnico &mdash; TESI Ixtapaluca &mdash; ISC 2026</div>
+exports.signRefreshToken = (payload) =&gt; 
+  jwt.sign({ ...payload, type: &#39;refresh&#39; }, refreshSecret, { algorithm: &#39;HS256&#39;, expiresIn: &#39;30d&#39; });
+
+exports.verifyRefreshToken = (token) =&gt; 
+  jwt.verify(token, refreshSecret, { algorithms: [&#39;HS256&#39;] });
+</code></pre>
+<h3>14.4 Hash de Tokens en BD</h3>
+<p><strong>¿Por qué no almacenar el JWT crudo?</strong> Si un atacante obtiene acceso a la base de datos, ver todos los tokens JWT activos le permitiría impersonar a cualquier usuario. Con hashes SHA-256, los tokens son inutilizables sin el secreto de firma.</p>
+<p><strong>Implementación:</strong></p>
+<pre><code class="language-javascript">// auditoria.js
+const tokenHash = crypto.createHash(&#39;sha256&#39;)
+  .update(req.headers.authorization?.replace(&#39;Bearer &#39;, &#39;&#39;) || &#39;&#39;)
+  .digest(&#39;hex&#39;);
+
+await pool.execute(
+  &#39;INSERT INTO sesiones_activas (id_usuario, token_jwt, ...) VALUES (?, ?, ...)&#39;,
+  [userId, tokenHash, ...]  // Se almacena el hash, no el JWT
+);
+</code></pre>
+<h3>14.5 Break-Glass Access</h3>
+<p><strong>Caso de uso:</strong> Cuando todos los administradores están bloqueados o incapacitados, un COORDINADOR puede generar un PIN de emergencia para acceder.</p>
+<p><strong>Flujo:</strong></p>
+<ol>
+<li>Admin/Coord genera PIN: <code>POST /api/break-glass/grant</code></li>
+<li>Se genera PIN numérico de 8 dígitos (ej: <code>48291037</code>)</li>
+<li>Se almacena como hash SHA-256 en <code>break_glass_credentials</code></li>
+<li>El PIN expira en máximo 24 horas</li>
+<li>Para usar: <code>POST /api/break-glass/verify { pin }</code> → retorna permisos temporales</li>
+<li>Admin puede revocar: <code>POST /api/break-glass/revoke/:id</code></li>
+</ol>
+<h3>14.6 Privacidad y Anonimización</h3>
+<p><strong>Cumplimiento ARCO:</strong> Cuando un usuario solicita eliminación de sus datos, el sistema:</p>
+<ol>
+<li><strong>Anonimiza</strong> nombres, apellidos, CURP y fotografía</li>
+<li><strong>Genera</strong> un identificador aleatorio (random hex de 8 bytes) para el email (nunca expone el ID real)</li>
+<li><strong>Elimina</strong> datos sensibles de bienestar (check-ins, mensajes) y chatbot</li>
+<li><strong>Conserva</strong> registros académicos anonimizados para integridad estadística</li>
+</ol>
+<h3>14.7 Tabla Resumen de Controles de Seguridad</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Control</th>
+<th>Capa</th>
+<th>Implementación</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Bcrypt 12 rounds</td>
+<td>Autenticación</td>
+<td><code>bcrypt.hash(pw, 12)</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>JWT HS256</td>
+<td>Autenticación</td>
+<td><code>jwt.sign(payload, secret, { algorithm: &#39;HS256&#39; })</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Secretos separados</td>
+<td>Autenticación</td>
+<td><code>JWT_SECRET</code> ≠ <code>JWT_REFRESH_SECRET</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Token hash SHA-256</td>
+<td>Sesiones</td>
+<td><code>crypto.createHash(&#39;sha256&#39;).update(token)</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Blacklist tokens</td>
+<td>Sesiones</td>
+<td><code>tokens_blacklist</code> tabla + verificación middleware</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Bloqueo de cuenta</td>
+<td>Autenticación</td>
+<td>5 intentos → 30 min lockout</td>
+</tr>
+<tr>
+<td>7</td>
+<td>MFA TOTP</td>
+<td>Autenticación</td>
+<td><code>speakeasy</code> + AES-256-CBC encrypted secrets</td>
+</tr>
+<tr>
+<td>8</td>
+<td>RBAC por rol</td>
+<td>Autorización</td>
+<td><code>role(&#39;ADMIN&#39;, &#39;COORD&#39;)</code> middleware</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Verificación rol BD</td>
+<td>Autorización</td>
+<td><code>verifyRoleAgainstDB</code> en rutas críticas</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Reautenticación</td>
+<td>Autorización</td>
+<td><code>requireReauthentication</code> + token temporal 10min</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Helmet headers</td>
+<td>Transporte</td>
+<td>X-Frame-Options, CSP, XSS-Protection</td>
+</tr>
+<tr>
+<td>12</td>
+<td>CSP sin unsafe-inline</td>
+<td>Transporte</td>
+<td><code>scriptSrc: [&quot;&#39;self&#39;&quot;]</code></td>
+</tr>
+<tr>
+<td>13</td>
+<td>Rate limiting</td>
+<td>Disponibilidad</td>
+<td>10 login/15min, 5 forgot/15min</td>
+</tr>
+<tr>
+<td>14</td>
+<td>XSS sanitizer</td>
+<td>Datos</td>
+<td>Escape de HTML en body, query, params</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Consultas parametrizadas</td>
+<td>Datos</td>
+<td><code>pool.execute(sql, [params])</code></td>
+</tr>
+<tr>
+<td>16</td>
+<td>Auditoría SHA-256</td>
+<td>Monitoreo</td>
+<td>Hash encadenado en <code>auditoria_global</code></td>
+</tr>
+<tr>
+<td>17</td>
+<td>Eventos seguridad</td>
+<td>Monitoreo</td>
+<td>9 tipos de eventos de seguridad</td>
+</tr>
+<tr>
+<td>18</td>
+<td>Device tracking</td>
+<td>Monitoreo</td>
+<td>Fingerprint + alerta dispositivo nuevo</td>
+</tr>
+<tr>
+<td>19</td>
+<td>Break-glass PIN</td>
+<td>Emergencia</td>
+<td>8 dígitos numéricos, expiración 24h</td>
+</tr>
+<tr>
+<td>20</td>
+<td>Anonimización ARCO</td>
+<td>Privacidad</td>
+<td>random hex, no expone ID real</td>
+</tr>
+<tr>
+<td>21</td>
+<td>RBAC Panel Alumno</td>
+<td>Autorización</td>
+<td><code>role(&#39;ALUMNO&#39;)</code> en medical/laboral/docs</td>
+</tr>
+<tr>
+<td>22</td>
+<td>IDOR Protection</td>
+<td>Autorización</td>
+<td>Queries por <code>id_usuario</code> del JWT</td>
+</tr>
+<tr>
+<td>23</td>
+<td>Auditoría panel</td>
+<td>Monitoreo</td>
+<td><code>PROFILE_CHANGED</code>, <code>CONTACTO_*</code>, <code>INFORMACION_*</code>, <code>DOCUMENTO_*</code></td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>Fin del Manual Técnico — SIVACAD v3.0</em></p>
+
 </body>
 </html>
