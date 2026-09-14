@@ -5,11 +5,10 @@ import { FormField } from '../components/FormField';
 import { api, canAccessBienestarAdminIA } from '../services/api';
 import {
   Activity, AlertTriangle, BarChart3, BookOpen, CheckCircle2,
-  ClipboardList, Download, FileText, HeartPulse, LayoutDashboard,
-  List, Loader2, RefreshCw, Search, Shield, TrendingUp, Users,
-  XCircle, Clock, Database, FileSpreadsheet, Flag, UserCheck,
-  Eye, Filter, RotateCcw, X, ArrowUpDown, GraduationCap,
-  MessageSquare, Phone, HelpCircle, FileCheck
+  ClipboardList, Clock, Download, Eye, FileCheck, FileText,
+  Filter, GraduationCap, HeartPulse, LayoutDashboard, List,
+  Loader2, MessageSquare, Phone, RefreshCw, RotateCcw, Search,
+  Shield, TrendingUp, Users, X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -49,7 +48,7 @@ function StatusBadge({ label, color }) {
   );
 }
 
-function ModuleCard({ icon: Icon, title, description, stats, color, onClick, active }) {
+function ModuleCard({ icon: Icon, title, description, status, statusColor, stats, color, onClick, active, actions }) {
   return (
     <div
       onClick={onClick}
@@ -60,21 +59,34 @@ function ModuleCard({ icon: Icon, title, description, stats, color, onClick, act
         boxShadow: active ? `0 4px 16px ${color}20` : '0 1px 3px rgba(0,0,0,.04)'
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.5rem' }}>
-        <div style={{ width: 36, height: 36, borderRadius: '10px', background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', color, flexShrink: 0 }}>
-          <Icon size={18} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <div style={{ width: 36, height: 36, borderRadius: '10px', background: `${color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', color, flexShrink: 0 }}>
+            <Icon size={18} />
+          </div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-heading, #0F172A)' }}>{title}</div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--muted, #64748B)' }}>{description}</div>
+          </div>
         </div>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-heading, #0F172A)' }}>{title}</div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--muted, #64748B)' }}>{description}</div>
-        </div>
+        {status && <StatusBadge label={status} color={statusColor || '#22c55e'} />}
       </div>
-      {stats && (
+      {stats && stats.length > 0 && (
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
           {stats.map((s, i) => (
             <div key={i} style={{ fontSize: '0.72rem', color: 'var(--muted, #64748B)' }}>
               <span style={{ fontWeight: 700, color: 'var(--text-heading, #0F172A)' }}>{s.value}</span> {s.label}
             </div>
+          ))}
+        </div>
+      )}
+      {actions && actions.length > 0 && (
+        <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+          {actions.map((a, i) => (
+            <button key={i} onClick={e => { e.stopPropagation(); a.onClick(); }}
+              style={{ padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', background: 'var(--surface-card, #fff)', cursor: 'pointer', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: 4, color: a.color || '#4F46E5' }}>
+              {a.icon} {a.label}
+            </button>
           ))}
         </div>
       )}
@@ -253,9 +265,8 @@ export default function IABienestarAdminPage() {
     else if (activeTab === 'recursos') { fetchCatalogosBienestar(); }
     else if (activeTab === 'chat') { fetchResumen(); }
     else if (activeTab === 'indicadores') fetchIndicadores();
-    else if (activeTab === 'alertas') fetchAlertas();
-    else if (activeTab === 'seguimientos') fetchSeguimientos();
-    else if (activeTab === 'auditoria') fetchAuditoria();
+    else if (activeTab === 'alertas') { fetchAlertas(); fetchCatalogos(); }
+    else if (activeTab === 'historial') { fetchSeguimientos(); fetchAuditoria(); }
     else if (activeTab === 'alumnos') { fetchAlumnosRiesgo(); fetchCatalogos(); }
   }, [activeTab, fetchResumen, fetchIndicadores, fetchAlertas, fetchSeguimientos, fetchAuditoria, fetchGruposRiesgo, fetchAlumnosRiesgo, fetchCatalogos, fetchCatalogosBienestar]);
 
@@ -293,8 +304,8 @@ export default function IABienestarAdminPage() {
     { key: 'recursos', label: 'Tutoriales y recursos', icon: BookOpen },
     { key: 'chat', label: 'Chat de apoyo', icon: MessageSquare },
     { key: 'alertas', label: 'Alertas', icon: AlertTriangle },
-    { key: 'seguimientos', label: 'Seguimiento', icon: ClipboardList },
-    { key: 'auditoria', label: 'Auditoría', icon: Shield }
+    { key: 'historial', label: 'Historial', icon: ClipboardList },
+    { key: 'alumnos', label: 'Alumnos en riesgo', icon: Users }
   ];
 
   const resetAlumnosFilters = () => {
@@ -313,44 +324,71 @@ export default function IABienestarAdminPage() {
     const sesionesActivas = resumenData?.sesiones?.activas || 0;
     const totalDerivaciones = resumenData?.derivaciones?.total || 0;
 
+    const chequeoStatus = totalCheckins > 0 ? 'Activo' : 'Sin actividad';
+    const chequeoColor = totalCheckins > 0 ? '#22c55e' : '#94a3b8';
+    const recursosStatus = totalRecursos > 0 ? `${totalRecursos} disponibles` : 'Sin recursos';
+    const recursosColor = totalRecursos > 0 ? '#4F46E5' : '#94a3b8';
+    const chatStatus = sesionesActivas > 0 ? 'En uso' : 'Disponible';
+    const chatColor = sesionesActivas > 0 ? '#8b5cf6' : '#22c55e';
+    const alertasStatus = alertasPendientes > 0 ? `${alertasPendientes} pendientes` : 'Al día';
+    const alertasColor = alertasPendientes > 0 ? '#f97316' : '#22c55e';
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <SectionCard title="Estado de módulos" subtitle="Vista general del sistema de acompañamiento" icon={LayoutDashboard}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
+        <SectionCard title="Módulos de acompañamiento" subtitle="Estado general del sistema — selecciona un módulo para supervisar" icon={LayoutDashboard}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '0.85rem' }}>
             <ModuleCard
               icon={FileCheck} title="Chequeo guiado"
-              description="Evaluaciones de bienestar"
+              description="Evaluaciones progresivas de bienestar estudiantil"
+              status={chequeoStatus} statusColor={chequeoColor}
               color="#22c55e"
               stats={[
                 { value: totalCheckins, label: 'realizados' },
-                { value: sesionesActivas, label: 'sesiones activas' }
+                { value: sesionesActivas, label: 'sesiones activas' },
+                { value: catalogos.plantillas?.length || 0, label: 'plantillas' }
               ]}
               onClick={() => setActiveTab('chequeo')}
               active={activeTab === 'chequeo'}
+              actions={[
+                { label: 'Supervisar', icon: <Eye size={12} />, onClick: () => setActiveTab('chequeo'), color: '#22c55e' }
+              ]}
             />
             <ModuleCard
               icon={BookOpen} title="Tutoriales y recursos"
-              description="Biblioteca de apoyo"
+              description="Biblioteca de apoyo para acompañamiento"
+              status={recursosStatus} statusColor={recursosColor}
               color="#4F46E5"
               stats={[
-                { value: totalRecursos, label: 'recursos disponibles' }
+                { value: totalRecursos, label: 'recursos' },
+                { value: catalogos.recursos?.filter(r => r.tipo === 'TUTORIAL')?.length || 0, label: 'tutoriales' },
+                { value: catalogos.recursos?.filter(r => r.tipo === 'CONTACTO_CRISIS')?.length || 0, label: 'contactos crisis' }
               ]}
               onClick={() => setActiveTab('recursos')}
               active={activeTab === 'recursos'}
+              actions={[
+                { label: 'Ver recursos', icon: <BookOpen size={12} />, onClick: () => setActiveTab('recursos'), color: '#4F46E5' }
+              ]}
             />
             <ModuleCard
               icon={MessageSquare} title="Chat de apoyo"
-              description="Asistente conversacional"
+              description="Asistente conversacional de bienestar"
+              status={chatStatus} statusColor={chatColor}
               color="#8b5cf6"
               stats={[
-                { value: sesionesActivas, label: 'conversaciones activas' }
+                { value: sesionesActivas, label: 'conversaciones activas' },
+                { value: resumenData?.sesiones?.usuarios_unicos || 0, label: 'usuarios atendidos' },
+                { value: resumenData?.alertas?.distribucion_tipo?.CRISIS_CHAT || 0, label: 'alertas de chat' }
               ]}
               onClick={() => setActiveTab('chat')}
               active={activeTab === 'chat'}
+              actions={[
+                { label: 'Monitorear', icon: <Activity size={12} />, onClick: () => setActiveTab('chat'), color: '#8b5cf6' }
+              ]}
             />
             <ModuleCard
               icon={AlertTriangle} title="Historial y alertas"
-              description="Seguimiento y derivaciones"
+              description="Seguimiento, derivaciones y registro de actividad"
+              status={alertasStatus} statusColor={alertasColor}
               color="#f97316"
               stats={[
                 { value: totalAlertas, label: 'alertas totales' },
@@ -359,6 +397,10 @@ export default function IABienestarAdminPage() {
               ]}
               onClick={() => setActiveTab('alertas')}
               active={activeTab === 'alertas'}
+              actions={[
+                { label: 'Alertas', icon: <AlertTriangle size={12} />, onClick: () => setActiveTab('alertas'), color: '#f97316' },
+                { label: 'Historial', icon: <ClipboardList size={12} />, onClick: () => setActiveTab('historial'), color: '#eab308' }
+              ]}
             />
           </div>
         </SectionCard>
@@ -370,7 +412,7 @@ export default function IABienestarAdminPage() {
           <MetricCard icon={ClipboardList} label="Derivaciones" value={totalDerivaciones} color="#eab308" sub={`${resumenData?.derivaciones?.pendientes || 0} pendientes`} />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
           <SectionCard title="Grupos con alertas activas" icon={GraduationCap}>
             {loading.grupos ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader2 className="animate-spin" size={28} color="#4F46E5" /></div>
@@ -427,7 +469,7 @@ export default function IABienestarAdminPage() {
   ═══════════════════════════════════════════ */
   const renderChequeoGuiado = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <SectionCard title="Resumen de actividad" subtitle="Estado del módulo de chequeo guiado" icon={FileCheck}>
+      <SectionCard title="Chequeo guiado" subtitle="Evaluaciones progresivas de bienestar estudiantil" icon={FileCheck}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem' }}>
           <MetricCard icon={Activity} label="Check-ins realizados" value={resumenData?.checkins?.total || 0} color="#22c55e" />
           <MetricCard icon={HeartPulse} label="Score promedio" value={resumenData?.promedios?.bienestar_score || '—'} color="#4F46E5" sub="Bienestar general" />
@@ -437,7 +479,9 @@ export default function IABienestarAdminPage() {
       </SectionCard>
 
       <SectionCard title="Plantillas de evaluación" subtitle="Tipos de chequeo disponibles" icon={ClipboardList}>
-        {catalogos.plantillas?.length > 0 ? (
+        {loading.resumen ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader2 className="animate-spin" size={28} color="#4F46E5" /></div>
+        ) : catalogos.plantillas?.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {catalogos.plantillas.map(p => {
               const preguntasCount = catalogos.preguntas_por_plantilla?.[p.id_plantilla]?.length || 0;
@@ -457,7 +501,7 @@ export default function IABienestarAdminPage() {
             })}
           </div>
         ) : (
-          <p style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--muted, #94a3b8)' }}>Cargando plantillas...</p>
+          <p style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--muted, #94a3b8)' }}>No hay plantillas configuradas.</p>
         )}
       </SectionCard>
 
@@ -500,11 +544,10 @@ export default function IABienestarAdminPage() {
     });
 
     const tipos = [...new Set(recursos.map(r => r.tipo).filter(Boolean))];
-    const categorias = [...new Set(recursos.map(r => r.categoria).filter(Boolean))];
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <SectionCard title="Biblioteca de recursos" subtitle={`${recursos.length} recursos disponibles para acompañamiento estudiantil`} icon={BookOpen}>
+        <SectionCard title="Tutoriales y recursos" subtitle={`${recursos.length} recursos disponibles para acompañamiento estudiantil`} icon={BookOpen}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
             <MetricCard icon={BookOpen} label="Total recursos" value={recursos.length} color="#4F46E5" />
             <MetricCard icon={FileText} label="Tutoriales" value={recursos.filter(r => r.tipo === 'TUTORIAL').length} color="#22c55e" />
@@ -513,7 +556,7 @@ export default function IABienestarAdminPage() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Filtros" icon={Filter}>
+        <SectionCard title="Buscar y filtrar" icon={Filter}>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <select value={recursoFiltro} onChange={e => setRecursoFiltro(e.target.value)}
               style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', fontSize: '0.78rem', background: 'var(--surface-input, #fff)' }}>
@@ -521,12 +564,14 @@ export default function IABienestarAdminPage() {
               {tipos.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
             <input type="text" value={recursoBusqueda} onChange={e => setRecursoBusqueda(e.target.value)}
-              placeholder="Buscar recurso..." style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', fontSize: '0.78rem', flex: 1, minWidth: 180, background: 'var(--surface-input, #fff)', color: 'var(--text, #0F172A)' }} />
+              placeholder="Buscar por título, descripción o categoría..." style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', fontSize: '0.78rem', flex: 1, minWidth: 200, background: 'var(--surface-input, #fff)', color: 'var(--text, #0F172A)' }} />
           </div>
         </SectionCard>
 
-        {filtrados.length > 0 ? (
-          <SectionCard title={`Recursos (${filtrados.length})`} icon={List}>
+        {loading.catalogos ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader2 className="animate-spin" size={28} color="#4F46E5" /></div>
+        ) : filtrados.length > 0 ? (
+          <SectionCard title={`Recursos encontrados (${filtrados.length})`} icon={List}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {filtrados.map(r => (
                 <div key={r.id_recurso} style={{
@@ -573,16 +618,16 @@ export default function IABienestarAdminPage() {
   ═══════════════════════════════════════════ */
   const renderChat = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <SectionCard title="Estado del servicio de chat" subtitle="Monitoreo del asistente conversacional de bienestar" icon={MessageSquare}>
+      <SectionCard title="Chat de apoyo" subtitle="Monitoreo del asistente conversacional de bienestar" icon={MessageSquare}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.75rem' }}>
           <MetricCard icon={MessageSquare} label="Sesiones activas" value={resumenData?.sesiones?.activas || 0} color="#8b5cf6" sub="Conversaciones en curso" />
           <MetricCard icon={Users} label="Usuarios atendidos" value={resumenData?.sesiones?.usuarios_unicos || 0} color="#4F46E5" sub="Alumnos únicos" />
-          <MetricCard icon={Activity} label="Check-ins totales" value={resumenData?.checkins?.total || 0} color="#22c55e" sub="Evaluaciones completadas" />
+          <MetricCard icon={Activity} label="Mensajes totales" value={resumenData?.checkins?.total || 0} color="#22c55e" sub="Interacciones registradas" />
           <MetricCard icon={AlertTriangle} label="Alertas de chat" value={(resumenData?.alertas?.distribucion_tipo?.CRISIS_CHAT || 0)} color="#ef4444" sub="Crisis detectadas en chat" />
         </div>
       </SectionCard>
 
-      <SectionCard title="Información del servicio" icon={HelpCircle}>
+      <SectionCard title="Información del servicio" icon={LayoutDashboard}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--line, #f1f5f9)' }}>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-body, #334155)' }}>Motor de IA</span>
@@ -615,13 +660,189 @@ export default function IABienestarAdminPage() {
           <button onClick={() => setActiveTab('chequeo')} className="btn secondary" style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.4rem 0.8rem', fontSize: '0.82rem' }}>
             <FileCheck size={14} /> Ver chequeos
           </button>
-          <button onClick={() => setActiveTab('seguimientos')} className="btn secondary" style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.4rem 0.8rem', fontSize: '0.82rem' }}>
-            <ClipboardList size={14} /> Ver seguimientos
+          <button onClick={() => setActiveTab('historial')} className="btn secondary" style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.4rem 0.8rem', fontSize: '0.82rem' }}>
+            <ClipboardList size={14} /> Ver historial
           </button>
         </div>
       </SectionCard>
     </div>
   );
+
+  /* ═══════════════════════════════════════════
+     ALERTAS — Panel dedicado de alertas
+  ═══════════════════════════════════════════ */
+  const renderAlertas = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <SectionCard title="Filtros de alertas" icon={Search}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <select value={filtroEstado} onChange={e => { setFiltroEstado(e.target.value); setAlertasPage(1); }} style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', fontSize: '0.78rem', background: 'var(--surface-input, #fff)' }}>
+            <option value="">Todos los estados</option>
+            <option value="PENDIENTE">Pendiente</option>
+            <option value="EN_REVISION">En revisión</option>
+            <option value="ATENDIDA">Atendida</option>
+            <option value="CERRADA">Cerrada</option>
+          </select>
+          <select value={filtroTipo} onChange={e => { setFiltroTipo(e.target.value); setAlertasPage(1); }} style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', fontSize: '0.78rem', background: 'var(--surface-input, #fff)' }}>
+            <option value="">Todos los tipos</option>
+            <option value="RIESGO_BIENESTAR">Riesgo bienestar</option>
+            <option value="CRISIS">Crisis</option>
+            <option value="ESCALAMIENTO_MANUAL">Escalamiento manual</option>
+            <option value="CRISIS_CHAT">Crisis en chat</option>
+          </select>
+          <input type="text" value={busqueda} onChange={e => { setBusqueda(e.target.value); setAlertasPage(1); }} placeholder="Buscar por nombre o correo..." style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', fontSize: '0.78rem', flex: 1, minWidth: 180, background: 'var(--surface-input, #fff)', color: 'var(--text, #0F172A)' }} />
+          <button onClick={() => { setAlertasPage(1); fetchAlertas(); }} className="btn secondary" style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '0.35rem 0.7rem', fontSize: '0.78rem' }}>
+            <Filter size={14} /> Filtrar
+          </button>
+        </div>
+      </SectionCard>
+
+      {loading.alertas ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader2 className="animate-spin" size={28} color="#4F46E5" /></div>
+      ) : alertasData?.data?.length > 0 ? (
+        <SectionCard title={`Alertas registradas (${alertasData.pagination?.total || 0})`} icon={AlertTriangle}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            {alertasData.data.map(a => (
+              <div key={a.id_alerta} style={{ padding: '0.5rem 0.75rem', background: 'var(--bg-2, #f8fafc)', borderRadius: '6px', border: (a.nivel_riesgo === 'Crítico' || a.nivel_riesgo === 'Cr?tico') ? '1px solid #fecaca' : '1px solid transparent' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <StatusBadge label={a.tipo_alerta} color={TIPO_ALERTA_COLOR[a.tipo_alerta] || '#eab308'} />
+                    <StatusBadge label={a.nivel_riesgo} color={RIESGO_COLOR[a.nivel_riesgo === 'Cr?tico' ? 'Critico' : a.nivel_riesgo] || '#94a3b8'} />
+                    <StatusBadge label={a.estado} color={ESTADO_COLOR[a.estado] || '#94a3b8'} />
+                  </div>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--muted, #94a3b8)' }}>{new Date(a.creado_en).toLocaleString()}</span>
+                </div>
+                <div style={{ marginTop: '0.25rem', fontSize: '0.78rem', color: 'var(--muted, #64748B)' }}>{a.nombres} {a.apellido_paterno} ({a.correo_institucional})</div>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-body, #475569)', margin: '0.25rem 0 0', lineHeight: 1.4 }}>{a.descripcion}</p>
+                {a.accion_sugerida && <p style={{ fontSize: '0.75rem', color: 'var(--muted, #94a3b8)', margin: '0.15rem 0 0' }}><strong>Sugerencia:</strong> {a.accion_sugerida}</p>}
+                <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.35rem' }}>
+                  <button onClick={() => { setSegForm({ ...segForm, id_alerta: String(a.id_alerta) }); setSegModalOpen(true); }}
+                    style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid var(--line, #e2e8f0)', background: '#eef2ff', cursor: 'pointer', fontSize: '0.7rem', color: '#4F46E5' }}>Seguimiento</button>
+                  <button onClick={() => { setEstadoForm({ id_alerta: String(a.id_alerta), estado: 'ATENDIDA', nivel_riesgo: '' }); handleActualizarEstado({ preventDefault: () => {} }); }}
+                    style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', fontSize: '0.7rem', color: '#16a34a' }}>Atender</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {alertasData.pagination && alertasData.pagination.pages > 1 && (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '0.75rem' }}>
+              <button disabled={alertasPage <= 1} onClick={() => setAlertasPage(p => p - 1)} style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', background: 'var(--surface-card, #fff)', cursor: 'pointer', fontSize: '0.8rem' }}>Anterior</button>
+              <span style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--muted, #64748B)' }}>Pág {alertasData.pagination.page} de {alertasData.pagination.pages}</span>
+              <button disabled={alertasPage >= alertasData.pagination.pages} onClick={() => setAlertasPage(p => p + 1)} style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', background: 'var(--surface-card, #fff)', cursor: 'pointer', fontSize: '0.8rem' }}>Siguiente</button>
+            </div>
+          )}
+        </SectionCard>
+      ) : (
+        <SectionCard><p style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted, #94a3b8)' }}>No se encontraron alertas con los filtros actuales.</p></SectionCard>
+      )}
+    </div>
+  );
+
+  /* ═══════════════════════════════════════════
+     HISTORIAL — Seguimientos + auditoría
+  ═══════════════════════════════════════════ */
+  const renderHistorial = () => {
+    const [historialTab, setHistorialTab] = React.useState('seguimientos');
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: '0.25rem', borderBottom: '2px solid var(--line, #e2e8f0)', marginBottom: '0.5rem' }}>
+          <button onClick={() => setHistorialTab('seguimientos')} style={{
+            display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem',
+            border: 'none', background: 'transparent', cursor: 'pointer',
+            fontSize: '0.85rem', fontWeight: historialTab === 'seguimientos' ? 600 : 400,
+            color: historialTab === 'seguimientos' ? '#4F46E5' : 'var(--muted, #64748B)',
+            borderBottom: historialTab === 'seguimientos' ? '2px solid #4F46E5' : '2px solid transparent',
+            marginBottom: '-2px'
+          }}>
+            <ClipboardList size={16} /> Derivaciones
+          </button>
+          <button onClick={() => setHistorialTab('auditoria')} style={{
+            display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem',
+            border: 'none', background: 'transparent', cursor: 'pointer',
+            fontSize: '0.85rem', fontWeight: historialTab === 'auditoria' ? 600 : 400,
+            color: historialTab === 'auditoria' ? '#4F46E5' : 'var(--muted, #64748B)',
+            borderBottom: historialTab === 'auditoria' ? '2px solid #4F46E5' : '2px solid transparent',
+            marginBottom: '-2px'
+          }}>
+            <Shield size={16} /> Registro de auditoría
+          </button>
+        </div>
+
+        {historialTab === 'seguimientos' && (
+          <>
+            <SectionCard title="Filtro de estado" icon={Search}>
+              <select value={filtroEstado} onChange={e => { setFiltroEstado(e.target.value); setSegPage(1); }} style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', fontSize: '0.78rem', background: 'var(--surface-input, #fff)' }}>
+                <option value="">Todos los estados</option>
+                <option value="PENDIENTE">Pendiente</option>
+                <option value="EN_CURSO">En curso</option>
+                <option value="CERRADA">Cerrada</option>
+              </select>
+            </SectionCard>
+            {loading.seguimientos ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader2 className="animate-spin" size={28} color="#4F46E5" /></div>
+            ) : seguimientosData?.data?.length > 0 ? (
+              <SectionCard title={`Derivaciones registradas (${seguimientosData.pagination?.total || 0})`} icon={ClipboardList}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  {seguimientosData.data.map(d => (
+                    <div key={d.id_derivacion} style={{ padding: '0.5rem 0.75rem', background: 'var(--bg-2, #f8fafc)', borderRadius: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <StatusBadge label={d.estado} color={d.estado === 'CERRADA' ? '#22c55e' : d.estado === 'EN_CURSO' ? '#eab308' : '#ef4444'} />
+                          {d.tipo_alerta && <StatusBadge label={d.tipo_alerta} color="#4F46E5" />}
+                        </div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--muted, #94a3b8)' }}>{new Date(d.creado_en).toLocaleString()}</span>
+                      </div>
+                      <div style={{ marginTop: '0.25rem', fontSize: '0.78rem', color: 'var(--muted, #64748B)' }}>{d.nombres} {d.apellido_paterno}</div>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--text-body, #475569)', margin: '0.25rem 0 0' }}><strong>Destino:</strong> {d.destino}</p>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--muted, #64748B)', margin: '0.15rem 0 0' }}>{d.motivo}</p>
+                    </div>
+                  ))}
+                </div>
+                {seguimientosData.pagination && seguimientosData.pagination.pages > 1 && (
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '0.75rem' }}>
+                    <button disabled={segPage <= 1} onClick={() => setSegPage(p => p - 1)} style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', background: 'var(--surface-card, #fff)', cursor: 'pointer', fontSize: '0.8rem' }}>Anterior</button>
+                    <span style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--muted, #64748B)' }}>Pág {seguimientosData.pagination.page} de {seguimientosData.pagination.pages}</span>
+                    <button disabled={segPage >= seguimientosData.pagination.pages} onClick={() => setSegPage(p => p + 1)} style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', background: 'var(--surface-card, #fff)', cursor: 'pointer', fontSize: '0.8rem' }}>Siguiente</button>
+                  </div>
+                )}
+              </SectionCard>
+            ) : (
+              <SectionCard><p style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted, #94a3b8)' }}>No hay derivaciones registradas.</p></SectionCard>
+            )}
+          </>
+        )}
+
+        {historialTab === 'auditoria' && (
+          loading.auditoria ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader2 className="animate-spin" size={28} color="#4F46E5" /></div>
+          ) : auditoriaData?.data?.length > 0 ? (
+            <SectionCard title={`Registro de auditoría (${auditoriaData.pagination?.total || 0})`} icon={Shield}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                {auditoriaData.data.map(a => (
+                  <div key={a.id_auditoria} style={{ padding: '0.45rem 0.7rem', background: 'var(--bg-2, #f8fafc)', borderRadius: '6px', fontSize: '0.82rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 600, color: 'var(--text-heading, #0F172A)', fontSize: '0.8rem' }}>{a.accion}</span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--muted, #94a3b8)' }}>{new Date(a.creado_en).toLocaleString()}</span>
+                    </div>
+                    {a.detalle && <div style={{ fontSize: '0.78rem', color: 'var(--muted, #64748B)', marginTop: '0.15rem' }}>{a.detalle}</div>}
+                    <div style={{ fontSize: '0.7rem', color: 'var(--muted, #94a3b8)', marginTop: '0.1rem' }}>{a.nombres ? `${a.nombres} ${a.apellido_paterno || ''}` : 'Sistema'}</div>
+                  </div>
+                ))}
+              </div>
+              {auditoriaData.pagination && auditoriaData.pagination.pages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '0.75rem' }}>
+                  <button disabled={audPage <= 1} onClick={() => setAudPage(p => p - 1)} style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', background: 'var(--surface-card, #fff)', cursor: 'pointer', fontSize: '0.8rem' }}>Anterior</button>
+                  <span style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--muted, #64748B)' }}>Pág {auditoriaData.pagination.page} de {auditoriaData.pagination.pages}</span>
+                  <button disabled={audPage >= auditoriaData.pagination.pages} onClick={() => setAudPage(p => p + 1)} style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', background: 'var(--surface-card, #fff)', cursor: 'pointer', fontSize: '0.8rem' }}>Siguiente</button>
+                </div>
+              )}
+            </SectionCard>
+          ) : (
+            <SectionCard><p style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted, #94a3b8)' }}>No hay registros de auditoría.</p></SectionCard>
+          )
+        )}
+      </div>
+    );
+  };
 
   /* ═══════════════════════════════════════════
      ALUMNOS EN RIESGO
@@ -630,7 +851,15 @@ export default function IABienestarAdminPage() {
     const niveles = ['', 'Bajo', 'Medio', 'Alto', 'Critico'];
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <SectionCard title="Filtros dinámicos" icon={Filter}>
+        <SectionCard title="Alumnos en riesgo" subtitle="Filtrar y dar seguimiento a estudiantes identificados" icon={Users}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <MetricCard icon={Users} label="Total en riesgo" value={alumnosPagination?.total || 0} color="#f97316" />
+            <MetricCard icon={AlertTriangle} label="Críticos" value={alumnosRiesgo.filter(a => a.nivel_riesgo === 'Critico' || a.nivel_riesgo === 'Cr?tico').length} color="#ef4444" />
+            <MetricCard icon={Activity} label="En revisión" value={alumnosRiesgo.filter(a => a.estado_alerta === 'EN_REVISION').length} color="#eab308" />
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Filtros" icon={Filter}>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <select value={filtroGrupo} onChange={e => { setFiltroGrupo(e.target.value); setAlumnosPage(1); }}
               style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', fontSize: '0.78rem', background: 'var(--surface-input, #fff)' }}>
@@ -671,7 +900,7 @@ export default function IABienestarAdminPage() {
               {alumnosRiesgo.map(a => (
                 <div key={a.id_alerta} style={{
                   padding: '0.6rem 0.8rem', background: 'var(--bg-2, #f8fafc)', borderRadius: '8px',
-                  border: a.nivel_riesgo === 'Critico' || a.nivel_riesgo === 'Crítico' || a.nivel_riesgo === 'Cr?tico' ? '1px solid #fecaca' : '1px solid var(--line, #f1f5f9)'
+                  border: (a.nivel_riesgo === 'Critico' || a.nivel_riesgo === 'Crítico' || a.nivel_riesgo === 'Cr?tico') ? '1px solid #fecaca' : '1px solid var(--line, #f1f5f9)'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ flex: 1 }}>
@@ -722,10 +951,10 @@ export default function IABienestarAdminPage() {
     return (
       <Modal open={detalleOpen} onClose={() => setDetalleOpen(false)}
         title={`${alumno.nombres} ${alumno.apellido_paterno} (${alumno.matricula})`}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
           <MetricCard icon={BookOpen} label="Carrera" value={alumno.nombre_carrera || '—'} color="#4F46E5" />
           <MetricCard icon={Users} label="Promedio" value={alumno.promedio_general || '—'} color="#22c55e" />
-          <MetricCard icon={Database} label="Créditos" value={alumno.creditos_acumulados || '—'} color="#f97316" />
+          <MetricCard icon={Clock} label="Créditos" value={alumno.creditos_acumulados || '—'} color="#f97316" />
           <MetricCard icon={Clock} label="Semestre" value={alumno.semestre_actual || '—'} color="#eab308" />
         </div>
         {evolucion && evolucion.length > 0 && (
@@ -881,145 +1110,9 @@ export default function IABienestarAdminPage() {
       {activeTab === 'chequeo' && renderChequeoGuiado()}
       {activeTab === 'recursos' && renderRecursos()}
       {activeTab === 'chat' && renderChat()}
+      {activeTab === 'alertas' && renderAlertas()}
+      {activeTab === 'historial' && renderHistorial()}
       {activeTab === 'alumnos' && renderAlumnosRiesgo()}
-
-      {/* ═══ ALERTAS ═══ */}
-      {activeTab === 'alertas' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <SectionCard title="Filtros" icon={Search}>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              <select value={filtroEstado} onChange={e => { setFiltroEstado(e.target.value); setAlertasPage(1); }} style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', fontSize: '0.78rem', background: 'var(--surface-input, #fff)' }}>
-                <option value="">Todos los estados</option>
-                <option value="PENDIENTE">Pendiente</option>
-                <option value="EN_REVISION">En revisión</option>
-                <option value="ATENDIDA">Atendida</option>
-                <option value="CERRADA">Cerrada</option>
-              </select>
-              <select value={filtroTipo} onChange={e => { setFiltroTipo(e.target.value); setAlertasPage(1); }} style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', fontSize: '0.78rem', background: 'var(--surface-input, #fff)' }}>
-                <option value="">Todos los tipos</option>
-                <option value="RIESGO_BIENESTAR">Riesgo bienestar</option>
-                <option value="CRISIS">Crisis</option>
-                <option value="ESCALAMIENTO_MANUAL">Escalamiento manual</option>
-              </select>
-              <input type="text" value={busqueda} onChange={e => { setBusqueda(e.target.value); setAlertasPage(1); }} placeholder="Buscar usuario..." style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', fontSize: '0.78rem', flex: 1, minWidth: 180, background: 'var(--surface-input, #fff)', color: 'var(--text, #0F172A)' }} />
-            </div>
-          </SectionCard>
-          {loading.alertas ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader2 className="animate-spin" size={28} color="#4F46E5" /></div>
-          ) : alertasData?.data?.length > 0 ? (
-            <SectionCard title={`Alertas (${alertasData.pagination?.total || 0})`} icon={AlertTriangle}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                {alertasData.data.map(a => (
-                  <div key={a.id_alerta} style={{ padding: '0.5rem 0.75rem', background: 'var(--bg-2, #f8fafc)', borderRadius: '6px', border: a.nivel_riesgo === 'Crítico' || a.nivel_riesgo === 'Cr?tico' ? '1px solid #fecaca' : '1px solid transparent' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <StatusBadge label={a.tipo_alerta} color={TIPO_ALERTA_COLOR[a.tipo_alerta] || '#eab308'} />
-                        <StatusBadge label={a.nivel_riesgo} color={RIESGO_COLOR[a.nivel_riesgo === 'Cr?tico' ? 'Critico' : a.nivel_riesgo] || '#94a3b8'} />
-                        <StatusBadge label={a.estado} color={ESTADO_COLOR[a.estado] || '#94a3b8'} />
-                      </div>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--muted, #94a3b8)' }}>{new Date(a.creado_en).toLocaleString()}</span>
-                    </div>
-                    <div style={{ marginTop: '0.25rem', fontSize: '0.78rem', color: 'var(--muted, #64748B)' }}>{a.nombres} {a.apellido_paterno} ({a.correo_institucional})</div>
-                    <p style={{ fontSize: '0.78rem', color: 'var(--text-body, #475569)', margin: '0.25rem 0 0', lineHeight: 1.4 }}>{a.descripcion}</p>
-                    {a.accion_sugerida && <p style={{ fontSize: '0.75rem', color: 'var(--muted, #94a3b8)', margin: '0.15rem 0 0' }}><strong>Sugerencia:</strong> {a.accion_sugerida}</p>}
-                    <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.35rem' }}>
-                      <button onClick={() => { setSegForm({ ...segForm, id_alerta: String(a.id_alerta) }); setSegModalOpen(true); }}
-                        style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid var(--line, #e2e8f0)', background: '#eef2ff', cursor: 'pointer', fontSize: '0.7rem', color: '#4F46E5' }}>Seguimiento</button>
-                      <button onClick={() => { setEstadoForm({ id_alerta: String(a.id_alerta), estado: 'ATENDIDA', nivel_riesgo: '' }); handleActualizarEstado({ preventDefault: () => {} }); }}
-                        style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', fontSize: '0.7rem', color: '#16a34a' }}>Atender</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {alertasData.pagination && alertasData.pagination.pages > 1 && (
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '0.75rem' }}>
-                  <button disabled={alertasPage <= 1} onClick={() => setAlertasPage(p => p - 1)} style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', background: 'var(--surface-card, #fff)', cursor: 'pointer', fontSize: '0.8rem' }}>Anterior</button>
-                  <span style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--muted, #64748B)' }}>Pág {alertasData.pagination.page} de {alertasData.pagination.pages}</span>
-                  <button disabled={alertasPage >= alertasData.pagination.pages} onClick={() => setAlertasPage(p => p + 1)} style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', background: 'var(--surface-card, #fff)', cursor: 'pointer', fontSize: '0.8rem' }}>Siguiente</button>
-                </div>
-              )}
-            </SectionCard>
-          ) : (
-            <SectionCard><p style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted, #94a3b8)' }}>No se encontraron alertas.</p></SectionCard>
-          )}
-        </div>
-      )}
-
-      {/* ═══ SEGUIMIENTO ═══ */}
-      {activeTab === 'seguimientos' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <SectionCard title="Filtro de estado" icon={Search}>
-            <select value={filtroEstado} onChange={e => { setFiltroEstado(e.target.value); setSegPage(1); }} style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', fontSize: '0.78rem', background: 'var(--surface-input, #fff)' }}>
-              <option value="">Todos los estados</option>
-              <option value="PENDIENTE">Pendiente</option>
-              <option value="EN_CURSO">En curso</option>
-              <option value="CERRADA">Cerrada</option>
-            </select>
-          </SectionCard>
-          {loading.seguimientos ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader2 className="animate-spin" size={28} color="#4F46E5" /></div>
-          ) : seguimientosData?.data?.length > 0 ? (
-            <SectionCard title={`Derivaciones (${seguimientosData.pagination?.total || 0})`} icon={ClipboardList}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                {seguimientosData.data.map(d => (
-                  <div key={d.id_derivacion} style={{ padding: '0.5rem 0.75rem', background: 'var(--bg-2, #f8fafc)', borderRadius: '6px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <StatusBadge label={d.estado} color={d.estado === 'CERRADA' ? '#22c55e' : d.estado === 'EN_CURSO' ? '#eab308' : '#ef4444'} />
-                        {d.tipo_alerta && <StatusBadge label={d.tipo_alerta} color="#4F46E5" />}
-                      </div>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--muted, #94a3b8)' }}>{new Date(d.creado_en).toLocaleString()}</span>
-                    </div>
-                    <div style={{ marginTop: '0.25rem', fontSize: '0.78rem', color: 'var(--muted, #64748B)' }}>{d.nombres} {d.apellido_paterno}</div>
-                    <p style={{ fontSize: '0.78rem', color: 'var(--text-body, #475569)', margin: '0.25rem 0 0' }}><strong>Destino:</strong> {d.destino}</p>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--muted, #64748B)', margin: '0.15rem 0 0' }}>{d.motivo}</p>
-                  </div>
-                ))}
-              </div>
-              {seguimientosData.pagination && seguimientosData.pagination.pages > 1 && (
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '0.75rem' }}>
-                  <button disabled={segPage <= 1} onClick={() => setSegPage(p => p - 1)} style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', background: 'var(--surface-card, #fff)', cursor: 'pointer', fontSize: '0.8rem' }}>Anterior</button>
-                  <span style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--muted, #64748B)' }}>Pág {seguimientosData.pagination.page} de {seguimientosData.pagination.pages}</span>
-                  <button disabled={segPage >= seguimientosData.pagination.pages} onClick={() => setSegPage(p => p + 1)} style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', background: 'var(--surface-card, #fff)', cursor: 'pointer', fontSize: '0.8rem' }}>Siguiente</button>
-                </div>
-              )}
-            </SectionCard>
-          ) : (
-            <SectionCard><p style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted, #94a3b8)' }}>No hay seguimientos registrados.</p></SectionCard>
-          )}
-        </div>
-      )}
-
-      {/* ═══ AUDITORÍA ═══ */}
-      {activeTab === 'auditoria' && (
-        loading.auditoria ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader2 className="animate-spin" size={28} color="#4F46E5" /></div>
-        ) : auditoriaData?.data?.length > 0 ? (
-          <SectionCard title={`Registro de auditoría (${auditoriaData.pagination?.total || 0})`} icon={Shield}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              {auditoriaData.data.map(a => (
-                <div key={a.id_auditoria} style={{ padding: '0.45rem 0.7rem', background: 'var(--bg-2, #f8fafc)', borderRadius: '6px', fontSize: '0.82rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 600, color: 'var(--text-heading, #0F172A)', fontSize: '0.8rem' }}>{a.accion}</span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--muted, #94a3b8)' }}>{new Date(a.creado_en).toLocaleString()}</span>
-                  </div>
-                  {a.detalle && <div style={{ fontSize: '0.78rem', color: 'var(--muted, #64748B)', marginTop: '0.15rem' }}>{a.detalle}</div>}
-                  <div style={{ fontSize: '0.7rem', color: 'var(--muted, #94a3b8)', marginTop: '0.1rem' }}>{a.nombres ? `${a.nombres} ${a.apellido_paterno || ''}` : 'Sistema'}</div>
-                </div>
-              ))}
-            </div>
-            {auditoriaData.pagination && auditoriaData.pagination.pages > 1 && (
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '0.75rem' }}>
-                <button disabled={audPage <= 1} onClick={() => setAudPage(p => p - 1)} style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', background: 'var(--surface-card, #fff)', cursor: 'pointer', fontSize: '0.8rem' }}>Anterior</button>
-                <span style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem', color: 'var(--muted, #64748B)' }}>Pág {auditoriaData.pagination.page} de {auditoriaData.pagination.pages}</span>
-                <button disabled={audPage >= auditoriaData.pagination.pages} onClick={() => setAudPage(p => p + 1)} style={{ padding: '0.3rem 0.8rem', borderRadius: '6px', border: '1px solid var(--line, #e2e8f0)', background: 'var(--surface-card, #fff)', cursor: 'pointer', fontSize: '0.8rem' }}>Siguiente</button>
-              </div>
-            )}
-          </SectionCard>
-        ) : (
-          <SectionCard><p style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted, #94a3b8)' }}>No hay registros de auditoría.</p></SectionCard>
-        )
-      )}
 
       {renderDetalleModal()}
       {renderSegModal()}

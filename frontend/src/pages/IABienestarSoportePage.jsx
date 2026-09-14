@@ -5,7 +5,7 @@ import { api } from '../services/api';
 import {
   Activity, AlertTriangle, BarChart3, CheckCircle2, ClipboardList,
   Database, Download, Eye, FileText, Filter, HeartPulse, Loader2,
-  RefreshCw, Search, Server, Shield, Wifi, X, Clock, Terminal,
+  MessageSquare, RefreshCw, Search, Server, Shield, Wifi, X, Clock, Terminal,
   Cpu, HardDrive, BookOpen, CheckSquare, AlertOctagon, ArrowUpRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';

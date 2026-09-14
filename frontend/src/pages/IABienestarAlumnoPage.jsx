@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import SectionCard from '../components/SectionCard';
-import { api, canAccessBienestarDocenteIA } from '../services/api';
+import { api } from '../services/api';
 import {
   AlertTriangle, BarChart3, BookOpen, CheckCircle2, ClipboardList,
   Eye, FileText, Filter, HeartPulse, Loader2, MessageSquare, RefreshCw,
