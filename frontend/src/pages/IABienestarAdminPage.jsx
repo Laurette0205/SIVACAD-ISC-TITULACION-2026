@@ -8,7 +8,7 @@ import {
   ClipboardList, Clock, Download, Eye, FileCheck, FileText,
   Filter, GraduationCap, HeartPulse, LayoutDashboard, List,
   Loader2, MessageSquare, Phone, RefreshCw, RotateCcw, Search,
-  Shield, TrendingUp, Users, X
+  Shield, TrendingUp, UserCheck, Users, X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
