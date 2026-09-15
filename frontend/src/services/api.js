@@ -10,6 +10,8 @@ const ALLOWED_IA_ALUMNO_ROLES = new Set(['ADMINISTRADOR', 'COORDINADOR', 'ALUMNO
 const ALLOWED_IA_SOPORTE_ROLES = new Set(['ADMINISTRADOR', 'SOPORTE']);
 const ALLOWED_IA_BIENESTAR_ADMIN_ROLES = new Set(['ADMINISTRADOR', 'COORDINADOR']);
 const ALLOWED_IA_BIENESTAR_DOCENTE_ROLES = new Set(['ADMINISTRADOR', 'COORDINADOR', 'DOCENTE']);
+const ALLOWED_IA_BIENESTAR_ALUMNO_ROLES = new Set(['ADMINISTRADOR', 'COORDINADOR', 'ALUMNO']);
+const ALLOWED_IA_BIENESTAR_SOPORTE_ROLES = new Set(['ADMINISTRADOR', 'SOPORTE']);
 
 function normalizeRoleName(value) {
   return String(value || '').trim().toUpperCase();
@@ -121,6 +123,38 @@ function canAccessBienestarAdminIA(userOrRole) {
   const roleId = Number(userOrRole.rol_id || userOrRole.id_rol || 0);
 
   return ALLOWED_IA_BIENESTAR_ADMIN_ROLES.has(roleName) || [1, 2].includes(roleId);
+}
+
+function canAccessBienestarAlumnoIA(userOrRole) {
+  if (!userOrRole) return false;
+
+  if (typeof userOrRole === 'string') {
+    return ALLOWED_IA_BIENESTAR_ALUMNO_ROLES.has(normalizeRoleName(userOrRole));
+  }
+
+  const roleName = normalizeRoleName(
+    userOrRole.rol_nombre || userOrRole.rol || userOrRole.role || ''
+  );
+
+  const roleId = Number(userOrRole.rol_id || userOrRole.id_rol || 0);
+
+  return ALLOWED_IA_BIENESTAR_ALUMNO_ROLES.has(roleName) || [1, 2, 4].includes(roleId);
+}
+
+function canAccessBienestarSoporteIA(userOrRole) {
+  if (!userOrRole) return false;
+
+  if (typeof userOrRole === 'string') {
+    return ALLOWED_IA_BIENESTAR_SOPORTE_ROLES.has(normalizeRoleName(userOrRole));
+  }
+
+  const roleName = normalizeRoleName(
+    userOrRole.rol_nombre || userOrRole.rol || userOrRole.role || ''
+  );
+
+  const roleId = Number(userOrRole.rol_id || userOrRole.id_rol || 0);
+
+  return ALLOWED_IA_BIENESTAR_SOPORTE_ROLES.has(roleName) || [1, 5].includes(roleId);
 }
 
 function buildUrl(path) {
@@ -2398,5 +2432,5 @@ iaBienestarSoporteRutas: (token) =>
     request(`/alumno-documentos/${id}`, { token, method: 'DELETE' })
 };
 
-export { api, canAccessDesercionIA, canAccessDesercionDocenteIA, canAccessDesercionAlumnoIA, canAccessDesercionSoporteIA, canAccessBienestarAdminIA, canAccessBienestarDocenteIA, canAccessBecasSoporteIA };
+export { api, canAccessDesercionIA, canAccessDesercionDocenteIA, canAccessDesercionAlumnoIA, canAccessDesercionSoporteIA, canAccessBienestarAdminIA, canAccessBienestarDocenteIA, canAccessBienestarAlumnoIA, canAccessBienestarSoporteIA, canAccessBecasSoporteIA };
 export default api;

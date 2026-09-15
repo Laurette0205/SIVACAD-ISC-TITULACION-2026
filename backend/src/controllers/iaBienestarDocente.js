@@ -57,7 +57,7 @@ function toNum(value, fallback = 0) {
 
 async function getPeriodoActivo(conn) {
   const [rows] = await conn.execute(
-    "SELECT id_periodo, nombre_periodo FROM periodos WHERE activo = 1 LIMIT 1"
+    "SELECT id_periodo, nombre_periodo FROM periodos WHERE estado = 'Activo' LIMIT 1"
   );
   return rows.length ? rows[0] : null;
 }
@@ -301,10 +301,10 @@ async function detalleAlumno(req, res) {
 
     const [sesiones] = await pool.execute(`
       SELECT s.id_sesion, s.estado AS estado_sesion, s.nivel_riesgo AS sesion_riesgo,
-        s.iniciada_en, s.cerrada_en
+        s.creado_en, s.actualizado_en
       FROM ia_bienestar_sesiones s
       WHERE s.id_usuario = ?
-      ORDER BY s.iniciada_en DESC
+      ORDER BY s.creado_en DESC
       LIMIT 10
     `, [alumno.id_usuario]);
 
@@ -365,8 +365,8 @@ async function registrarObservacion(req, res) {
     await pool.execute(
       `UPDATE ia_bienestar_alertas
        SET estado = 'EN_REVISION'
-       WHERE id_alerta = ? AND estado = 'PENDIENTE'`,
-      [Number(id_alerta)]
+       WHERE id_alerta = ? AND estado = 'PENDIENTE' AND id_institucion = ?`,
+      [Number(id_alerta), req.user.id_institucion || 1]
     );
 
     return res.json({ ok: true, message: 'Observación registrada correctamente' });

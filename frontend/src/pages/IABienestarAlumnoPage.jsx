@@ -1,13 +1,13 @@
 import React from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import SectionCard from '../components/SectionCard';
-import { api } from '../services/api';
+import { api, canAccessBienestarAlumnoIA } from '../services/api';
 import {
-  AlertTriangle, BarChart3, BookOpen, CheckCircle2, ClipboardList,
-  Eye, FileText, Filter, HeartPulse, Loader2, MessageSquare, RefreshCw,
-  Search, Sparkles, Target, Users, X, Clock, UserCheck, GraduationCap,
-  Activity, ArrowUpRight, TrendingUp, TrendingDown, Minus,
-  Brain, ShieldCheck, MessageSquareText, ChevronRight
+  AlertTriangle, CheckCircle2, ClipboardList,
+  HeartPulse, Loader2, MessageSquare, RefreshCw,
+  Target, X,
+  Activity, TrendingUp, TrendingDown, Minus,
+  Brain, MessageSquareText, ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -82,7 +82,7 @@ function Modal({ open, onClose, title, children }) {
 export default function IABienestarAlumnoPage() {
   const { token, user, loading: authLoading, getHomeRouteByUser } = useAuth();
   const navigate = useNavigate();
-  const canAccess = !!user;
+  const canAccess = canAccessBienestarAlumnoIA(user);
 
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -133,7 +133,7 @@ export default function IABienestarAlumnoPage() {
   }, [authLoading, user, fetchAll]);
 
   if (authLoading) return <div className="page-center">Cargando sesión...</div>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!canAccess) return <Navigate to="/app" replace />;
 
   const tabs = [
     { key: 'panel', label: 'Panel personal', icon: HeartPulse },

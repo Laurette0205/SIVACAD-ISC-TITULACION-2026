@@ -437,7 +437,7 @@ async function alumnosRiesgo(req, res) {
     if (carreraId) { where.push('a.id_carrera = ?'); params.push(carreraId); }
     if (nivelRiesgo) { where.push('al.nivel_riesgo = ?'); params.push(nivelRiesgo); }
     if (busqueda) {
-      where.push('(u.nombres LIKE ? OR u.apellido_paterno LIKE ? OR u.matricula LIKE ?)');
+      where.push('(u.nombres LIKE ? OR u.apellido_paterno LIKE ? OR a.matricula LIKE ?)');
       const q = `%${busqueda}%`;
       params.push(q, q, q);
     }
@@ -560,8 +560,8 @@ async function registrarSeguimiento(req, res) {
 
     await pool.execute(
       `UPDATE ia_bienestar_alertas SET estado = 'EN_REVISION'
-       WHERE id_alerta = ? AND estado = 'PENDIENTE'`,
-      [id_alerta]
+       WHERE id_alerta = ? AND estado = 'PENDIENTE' AND id_institucion = ?`,
+      [id_alerta, req.user.id_institucion || 1]
     );
 
     await pool.execute(
@@ -599,9 +599,10 @@ async function actualizarEstadoAlerta(req, res) {
     }
 
     params.push(id_alerta);
+    params.push(req.user.id_institucion || 1);
 
     await pool.execute(
-      `UPDATE ia_bienestar_alertas SET ${updates.join(', ')} WHERE id_alerta = ?`,
+      `UPDATE ia_bienestar_alertas SET ${updates.join(', ')} WHERE id_alerta = ? AND id_institucion = ?`,
       params
     );
 

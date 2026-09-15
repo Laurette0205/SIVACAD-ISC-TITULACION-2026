@@ -5,7 +5,7 @@ import { FormField } from '../components/FormField';
 import { api, canAccessBienestarAdminIA } from '../services/api';
 import {
   Activity, AlertTriangle, BarChart3, BookOpen, CheckCircle2,
-  ClipboardList, Clock, Download, Eye, FileCheck, FileText,
+  ClipboardList, Clock, Eye, FileCheck, FileText,
   Filter, GraduationCap, HeartPulse, LayoutDashboard, List,
   Loader2, MessageSquare, Phone, RefreshCw, RotateCcw, Search,
   Shield, TrendingUp, UserCheck, Users, X
@@ -123,7 +123,6 @@ export default function IABienestarAdminPage() {
   const [error, setError] = useState(null);
 
   const [resumenData, setResumenData] = useState(null);
-  const [indicadoresData, setIndicadoresData] = useState(null);
   const [alertasData, setAlertasData] = useState(null);
   const [seguimientosData, setSeguimientosData] = useState(null);
   const [auditoriaData, setAuditoriaData] = useState(null);
@@ -144,7 +143,6 @@ export default function IABienestarAdminPage() {
   const [filtroPeriodo, setFiltroPeriodo] = useState('');
   const [filtroCarrera, setFiltroCarrera] = useState('');
   const [filtroNivel, setFiltroNivel] = useState('');
-  const [periodoIndicador, setPeriodoIndicador] = useState('');
   const [recursoBusqueda, setRecursoBusqueda] = useState('');
   const [recursoFiltro, setRecursoFiltro] = useState('');
 
@@ -154,6 +152,7 @@ export default function IABienestarAdminPage() {
   const [segModalOpen, setSegModalOpen] = useState(false);
   const [estadoForm, setEstadoForm] = useState({ id_alerta: '', estado: '', nivel_riesgo: '' });
   const [estadoModalOpen, setEstadoModalOpen] = useState(false);
+  const [historialTab, setHistorialTab] = useState('seguimientos');
 
   if (!canAccessBienestarAdminIA(user)) {
     return <Navigate to="/app" replace />;
@@ -189,13 +188,6 @@ export default function IABienestarAdminPage() {
     try { const r = await api.iaBienestarAdminResumen(token); if (r?.ok) setResumenData(r.data); }
     catch (e) { setError('Error al cargar resumen'); } finally { setLoad('resumen')(false); }
   }, [token]);
-
-  const fetchIndicadores = useCallback(async () => {
-    if (!token) return;
-    setLoad('indicadores')(true); setError(null);
-    try { const r = await api.iaBienestarAdminIndicadores(token, { periodo: periodoIndicador }); if (r?.ok) setIndicadoresData(r.data); }
-    catch (e) { setError('Error al cargar indicadores'); } finally { setLoad('indicadores')(false); }
-  }, [token, periodoIndicador]);
 
   const fetchAlertas = useCallback(async () => {
     if (!token) return;
@@ -264,11 +256,10 @@ export default function IABienestarAdminPage() {
     else if (activeTab === 'chequeo') { fetchResumen(); fetchCatalogosBienestar(); }
     else if (activeTab === 'recursos') { fetchCatalogosBienestar(); }
     else if (activeTab === 'chat') { fetchResumen(); }
-    else if (activeTab === 'indicadores') fetchIndicadores();
     else if (activeTab === 'alertas') { fetchAlertas(); fetchCatalogos(); }
     else if (activeTab === 'historial') { fetchSeguimientos(); fetchAuditoria(); }
     else if (activeTab === 'alumnos') { fetchAlumnosRiesgo(); fetchCatalogos(); }
-  }, [activeTab, fetchResumen, fetchIndicadores, fetchAlertas, fetchSeguimientos, fetchAuditoria, fetchGruposRiesgo, fetchAlumnosRiesgo, fetchCatalogos, fetchCatalogosBienestar]);
+  }, [activeTab, fetchResumen, fetchAlertas, fetchSeguimientos, fetchAuditoria, fetchGruposRiesgo, fetchAlumnosRiesgo, fetchCatalogos, fetchCatalogosBienestar]);
 
   const handleRegistrarSeguimiento = async (e) => {
     e.preventDefault();
@@ -284,10 +275,11 @@ export default function IABienestarAdminPage() {
     } catch (err) { setError('Error al registrar seguimiento'); }
   };
 
-  const handleActualizarEstado = async (e) => {
+  const handleActualizarEstado = async (e, data) => {
     e.preventDefault();
+    const payload = data || estadoForm;
     try {
-      const r = await api.iaBienestarAdminActualizarEstadoAlerta(token, estadoForm);
+      const r = await api.iaBienestarAdminActualizarEstadoAlerta(token, payload);
       if (r?.ok) {
         setEstadoModalOpen(false);
         setEstadoForm({ id_alerta: '', estado: '', nivel_riesgo: '' });
@@ -717,7 +709,7 @@ export default function IABienestarAdminPage() {
                 <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.35rem' }}>
                   <button onClick={() => { setSegForm({ ...segForm, id_alerta: String(a.id_alerta) }); setSegModalOpen(true); }}
                     style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid var(--line, #e2e8f0)', background: '#eef2ff', cursor: 'pointer', fontSize: '0.7rem', color: '#4F46E5' }}>Seguimiento</button>
-                  <button onClick={() => { setEstadoForm({ id_alerta: String(a.id_alerta), estado: 'ATENDIDA', nivel_riesgo: '' }); handleActualizarEstado({ preventDefault: () => {} }); }}
+                  <button onClick={() => { handleActualizarEstado({ preventDefault: () => {} }, { id_alerta: String(a.id_alerta), estado: 'ATENDIDA', nivel_riesgo: '' }); }}
                     style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', fontSize: '0.7rem', color: '#16a34a' }}>Atender</button>
                 </div>
               </div>
@@ -741,7 +733,6 @@ export default function IABienestarAdminPage() {
      HISTORIAL — Seguimientos + auditoría
   ═══════════════════════════════════════════ */
   const renderHistorial = () => {
-    const [historialTab, setHistorialTab] = React.useState('seguimientos');
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div style={{ display: 'flex', gap: '0.25rem', borderBottom: '2px solid var(--line, #e2e8f0)', marginBottom: '0.5rem' }}>
@@ -947,7 +938,7 @@ export default function IABienestarAdminPage() {
 
   const renderDetalleModal = () => {
     if (!detalleAlumno) return null;
-    const { alumno, alertas, checkins, sesiones, evolucion } = detalleAlumno;
+    const { alumno, alertas, evolucion } = detalleAlumno;
     return (
       <Modal open={detalleOpen} onClose={() => setDetalleOpen(false)}
         title={`${alumno.nombres} ${alumno.apellido_paterno} (${alumno.matricula})`}>

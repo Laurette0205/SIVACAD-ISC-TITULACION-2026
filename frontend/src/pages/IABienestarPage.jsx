@@ -26,10 +26,6 @@ function normalize(value) {
   return String(value || '').trim().toUpperCase();
 }
 
-function normalizeLower(value) {
-  return String(value || '').trim().toLowerCase();
-}
-
 function formatDate(value) {
   if (!value) return '';
   try {
@@ -39,17 +35,6 @@ function formatDate(value) {
     }).format(new Date(value));
   } catch {
     return String(value);
-  }
-}
-
-function getTemplateIcon(code) {
-  switch (normalize(code)) {
-    case 'ACOMPAÑAMIENTO_ACADEMICO':
-      return BookOpen;
-    case 'BIENESTAR_LABORAL':
-      return Briefcase;
-    default:
-      return HeartPulse;
   }
 }
 

@@ -4,10 +4,10 @@ import SectionCard from '../components/SectionCard';
 import { FormField } from '../components/FormField';
 import { api, canAccessBienestarDocenteIA } from '../services/api';
 import {
-  AlertTriangle, BarChart3, BookOpen, CheckCircle2, ClipboardList,
-  Eye, FileText, Filter, HeartPulse, Loader2, MessageSquare, RefreshCw,
-  Search, Sparkles, Target, Users, X, Clock, UserCheck, GraduationCap,
-  Activity, ArrowUpRight
+  AlertTriangle, BarChart3, ClipboardList,
+  Eye, Filter, HeartPulse, Loader2, MessageSquare, RefreshCw,
+  Search, Target, Users, X, Clock, GraduationCap,
+  Activity
 } from 'lucide-react';
 import { playSuccessSound, playErrorSound } from '../utils/soundManager';
 import SoundToggleButton from '../components/SoundToggleButton';

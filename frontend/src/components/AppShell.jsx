@@ -145,6 +145,7 @@ const ROLE_SECTIONS = {
       items: [
         { to: '/app/docente/ia', label: 'IA de deserción', icon: Sparkles },
         { to: '/app/ia/bienestar', label: 'IA de Acompañamiento Estudiantil', icon: HeartPulse },
+        { to: '/app/docente/bienestar', label: 'Mi seguimiento de bienestar', icon: HeartPulse },
         { to: '/app/ia/becas/docente', label: 'IA de becas', icon: Sparkles },
         { to: '/app/actas-ocr-docente', label: 'Actas OCR inteligentes', icon: FileText },
         { to: '/app/chatbot', label: 'ChatBot', icon: Bot }
@@ -184,6 +185,7 @@ const ROLE_SECTIONS = {
       items: [
         { to: '/app/alumno/ia', label: 'IA de deserción', icon: AlertTriangle },
         { to: '/app/ia/bienestar', label: 'IA de Acompañamiento Estudiantil', icon: HeartPulse },
+        { to: '/app/alumno/bienestar', label: 'Mi acompañamiento', icon: HeartPulse },
         { to: '/app/ia/becas/alumno', label: 'IA de becas', icon: Sparkles },
         { to: '/app/actas-ocr-alumno', label: 'Actas OCR inteligentes', icon: FileText },
         { to: '/app/chatbot', label: 'ChatBot', icon: Bot }
@@ -213,6 +215,7 @@ const ROLE_SECTIONS = {
       items: [
         { to: '/app/soporte/ia', label: 'IA de deserción', icon: AlertTriangle },
         { to: '/app/ia/bienestar', label: 'IA de Acompañamiento Estudiantil', icon: HeartPulse },
+        { to: '/app/soporte/bienestar', label: 'Panel técnico de bienestar', icon: HeartPulse },
         { to: '/app/ia/becas/soporte', label: 'IA de becas', icon: Sparkles },
         { to: '/app/actas-ocr-soporte', label: 'Actas OCR inteligentes', icon: FileText },
         { to: '/app/chatbot', label: 'ChatBot', icon: Bot }

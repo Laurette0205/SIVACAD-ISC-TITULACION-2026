@@ -1,12 +1,12 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import SectionCard from '../components/SectionCard';
-import { api } from '../services/api';
+import { api, canAccessBienestarSoporteIA } from '../services/api';
 import {
-  Activity, AlertTriangle, BarChart3, CheckCircle2, ClipboardList,
-  Database, Download, Eye, FileText, Filter, HeartPulse, Loader2,
-  MessageSquare, RefreshCw, Search, Server, Shield, Wifi, X, Clock, Terminal,
-  Cpu, HardDrive, BookOpen, CheckSquare, AlertOctagon, ArrowUpRight
+  Activity, AlertTriangle, ClipboardList,
+  Database, Download, Eye, FileText, HeartPulse, Loader2,
+  MessageSquare, RefreshCw, Server, Shield, Wifi, X, Terminal,
+  Cpu, AlertOctagon
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -57,7 +57,7 @@ function Modal({ open, onClose, title, children }) {
 
 export default function IABienestarSoportePage() {
   const { token, user, loading: authLoading, getHomeRouteByUser } = useAuth();
-  const canAccess = !!user;
+  const canAccess = canAccessBienestarSoporteIA(user);
 
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -150,7 +150,7 @@ export default function IABienestarSoportePage() {
   }, [authLoading, user, fetchAll]);
 
   if (authLoading) return <div className="page-center">Cargando sesión...</div>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!canAccess) return <Navigate to="/app" replace />;
 
   const renderTablaRow = (nombre, info) => (
     <tr key={nombre}>
