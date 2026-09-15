@@ -1,14 +1,15 @@
 /* =========================================================
-   SIVACAD | GLOBAL CSS FINAL
-   Fondo institucional, dashboard limpio y legibilidad corregida
+   SIVACAD | GLOBAL CSS — DESIGN SYSTEM v2.0
+   Sistema visual institucional, modular y coherente
 ========================================================= */
 
 /* =========================================================
-   VARIABLES GLOBALES
-========================================================= */
+   DESIGN TOKENS — :root (Light Theme)
+   ========================================================= */
 :root {
   color-scheme: light dark;
 
+  /* ── Colores base ── */
   --bg: #eef3fb;
   --bg-2: #f8fbff;
   --panel: rgba(255, 255, 255, 0.80);
@@ -20,17 +21,18 @@
   --link: #1e40af;
   --link-hover: #1e3a8a;
 
+  /* ── Primarios (backward compat) ── */
   --primary: #0f172a;
   --primary-text: #ffffff;
-
   --accent1: #1e40af;
   --accent2: #3730a3;
   --accent3: #4f46e5;
 
+  /* ── Sombras (backward compat) ── */
   --shadow-soft: 0 12px 32px rgba(15, 23, 42, 0.08);
   --shadow-card: 0 22px 60px rgba(37, 99, 235, 0.14);
 
-  /* Institutional tokens */
+  /* ── Tokens institucionales (backward compat) ── */
   --accent-primary: #1e40af;
   --accent-primary-rgb: 30, 64, 175;
   --surface-card: rgba(255, 255, 255, 0.94);
@@ -39,6 +41,81 @@
   --text-label: #334155;
   --text-body: #1e293b;
   --shadow-elevated: 0 8px 32px rgba(15, 23, 42, 0.12);
+
+  /* ── Design System v2: Semantic Colors ── */
+  --color-primary: #1e40af;
+  --color-primary-hover: #1e3a8a;
+  --color-primary-light: rgba(30, 64, 175, 0.08);
+  --color-primary-ring: rgba(30, 64, 175, 0.25);
+
+  --color-success: #059669;
+  --color-success-light: rgba(5, 150, 105, 0.08);
+  --color-success-ring: rgba(5, 150, 105, 0.25);
+  --color-success-border: rgba(5, 150, 105, 0.30);
+
+  --color-warning: #d97706;
+  --color-warning-light: rgba(217, 119, 6, 0.08);
+  --color-warning-ring: rgba(217, 119, 6, 0.25);
+  --color-warning-border: rgba(217, 119, 6, 0.30);
+
+  --color-error: #dc2626;
+  --color-error-light: rgba(220, 38, 38, 0.08);
+  --color-error-ring: rgba(220, 38, 38, 0.25);
+  --color-error-border: rgba(220, 38, 38, 0.30);
+
+  --color-info: #2563eb;
+  --color-info-light: rgba(37, 99, 235, 0.08);
+  --color-info-ring: rgba(37, 99, 235, 0.25);
+  --color-info-border: rgba(37, 99, 235, 0.30);
+
+  /* ── Design System v2: Type Scale ── */
+  --font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.875rem;
+  --text-md: 0.9375rem;
+  --text-lg: 1.0625rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+
+  /* ── Design System v2: Spacing Scale ── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* ── Design System v2: Radius Scale ── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 22px;
+  --radius-full: 999px;
+
+  /* ── Design System v2: Shadow Scale ── */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.10);
+  --shadow-xl: 0 16px 40px rgba(15, 23, 42, 0.12);
+  --shadow-focus: 0 0 0 3px rgba(30, 64, 175, 0.18);
+  --shadow-focus-error: 0 0 0 3px rgba(220, 38, 38, 0.18);
+  --shadow-focus-success: 0 0 0 3px rgba(5, 150, 105, 0.18);
+
+  /* ── Design System v2: Motion ── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+  --duration-slow: 350ms;
 
   /* Imágenes institucionales (frontend/src/assets) */
   --campus-explanada: url("../assets/TESI_explanada.jpg");
@@ -50,8 +127,8 @@
 }
 
 /* =========================================================
-   TEMA OSCURO
-========================================================= */
+   DESIGN TOKENS — .dark (Dark Theme)
+   ========================================================= */
 .dark {
   --bg: #020617;
   --bg-2: #0b1220;
@@ -83,6 +160,42 @@
   --text-label: #cbd5e1;
   --text-body: #e2e8f0;
   --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.40);
+
+  /* ── Design System v2: Semantic Colors (dark) ── */
+  --color-primary: #60a5fa;
+  --color-primary-hover: #93c5fd;
+  --color-primary-light: rgba(96, 165, 250, 0.12);
+  --color-primary-ring: rgba(96, 165, 250, 0.30);
+
+  --color-success: #34d399;
+  --color-success-light: rgba(52, 211, 153, 0.12);
+  --color-success-ring: rgba(52, 211, 153, 0.30);
+  --color-success-border: rgba(52, 211, 153, 0.35);
+
+  --color-warning: #fbbf24;
+  --color-warning-light: rgba(251, 191, 36, 0.12);
+  --color-warning-ring: rgba(251, 191, 36, 0.30);
+  --color-warning-border: rgba(251, 191, 36, 0.35);
+
+  --color-error: #f87171;
+  --color-error-light: rgba(248, 113, 113, 0.12);
+  --color-error-ring: rgba(248, 113, 113, 0.30);
+  --color-error-border: rgba(248, 113, 113, 0.35);
+
+  --color-info: #60a5fa;
+  --color-info-light: rgba(96, 165, 250, 0.12);
+  --color-info-ring: rgba(96, 165, 250, 0.30);
+  --color-info-border: rgba(96, 165, 250, 0.35);
+
+  /* ── Shadow Scale (dark) ── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.32);
+  --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.36);
+  --shadow-focus: 0 0 0 3px rgba(96, 165, 250, 0.25);
+  --shadow-focus-error: 0 0 0 3px rgba(248, 113, 113, 0.25);
+  --shadow-focus-success: 0 0 0 3px rgba(52, 211, 153, 0.25);
 }
 
 /* =========================================================
@@ -188,13 +301,13 @@ textarea {
 }
 
 ::selection {
-  background: rgba(37, 99, 235, 0.20);
+  background: rgba(var(--accent-primary-rgb), 0.20);
   color: var(--text);
 }
 
 /* =========================================================
-   FORMULARIOS
-========================================================= */
+   FORMULARIOS — Design System v2
+   ========================================================= */
 input,
 select,
 textarea {
@@ -203,33 +316,55 @@ textarea {
   background: var(--surface-input);
   color: var(--text);
   padding: 0.92rem 1rem;
-  border-radius: 18px;
+  border-radius: var(--radius-xl);
+  font-size: var(--text-base);
   outline: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease,
-    background 0.2s ease;
+    border-color var(--duration-normal) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-out),
+    background var(--duration-normal) var(--ease-out);
 }
 
 .dark input,
 .dark select,
 .dark textarea {
   background: var(--surface-input);
+  box-shadow: none;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: rgba(100, 116, 139, 0.82);
+  color: rgba(100, 116, 139, 0.65);
+}
+
+input:hover:not(:focus):not(:disabled),
+select:hover:not(:focus):not(:disabled),
+textarea:hover:not(:focus):not(:disabled) {
+  border-color: rgba(var(--accent-primary-rgb), 0.35);
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: rgba(37, 99, 235, 0.70);
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-focus);
   transform: translateY(-1px);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--line);
+}
+
+.dark input:disabled,
+.dark select:disabled,
+.dark textarea:disabled {
+  background: rgba(15, 23, 42, 0.50);
 }
 
 button {
@@ -237,18 +372,24 @@ button {
 }
 
 /* =========================================================
-   BOTONES
-========================================================= */
+   BOTONES — Design System v2
+   ========================================================= */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.55rem;
   padding: 0.92rem 1.05rem;
-  border-radius: 18px;
+  border-radius: var(--radius-xl);
   font-weight: 700;
+  font-size: var(--text-base);
   border: 1px solid transparent;
-  transition: 0.22s ease;
+  transition:
+    transform var(--duration-normal) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out),
+    background var(--duration-normal) var(--ease-out),
+    border-color var(--duration-normal) var(--ease-out),
+    filter var(--duration-normal) var(--ease-out);
   box-shadow: var(--shadow-soft);
   min-height: 44px;
   min-width: 0;
@@ -259,19 +400,19 @@ button {
 
 .btn.primary,
 .btn.accent {
-  background: linear-gradient(90deg, var(--accent1), var(--accent2), var(--accent3));
+  background: linear-gradient(135deg, var(--accent1), var(--accent2), var(--accent3));
   color: #fff;
   background-size: 180% 180%;
 }
 
 .btn.secondary {
-  background: rgba(255, 255, 255, 0.80);
+  background: var(--surface-card);
   border-color: var(--line);
   color: var(--text);
 }
 
 .dark .btn.secondary {
-  background: rgba(15, 23, 42, 0.74);
+  background: var(--surface-card);
 }
 
 .sidebar .btn.secondary {
@@ -297,7 +438,7 @@ button {
 }
 
 .btn.danger {
-  background: linear-gradient(90deg, #dc2626, #ef4444);
+  background: linear-gradient(135deg, #dc2626, #ef4444);
   color: #fff;
 }
 
@@ -310,35 +451,47 @@ button {
 
 .btn.sm {
   padding: 0.4rem 0.75rem;
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
   min-height: 32px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
 }
 
 .btn:hover {
   transform: translateY(-2px);
-  filter: brightness(1.02);
+  filter: brightness(1.04);
+  box-shadow: var(--shadow-md);
 }
 
 .btn:active {
   transform: translateY(0);
+  filter: brightness(0.98);
+  box-shadow: var(--shadow-xs);
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--accent1);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-color: var(--color-primary);
 }
 
 .btn.link:focus-visible {
   outline-offset: 2px;
 }
 
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  filter: none;
+}
+
 /* =========================================================
-   ALERTAS
-========================================================= */
+   ALERTAS — Design System v2
+   ========================================================= */
 .alert {
   padding: 0.95rem 1rem;
-  border-radius: 18px;
+  border-radius: var(--radius-xl);
   border: 1px solid;
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
@@ -348,30 +501,32 @@ button {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  transition: background var(--duration-normal) var(--ease-out),
+              border-color var(--duration-normal) var(--ease-out);
 }
 
 .alert.error {
-  background: rgba(244, 63, 94, 0.08);
-  border-color: rgba(244, 63, 94, 0.25);
-  color: #e11d48;
+  background: var(--color-error-light);
+  border-color: var(--color-error-border);
+  color: var(--color-error);
 }
 
 .alert.success {
-  background: rgba(16, 185, 129, 0.08);
-  border-color: rgba(16, 185, 129, 0.25);
-  color: #059669;
+  background: var(--color-success-light);
+  border-color: var(--color-success-border);
+  color: var(--color-success);
 }
 
 .alert.info {
-  background: rgba(37, 99, 235, 0.08);
-  border-color: rgba(37, 99, 235, 0.25);
-  color: #2563eb;
+  background: var(--color-info-light);
+  border-color: var(--color-info-border);
+  color: var(--color-info);
 }
 
 .alert.warning {
-  background: rgba(245, 158, 11, 0.08);
-  border-color: rgba(245, 158, 11, 0.25);
-  color: #d97706;
+  background: var(--color-warning-light);
+  border-color: var(--color-warning-border);
+  color: var(--color-warning);
 }
 
 /* =========================================================
@@ -431,6 +586,196 @@ button {
   place-items: center;
   padding: 1rem;
   min-width: 0;
+}
+
+/* =========================================================
+   DESIGN SYSTEM v2 — MICROINTERACCIONES
+   ========================================================= */
+/* ── Transiciones base ── */
+.transition-fast {
+  transition: all var(--duration-fast) var(--ease-out);
+}
+.transition-normal {
+  transition: all var(--duration-normal) var(--ease-out);
+}
+.transition-slow {
+  transition: all var(--duration-slow) var(--ease-out);
+}
+
+/* ── Hover lift (tarjetas, botones) ── */
+.hover-lift {
+  transition: transform var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out);
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+.hover-lift:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Hover glow (botones primarios) ── */
+.hover-glow {
+  transition: box-shadow var(--duration-normal) var(--ease-out),
+              background var(--duration-normal) var(--ease-out);
+}
+.hover-glow:hover {
+  box-shadow: 0 4px 16px rgba(var(--accent-primary-rgb), 0.25);
+}
+
+/* ── Focus ring consistente ── */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-color: var(--color-primary);
+}
+
+/* ── Scale micro (botones, toggles) ── */
+.scale-micro {
+  transition: transform var(--duration-fast) var(--ease-spring);
+}
+.scale-micro:active {
+  transform: scale(0.97);
+}
+
+/* ── Skeleton loading ── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--line) 25%,
+    rgba(148, 163, 184, 0.10) 50%,
+    var(--line) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+/* ── Fade in animación ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fadeIn var(--duration-slow) var(--ease-out) both;
+}
+
+/* ── Slide up (modales, drawers) ── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.slide-up {
+  animation: slideUp var(--duration-slow) var(--ease-out) both;
+}
+
+/* ── Scale in (modales) ── */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.scale-in {
+  animation: scaleIn var(--duration-slow) var(--ease-out) both;
+}
+
+/* ── Pulse sutil (notificaciones) ── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* =========================================================
+   DESIGN SYSTEM v2 — SPINNER (única definición)
+   ========================================================= */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 0.8s linear infinite;
+}
+
+/* =========================================================
+   DESIGN SYSTEM v2 — ACCESIBILIDAD
+   ========================================================= */
+/* ── Focus visible global ── */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Skip to content (a11y) ── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-4);
+  z-index: 10000;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+.skip-link:focus {
+  top: var(--space-4);
+}
+
+/* =========================================================
+   DESIGN SYSTEM v2 — DARK MODE COMPAT
+   ========================================================= */
+.dark .alert.error {
+  background: var(--color-error-light);
+  border-color: var(--color-error-border);
+  color: var(--color-error);
+}
+.dark .alert.success {
+  background: var(--color-success-light);
+  border-color: var(--color-success-border);
+  color: var(--color-success);
+}
+.dark .alert.info {
+  background: var(--color-info-light);
+  border-color: var(--color-info-border);
+  color: var(--color-info);
+}
+.dark .alert.warning {
+  background: var(--color-warning-light);
+  border-color: var(--color-warning-border);
+  color: var(--color-warning);
+}
+
+.dark .glass {
+  background: var(--panel);
+  border-color: var(--line);
+  box-shadow: var(--shadow-soft);
+}
+
+.dark .soft-gradient {
+  background:
+    linear-gradient(135deg, rgba(96, 165, 250, 0.08), rgba(129, 140, 248, 0.06)),
+    var(--surface-card);
 }
 
 /* =========================================================
@@ -1900,10 +2245,6 @@ button {
   border: 1px solid rgba(244, 63, 94, 0.22);
 }
 
-.modal-close {
-  flex: 0 0 auto;
-}
-
 .modal-note {
   margin-top: 1rem;
   display: flex;
@@ -2526,17 +2867,6 @@ button {
   }
 }
 
-@keyframes bgDrift {
-  0% {
-    transform: scale(1) translate3d(0, 0, 0);
-    opacity: 0.95;
-  }
-  100% {
-    transform: scale(1.03) translate3d(0, -6px, 0);
-    opacity: 1;
-  }
-}
-
 /* =========================================================
    LANDSCAPE MÓVIL
    ========================================================= */
@@ -2907,11 +3237,6 @@ body {
 
 .dark .note {
   background: rgba(15, 23, 42, 0.72);
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 .animate-spin {
@@ -4175,10 +4500,6 @@ table th, table td {
   animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
 /* Error state */
 .docente-inscripciones__error {
   display: flex;
@@ -4558,10 +4879,6 @@ table th, table td {
   animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
 /* Texto secundario */
 .text-muted {
   color: var(--muted);
@@ -4663,12 +4980,6 @@ table th, table td {
 }
 
 /* Fila utilitaria */
-.row {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
 .row.gap {
   gap: 0.75rem;
 }
@@ -4734,20 +5045,23 @@ table th, table td {
 }
 
 .modal-close {
+  flex: 0 0 auto;
   background: none;
   border: none;
   cursor: pointer;
   color: var(--muted);
   padding: 0.25rem;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: color var(--duration-fast) var(--ease-out),
+              background var(--duration-fast) var(--ease-out);
 }
 
 .modal-close:hover {
   color: var(--text);
-  background: rgba(37, 99, 235, 0.06);
+  background: var(--line);
 }
 
 /* Responsive: tablet */
