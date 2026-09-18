@@ -319,6 +319,38 @@ async function download(path, token, timeoutMs = 30000) {
   }
 }
 
+async function fetchAuthenticatedImage(path, token, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(buildUrl(path), {
+      method: 'GET',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      const data = await parseResponse(response);
+      emitAuthError(response.status);
+      throw new Error(data?.message || data?.error || `Error ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new Error('Tiempo de espera agotado al cargar imagen');
+    }
+    if (isNetworkError(error)) {
+      throw new Error('No se pudo conectar con el backend');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 const api = {
   login: (body) =>
     request('/auth/login', {
@@ -2202,6 +2234,12 @@ iaBienestarSoporteRutas: (token) =>
 
   adminKardexGenerarQR: (token, id) =>
     request(`/admin-kardex/qr/generar/${id}`, { token, method: 'POST' }),
+
+  adminKardexQrImagen: (token, id) =>
+    fetchAuthenticatedImage(`/admin-kardex/qr/imagen/${id}`, token),
+
+  adminKardexFotoImagen: (token, id) =>
+    fetchAuthenticatedImage(`/admin-kardex/foto/imagen/${id}`, token),
 
   adminKardexHistorial: (token, id) =>
     request(`/admin-kardex/historial/${id}`, { token }),

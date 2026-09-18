@@ -13,6 +13,8 @@ if (!fs.existsSync(FOTOS_DIR)) fs.mkdirSync(FOTOS_DIR, { recursive: true });
 router.get('/general', auth, ctrl.getKardexGeneral);
 router.get('/individual/:id', auth, ctrl.getKardexIndividual);
 router.get('/qr/validar/:token', ctrl.validarQR);
+router.get('/qr/imagen/:id', auth, role('ADMINISTRADOR'), ctrl.getQrImagen);
+router.get('/foto/imagen/:id', auth, role('ADMINISTRADOR'), ctrl.getFotoInstitucional);
 router.post('/qr/generar/:id', auth, role('ADMINISTRADOR'), ctrl.generarQR);
 router.post('/foto/:id', auth, role('ADMINISTRADOR'), uploadAlumnoFoto.single('foto'), ctrl.cargarFotoInstitucional);
 router.get('/historial/:id', auth, ctrl.getHistorialAcademico);

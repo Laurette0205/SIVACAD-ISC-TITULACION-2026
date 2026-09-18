@@ -54,6 +54,7 @@ export default function AdminKardexPage() {
   // Individual
   const [selectedId, setSelectedId] = React.useState('');
   const [kardexData, setKardexData] = React.useState(null);
+  const [fotoBlobUrl, setFotoBlobUrl] = React.useState(null);
 
   // Foto
   const [fotoAlumnoId, setFotoAlumnoId] = React.useState('');
@@ -61,6 +62,7 @@ export default function AdminKardexPage() {
   // QR
   const [qrAlumnoId, setQrAlumnoId] = React.useState('');
   const [qrData, setQrData] = React.useState(null);
+  const [qrBlobUrl, setQrBlobUrl] = React.useState(null);
 
   // Historial
   const [historialAlumnoId, setHistorialAlumnoId] = React.useState('');
@@ -137,6 +139,50 @@ export default function AdminKardexPage() {
     loadAuditoria();
   }, [loadKardexGeneral, loadAuditoria]);
 
+  // ========== AUTHENTICATED IMAGE FETCHING ==========
+  const prevStudentIdRef = React.useRef(null);
+  const fetchControllerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const studentId = Number(selectedId) || null;
+    if (!token || !studentId) return;
+
+    if (prevStudentIdRef.current === studentId) return;
+    prevStudentIdRef.current = studentId;
+
+    if (fetchControllerRef.current) fetchControllerRef.current.abort();
+    const ctrl = new AbortController();
+    fetchControllerRef.current = ctrl;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const [qrUrl, fotoUrl] = await Promise.all([
+          api.adminKardexQrImagen(token, studentId).catch(() => null),
+          api.adminKardexFotoImagen(token, studentId).catch(() => null)
+        ]);
+        if (cancelled || ctrl.signal.aborted) return;
+        setQrBlobUrl(qrUrl);
+        setFotoBlobUrl(fotoUrl);
+      } catch { /* silent */ }
+    })();
+
+    return () => {
+      cancelled = true;
+      ctrl.abort();
+      prevStudentIdRef.current = null;
+      setQrBlobUrl(prev => { if (prev) URL.revokeObjectURL(prev); return null; });
+      setFotoBlobUrl(prev => { if (prev) URL.revokeObjectURL(prev); return null; });
+    };
+  }, [token, selectedId]);
+
+  React.useEffect(() => {
+    if (!qrData && qrBlobUrl) {
+      URL.revokeObjectURL(qrBlobUrl);
+      setQrBlobUrl(null);
+    }
+  }, [qrData]);
+
   // ========== HANDLERS ==========
 
   const handleExportPDF = async (id) => {
@@ -200,6 +246,7 @@ export default function AdminKardexPage() {
     try {
       const res = await api.adminKardexGenerarQR(token, Number(qrAlumnoId));
       setQrData(res?.data || null);
+      if (qrBlobUrl) { URL.revokeObjectURL(qrBlobUrl); setQrBlobUrl(null); }
       setMessage('QR generado correctamente');
     } catch (err) { setError(err?.message || 'Error al generar QR'); }
   };
@@ -434,13 +481,13 @@ export default function AdminKardexPage() {
                 {kardexData.fotografia_url && (
                   <div style={{ marginTop: '0.75rem' }}>
                     <strong>Fotografía institucional:</strong><br />
-                    <img src={kardexData.fotografia_url} alt="Foto" style={{ width: 120, height: 150, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border)' }} />
+                    <img src={fotoBlobUrl || kardexData.fotografia_url} alt="Foto" style={{ width: 120, height: 150, objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border)' }} />
                   </div>
                 )}
-                {kardexData.url_qr && (
+                {(kardexData.url_qr || qrBlobUrl) && (
                   <div style={{ marginTop: '0.75rem' }}>
                     <strong>QR de verificación:</strong><br />
-                    <img src={kardexData.url_qr} alt="QR" style={{ width: 100, borderRadius: 4 }} />
+                    <img src={qrBlobUrl || kardexData.url_qr} alt="QR" style={{ width: 100, borderRadius: 4 }} />
                   </div>
                 )}
                 {kardexData.firma_electronica && (
@@ -525,7 +572,7 @@ export default function AdminKardexPage() {
         </div>
         {qrData && (
           <div style={{ textAlign: 'center', padding: '1rem' }}>
-            {(qrData.qr_base64 || qrData.url_qr) && <img src={qrData.qr_base64 || qrData.url_qr} alt="QR" style={{ width: 150, borderRadius: 8 }} />}
+            {(qrData.qr_base64 || qrBlobUrl || qrData.url_qr) && <img src={qrData.qr_base64 || qrBlobUrl || qrData.url_qr} alt="QR" style={{ width: 150, borderRadius: 8 }} />}
             <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '0.5rem' }}>Token: {qrData.qr_token}</p>
           </div>
         )}

@@ -316,6 +316,80 @@ exports.validarQR = async (req, res) => {
 // =====================================================
 // 5. GENERAR QR
 // =====================================================
+
+// =====================================================
+// 5a. IMAGEN QR AUTENTICADA
+// =====================================================
+exports.getQrImagen = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const idInstitucion = req.user?.id_institucion || 1;
+    if (!id) return res.status(400).json({ ok: false, message: 'ID inválido' });
+
+    const [rows] = await pool.execute(
+      'SELECT url_qr FROM kardex_alumno WHERE id_alumno = ? AND id_institucion = ? LIMIT 1',
+      [id, idInstitucion]
+    );
+    if (!rows.length || !rows[0].url_qr) {
+      return res.status(404).json({ ok: false, message: 'QR no disponible' });
+    }
+
+    const absPath = absoluteFromRelative(rows[0].url_qr);
+    if (!absPath || !fs.existsSync(absPath)) {
+      return res.status(404).json({ ok: false, message: 'Archivo QR no encontrado' });
+    }
+
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'private, max-age=3600');
+    return fs.createReadStream(absPath).pipe(res);
+  } catch (error) {
+    console.error('getQrImagen:', error);
+    return res.status(500).json({ ok: false, message: 'Error al obtener imagen QR' });
+  }
+};
+
+// =====================================================
+// 5b. FOTO INSTITUCIONAL AUTENTICADA
+// =====================================================
+exports.getFotoInstitucional = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const idInstitucion = req.user?.id_institucion || 1;
+    if (!id) return res.status(400).json({ ok: false, message: 'ID inválido' });
+
+    const [rows] = await pool.execute(
+      `SELECT k.foto_institucional, k.foto_alumno, a.fotografia
+       FROM kardex_alumno k
+       INNER JOIN alumnos a ON a.id_alumno = k.id_alumno
+       WHERE k.id_alumno = ? AND k.id_institucion = ? LIMIT 1`,
+      [id, idInstitucion]
+    );
+    if (!rows.length) {
+      return res.status(404).json({ ok: false, message: 'Alumno no encontrado' });
+    }
+
+    const r = rows[0];
+    const photoPath = r.foto_institucional || r.foto_alumno || r.fotografia;
+    if (!photoPath) {
+      return res.status(404).json({ ok: false, message: 'Sin fotografía' });
+    }
+
+    const absPath = absoluteFromRelative(photoPath);
+    if (!absPath || !fs.existsSync(absPath)) {
+      return res.status(404).json({ ok: false, message: 'Archivo de fotografía no encontrado' });
+    }
+
+    const ext = path.extname(absPath).toLowerCase();
+    const mimeMap = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
+    res.setHeader('Content-Type', mimeMap[ext] || 'image/jpeg');
+    res.setHeader('Cache-Control', 'private, max-age=3600');
+    return fs.createReadStream(absPath).pipe(res);
+  } catch (error) {
+    console.error('getFotoInstitucional:', error);
+    return res.status(500).json({ ok: false, message: 'Error al obtener fotografía' });
+  }
+};
+
 exports.generarQR = async (req, res) => {
   let previousQrPath = null;
   try {
