@@ -525,7 +525,7 @@ export default function AdminKardexPage() {
         </div>
         {qrData && (
           <div style={{ textAlign: 'center', padding: '1rem' }}>
-            {qrData.url_qr && <img src={qrData.url_qr} alt="QR" style={{ width: 150, borderRadius: 8 }} />}
+            {(qrData.qr_base64 || qrData.url_qr) && <img src={qrData.qr_base64 || qrData.url_qr} alt="QR" style={{ width: 150, borderRadius: 8 }} />}
             <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '0.5rem' }}>Token: {qrData.qr_token}</p>
           </div>
         )}

@@ -337,6 +337,12 @@ exports.generarQR = async (req, res) => {
     await fs.promises.mkdir(path.dirname(absolutePath), { recursive: true });
     await QRCode.toFile(absolutePath, qrContent, { type: 'png', width: 520, margin: 1, errorCorrectionLevel: 'H' });
 
+    let qr_base64 = null;
+    try {
+      const fileBuffer = await fs.promises.readFile(absolutePath);
+      qr_base64 = `data:image/png;base64,${fileBuffer.toString('base64')}`;
+    } catch (e) { /* fallback: no base64 */ }
+
     await pool.execute('UPDATE kardex_alumno SET qr_token = ?, url_qr = ? WHERE id_alumno = ? AND id_institucion = ?', [token, relativePath, id, idInstitucion]);
     safeUnlink(previousQrPath);
 
@@ -345,7 +351,7 @@ exports.generarQR = async (req, res) => {
       id_usuario: req.user.id_usuario, ip_origen: req.ip, id_institucion: idInstitucion
     });
 
-    return res.json({ ok: true, message: 'QR generado', data: { qr_token: token, url_qr: publicUrl(req, relativePath) } });
+    return res.json({ ok: true, message: 'QR generado', data: { qr_token: token, url_qr: publicUrl(req, relativePath), qr_base64 } });
   } catch (error) {
     console.error('generarQR:', error);
     return res.status(500).json({ ok: false, message: 'Error al generar QR' });
