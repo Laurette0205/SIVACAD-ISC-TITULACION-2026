@@ -18,15 +18,15 @@ async function getPanel(req, res) {
       FROM incidencias_soporte
     `);
 
-    const [totalInscripciones] = await conn.execute('SELECT COUNT(*) AS total FROM inscripciones WHERE id_institucion = ?', [req.user.id_institucion || 1]);
+    const [totalInscripciones] = await conn.execute('SELECT COUNT(*) AS total FROM inscripciones');
     const [totalAuditoria] = await conn.execute('SELECT COUNT(*) AS total FROM inscripciones_auditoria');
-    const [totalAlumnos] = await conn.execute('SELECT COUNT(*) AS total FROM grupos_alumnos WHERE id_institucion = ?', [req.user.id_institucion || 1]);
+    const [totalAlumnos] = await conn.execute('SELECT COUNT(*) AS total FROM grupos_alumnos');
     const [totalCargas] = await conn.execute('SELECT COUNT(*) AS total FROM cargas_academicas');
 
     const [estadosInscripcion] = await conn.execute(`
       SELECT UPPER(estado) AS estado, COUNT(*) AS total
-      FROM inscripciones WHERE id_institucion = ? GROUP BY estado ORDER BY total DESC
-    `, [req.user.id_institucion || 1]);
+      FROM inscripciones GROUP BY estado ORDER BY total DESC
+    `);
 
     const [erroresRecientes] = await conn.execute(`
       SELECT COUNT(*) AS total
@@ -388,14 +388,13 @@ async function getRevisionCarga(req, res) {
     const advertencias = [];
     const stats = {};
 
-    const [totalInscripciones] = await conn.execute('SELECT COUNT(*) AS total FROM inscripciones WHERE id_institucion = ?', [req.user.id_institucion || 1]);
+    const [totalInscripciones] = await conn.execute('SELECT COUNT(*) AS total FROM inscripciones');
     stats.total_inscripciones = totalInscripciones[0]?.total || 0;
 
     const [inscripcionesSinGrupo] = await conn.execute(`
       SELECT COUNT(*) AS total FROM inscripciones
       WHERE id_grupo IS NULL AND estado IN ('Activo', 'Pendiente', 'Validada', 'Aprobada', 'Completada')
-        AND id_institucion = ?
-    `, [req.user.id_institucion || 1]);
+    `);
     stats.sin_grupo = inscripcionesSinGrupo[0]?.total || 0;
     if (inscripcionesSinGrupo[0]?.total > 0) {
       advertencias.push({
@@ -411,8 +410,7 @@ async function getRevisionCarga(req, res) {
       LEFT JOIN grupos_alumnos ga ON ga.id_alumno = i.id_alumno AND ga.id_grupo = i.id_grupo AND ga.id_periodo = i.id_periodo
       WHERE i.estado IN ('Activo', 'Validada', 'Aprobada', 'Completada')
         AND ga.id_grupo_alumno IS NULL
-        AND i.id_institucion = ?
-    `, [req.user.id_institucion || 1]);
+    `);
     stats.alumnos_sin_grupo_alumno = alumnosSinGrupoAlumno[0]?.total || 0;
     if (alumnosSinGrupoAlumno[0]?.total > 0) {
       inconsistencias.push({
@@ -427,8 +425,7 @@ async function getRevisionCarga(req, res) {
       FROM grupos_alumnos ga
       LEFT JOIN inscripciones i ON i.id_alumno = ga.id_alumno AND i.id_grupo = ga.id_grupo AND i.id_periodo = ga.id_periodo
       WHERE ga.estado = 'ACTIVO' AND i.id_inscripcion IS NULL
-        AND ga.id_institucion = ?
-    `, [req.user.id_institucion || 1]);
+    `);
     stats.grupos_alumno_sin_inscripcion = gruposAlumnoSinInscripcion[0]?.total || 0;
     if (gruposAlumnoSinInscripcion[0]?.total > 0) {
       inconsistencias.push({
@@ -443,8 +440,7 @@ async function getRevisionCarga(req, res) {
       FROM grupos_alumnos
       WHERE estado IN ('BAJA', 'TRANSFERIDO')
         AND created_at >= DATE_SUB(NOW(), INTERVAL 168 HOUR)
-        AND id_institucion = ?
-    `, [req.user.id_institucion || 1]);
+    `);
     stats.bajas_recientes_7d = bajasRecientes[0]?.total || 0;
     if (bajasRecientes[0]?.total > 0) {
       advertencias.push({
@@ -457,11 +453,10 @@ async function getRevisionCarga(req, res) {
     const [duplicados] = await conn.execute(`
       SELECT id_alumno, id_periodo, COUNT(*) AS total
       FROM inscripciones
-      WHERE id_institucion = ?
       GROUP BY id_alumno, id_periodo
       HAVING total > 1
       LIMIT 20
-    `, [req.user.id_institucion || 1]);
+    `);
     stats.duplicados = duplicados.length;
     if (duplicados.length > 0) {
       inconsistencias.push({

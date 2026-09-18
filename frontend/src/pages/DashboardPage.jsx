@@ -209,10 +209,7 @@ export default function DashboardPage() {
       </section>
 
       {loading && (
-        <div
-          className="auth-note"
-          style={{ display: 'flex', alignItems: 'center', gap: 10 }}
-        >
+        <div className="auth-note loading-note">
           <Loader2 className="animate-spin" size={18} />
           <span>Cargando información del dashboard...</span>
         </div>
@@ -220,7 +217,7 @@ export default function DashboardPage() {
 
       {error && <div className="alert error">{error}</div>}
 
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.75rem' }}>
+      <div className="stats-grid stats-grid--compact">
         {stats.map((stat) => (
           <StatCard
             key={stat.label}
@@ -278,11 +275,10 @@ export default function DashboardPage() {
                   type="button"
                   className={`status ${item.label === 'Crítico' ? 'warn' : 'ok'}`}
                   onClick={() => navigate(item.route)}
-                  style={{ width: '100%', textAlign: 'left' }}
                 >
                   <Icon size={18} />
                   <span>
-                    <strong style={{ display: 'block' }}>
+                    <strong>
                       Riesgo {item.label}
                     </strong>
                     {item.value} alumnos detectados

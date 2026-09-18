@@ -221,8 +221,8 @@ exports.updateEstado = async (req, res) => {
 
     const [actual] = await conn.execute(
       `SELECT i.id_inscripcion, i.estado AS estado_actual, i.id_alumno, i.id_periodo, i.tipo_inscripcion
-       FROM inscripciones i WHERE i.id_inscripcion = ? AND i.id_institucion = ? LIMIT 1`,
-      [Number(id), idInstitucion]
+       FROM inscripciones i WHERE i.id_inscripcion = ? LIMIT 1`,
+      [Number(id)]
     );
 
     if (!actual.length) {

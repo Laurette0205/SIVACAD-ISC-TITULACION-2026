@@ -157,7 +157,7 @@ export default function IABecasAlumnoPage() {
         <SectionCard title="Mis solicitudes recientes" subtitle="Últimas solicitudes registradas">
           {solicitudes.length === 0 ? <div className="empty">No tienes solicitudes de beca registradas</div>
           : <div className="list">{solicitudes.slice(0, 5).map(s => (
-            <div key={s.id_solicitud} className="list-item" style={{ cursor: 'pointer' }} onClick={() => { verSeguimiento(s.id_solicitud); setActiveTab('historial'); }}>
+            <div key={s.id_solicitud} className="list-item" style={{ cursor: 'pointer' }} role="button" tabIndex={0} onClick={() => { verSeguimiento(s.id_solicitud); setActiveTab('historial'); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); verSeguimiento(s.id_solicitud); setActiveTab('historial'); } }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                 <div>
                   <strong>{s.convocatoria_titulo || 'Sin convocatoria'}</strong>
@@ -306,7 +306,7 @@ export default function IABecasAlumnoPage() {
           {loading.solicitudes ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
           : solicitudes.length === 0 ? <div className="empty">No tienes solicitudes registradas. Ve a "Solicitar beca" para enviar una.</div>
           : <div className="list">{solicitudes.map(s => (
-            <div key={s.id_solicitud} className="list-item" style={{ cursor: 'pointer' }} onClick={() => verSeguimiento(s.id_solicitud)}>
+            <div key={s.id_solicitud} className="list-item" style={{ cursor: 'pointer' }} role="button" tabIndex={0} onClick={() => verSeguimiento(s.id_solicitud)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); verSeguimiento(s.id_solicitud); } }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                 <div>
                   <strong>{s.convocatoria_titulo || 'Sin convocatoria'}</strong>

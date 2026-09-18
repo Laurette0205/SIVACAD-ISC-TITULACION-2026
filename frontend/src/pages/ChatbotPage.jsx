@@ -895,22 +895,22 @@ function PanelAcademico({ token }) {
       ) : data?.dashboard ? (
         <SectionCard title="Resumen academico" subtitle="Indicadores del periodo activo">
           <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
-            <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/app/coordinador/inscripciones')}>
+            <div className="stat-card" style={{ cursor: 'pointer' }} role="button" tabIndex={0} onClick={() => navigate('/app/coordinador/inscripciones')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/app/coordinador/inscripciones'); } }}>
               <GraduationCap size={22} />
               <div className="stat-value">{data.dashboard.total_inscritos ?? data.dashboard.alumnos ?? '—'}</div>
               <div className="stat-label">Alumnos</div>
             </div>
-            <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/app/grupos')}>
+            <div className="stat-card" style={{ cursor: 'pointer' }} role="button" tabIndex={0} onClick={() => navigate('/app/grupos')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/app/grupos'); } }}>
               <BookOpen size={22} />
               <div className="stat-value">{data.groups?.length ?? data.dashboard.grupos ?? '—'}</div>
               <div className="stat-label">Grupos</div>
             </div>
-            <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/app/periodos')}>
+            <div className="stat-card" style={{ cursor: 'pointer' }} role="button" tabIndex={0} onClick={() => navigate('/app/periodos')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/app/periodos'); } }}>
               <CalendarRange size={22} />
               <div className="stat-value">{data.dashboard.periodo_activo?.nombre || data.dashboard.periodo || '—'}</div>
               <div className="stat-label">Periodo activo</div>
             </div>
-            <div className="stat-card" style={{ cursor: 'pointer', borderColor: (data.dashboard.alertas || 0) > 0 ? '#ef4444' : undefined }} onClick={() => navigate('/app/coordinador/kardex')}>
+            <div className="stat-card" style={{ cursor: 'pointer', borderColor: (data.dashboard.alertas || 0) > 0 ? '#ef4444' : undefined }} role="button" tabIndex={0} onClick={() => navigate('/app/coordinador/kardex')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/app/coordinador/kardex'); } }}>
               <AlertTriangle size={22} />
               <div className="stat-value">{data.dashboard.alertas ?? data.dashboard.riesgo_alto ?? 0}</div>
               <div className="stat-label">Alertas</div>
@@ -1512,12 +1512,12 @@ function PanelPersonalAlumno({ token, user, onNavigateTab }) {
       ) : data ? (
         <SectionCard title="Resumen academico" subtitle="Informacion general del periodo">
           <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
-            <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/app/alumno/kardex')}>
+            <div className="stat-card" style={{ cursor: 'pointer' }} role="button" tabIndex={0} onClick={() => navigate('/app/alumno/kardex')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/app/alumno/kardex'); } }}>
               <FileText size={22} />
               <div className="stat-value">{data.promedio_general ?? data.promedio ?? '—'}</div>
               <div className="stat-label">Promedio general</div>
             </div>
-            <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/app/alumno/kardex')}>
+            <div className="stat-card" style={{ cursor: 'pointer' }} role="button" tabIndex={0} onClick={() => navigate('/app/alumno/kardex')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/app/alumno/kardex'); } }}>
               <BookOpen size={22} />
               <div className="stat-value">{data.creditos ?? data.creditos_acumulados ?? '—'}</div>
               <div className="stat-label">Creditos</div>

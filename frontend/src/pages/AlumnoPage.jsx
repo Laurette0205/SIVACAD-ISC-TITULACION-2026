@@ -74,6 +74,7 @@ export default function AlumnoPage() {
       label: 'Alumnos',
       value: data?.alumnos ?? '—',
       hint: 'Control académico ISC',
+      color: 'var(--color-info)',
       onClick: () => navigate('/app/alumnos')
     },
     {
@@ -81,6 +82,7 @@ export default function AlumnoPage() {
       label: 'Inscripciones',
       value: data?.inscripciones ?? '—',
       hint: 'Altas del periodo',
+      color: 'var(--color-success)',
       onClick: () => navigate('/app/inscripciones')
     },
     {
@@ -88,6 +90,7 @@ export default function AlumnoPage() {
       label: 'Reinscripciones',
       value: data?.reinscripciones ?? '—',
       hint: 'Seguimiento del alumno',
+      color: 'var(--color-purple)',
       onClick: () => navigate('/app/reinscripciones')
     },
     {
@@ -95,6 +98,7 @@ export default function AlumnoPage() {
       label: 'Kardex',
       value: data?.kardex ?? '—',
       hint: 'Historial académico',
+      color: 'var(--color-warning)',
       onClick: () => navigate('/app/kardex')
     },
     {
@@ -102,6 +106,7 @@ export default function AlumnoPage() {
       label: 'Evaluaciones',
       value: data?.evaluaciones ?? '—',
       hint: 'Actividades y seguimiento',
+      color: 'var(--color-sky)',
       onClick: () => navigate('/app/estudiante-evaluaciones')
     },
     {
@@ -109,6 +114,7 @@ export default function AlumnoPage() {
       label: 'ChatBot',
       value: data?.chatbot ?? '—',
       hint: 'Soporte institucional',
+      color: 'var(--accent1)',
       onClick: () => navigate('/app/chatbot')
     }
   ];
@@ -183,7 +189,7 @@ export default function AlumnoPage() {
       </section>
 
       {loading && (
-        <div className="auth-note" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="auth-note loading-note">
           <Loader2 className="animate-spin" size={18} />
           <span>Cargando panel del alumno...</span>
         </div>

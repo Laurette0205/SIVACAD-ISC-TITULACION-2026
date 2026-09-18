@@ -112,6 +112,16 @@ app.get('/api/health', async (req, res) => {
     health.status = 'degraded';
   }
 
+  // Connection pool
+  try {
+    const poolStatus = pool.pool || {};
+    health.checks.pool = {
+      active: poolStatus._allConnections?.length || 0,
+      idle: poolStatus._freeConnections?.length || 0,
+      waiting: poolStatus._connectionQueue?.length || 0
+    };
+  } catch (_) {}
+
   // Memory usage
   const mem = process.memoryUsage();
   health.checks.memory = {
@@ -128,8 +138,33 @@ app.get('/api/health', async (req, res) => {
   // Uptime
   health.uptime = Math.round(process.uptime()) + 's';
 
+  // Offline sync queue status
+  try {
+    const [syncRows] = await pool.execute(
+      `SELECT COUNT(*) as pending FROM offline_sync_queue WHERE sincronizado = 0`
+    );
+    health.checks.offlineSync = {
+      pendingEvents: syncRows[0]?.pending || 0
+    };
+  } catch (_) {}
+
+  // Emergency sessions active
+  try {
+    const [emergRows] = await pool.execute(
+      `SELECT COUNT(*) as active FROM sesiones_emergencia WHERE estado = 'ACTIVA' AND fecha_expiracion > NOW()`
+    );
+    health.checks.emergencySessions = {
+      active: emergRows[0]?.active || 0
+    };
+  } catch (_) {}
+
   const statusCode = health.ok ? 200 : 503;
   return res.status(statusCode).json(health);
+});
+
+// Health check ligero (para load balancers / monitoreo externo)
+app.get('/api/health/ping', (req, res) => {
+  return res.json({ ok: true, ts: Date.now() });
 });
 
 // Unico punto de montaje de rutas

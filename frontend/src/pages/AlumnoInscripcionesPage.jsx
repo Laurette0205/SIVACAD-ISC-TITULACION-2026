@@ -1,15 +1,19 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import SectionCard from '../components/SectionCard';
+import OfflineBanner from '../components/OfflineBanner';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
+import { queueInscription, queueFileUpload, syncPendingItems } from '../services/offlineQueue';
+import offlineDB from '../services/offlineDB';
 import {
   ClipboardList, CheckCircle2, Clock3, XCircle,
   RefreshCw, Search, ArrowLeft, Loader2,
   BadgeInfo, FileText, GraduationCap, Upload,
   Download, Save, AlertTriangle, ShieldCheck,
   Calendar, UserCheck, FileUp, History,
-  Eye, Ban, Layers, BookOpen
+  Eye, Ban, Layers, BookOpen, WifiOff
 } from 'lucide-react';
 
 function normalize(v) {
@@ -63,6 +67,7 @@ const TABS = [
 export default function AlumnoInscripcionesPage() {
   const navigate = useNavigate();
   const { token, user, loading: authLoading } = useAuth();
+  const { isOnline, wasOffline, resetWasOffline } = useOnlineStatus();
   const [activeTab, setActiveTab] = React.useState('solicitud');
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState('');
@@ -76,22 +81,67 @@ export default function AlumnoInscripcionesPage() {
   const [solicitudForm, setSolicitudForm] = React.useState({ id_periodo: '', tipo_inscripcion: 'Primera_Vez' });
   const [uploadStatus, setUploadStatus] = React.useState({});
 
+  const [pendingQueue, setPendingQueue] = React.useState([]);
+  const [syncMessage, setSyncMessage] = React.useState('');
+
+  const loadPendingQueue = React.useCallback(async () => {
+    try {
+      const queue = await offlineDB.getSyncQueuePending();
+      setPendingQueue(queue);
+    } catch (_) {
+      setPendingQueue([]);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadPendingQueue();
+  }, [loadPendingQueue]);
+
+  React.useEffect(() => {
+    const handleSync = async () => {
+      setSyncMessage('Sincronizando operaciones pendientes...');
+      try {
+        const result = await syncPendingItems();
+        if (result.synced > 0) {
+          setSyncMessage(`Sincronizadas ${result.synced} operación(es)`);
+          loadAll();
+        } else if (result.failed > 0) {
+          setSyncMessage(`${result.failed} operación(es) fallaron. Se reintentará.`);
+        } else {
+          setSyncMessage('');
+        }
+      } catch (_) {
+        setSyncMessage('Error durante la sincronización');
+      } finally {
+        loadPendingQueue();
+        setTimeout(() => setSyncMessage(''), 5000);
+      }
+    };
+
+    window.addEventListener('sivacad:sync-pending', handleSync);
+    return () => window.removeEventListener('sivacad:sync-pending', handleSync);
+  }, [loadPendingQueue]);
+
   const loadInfo = React.useCallback(async () => {
     try {
       setError('');
       const res = await api.alumnoInscripcionesInfo(token);
-      setInfo(res?.data || null);
+      const data = res?.data || null;
+      setInfo(data);
+      if (data) await offlineDB.cacheData('inscripciones_info', data, 600000);
     } catch (err) {
       console.error('Error info:', err);
-      setError('Error al cargar informacion');
+      if (isOnline) setError('Error al cargar informacion');
     }
-  }, [token]);
+  }, [token, isOnline]);
 
   const loadEstatus = React.useCallback(async () => {
     try {
       setError('');
       const res = await api.alumnoMiEstatus(token);
-      setEstatusList(safeArray(res));
+      const data = safeArray(res);
+      setEstatusList(data);
+      await offlineDB.cacheData('inscripciones_estatus', data, 600000);
     } catch (err) {
       console.error('Error estatus:', err);
     }
@@ -101,7 +151,9 @@ export default function AlumnoInscripcionesPage() {
     try {
       setError('');
       const res = await api.alumnoDocumentos(token);
-      setDocumentosData(res?.data || null);
+      const data = res?.data || null;
+      setDocumentosData(data);
+      if (data) await offlineDB.cacheData('inscripciones_docs', data, 600000);
     } catch (err) {
       console.error('Error docs:', err);
     }
@@ -111,7 +163,9 @@ export default function AlumnoInscripcionesPage() {
     try {
       setError('');
       const res = await api.alumnoHistorial(token);
-      setHistorialData(res?.data || null);
+      const data = res?.data || null;
+      setHistorialData(data);
+      if (data) await offlineDB.cacheData('inscripciones_hist', data, 600000);
     } catch (err) {
       console.error('Error historial:', err);
     }
@@ -121,15 +175,37 @@ export default function AlumnoInscripcionesPage() {
     setLoading(true);
     setError('');
     try {
-      await Promise.all([
-        loadInfo(), loadEstatus(), loadDocumentos(), loadHistorial()
-      ]);
+      if (isOnline) {
+        await Promise.all([
+          loadInfo(), loadEstatus(), loadDocumentos(), loadHistorial()
+        ]);
+        try {
+          const cachedInfo = await offlineDB.getCachedData('inscripciones_info');
+          const cachedEstatus = await offlineDB.getCachedData('inscripciones_estatus');
+          if (cachedInfo || cachedEstatus) {
+            if (!info && cachedInfo) setInfo(cachedInfo);
+            if (!estatusList.length && cachedEstatus) setEstatusList(cachedEstatus);
+          }
+        } catch (_) {}
+      } else {
+        const cachedInfo = await offlineDB.getCachedData('inscripciones_info');
+        const cachedEstatus = await offlineDB.getCachedData('inscripciones_estatus');
+        const cachedDocs = await offlineDB.getCachedData('inscripciones_docs');
+        const cachedHist = await offlineDB.getCachedData('inscripciones_hist');
+        if (cachedInfo) setInfo(cachedInfo);
+        if (cachedEstatus) setEstatusList(cachedEstatus);
+        if (cachedDocs) setDocumentosData(cachedDocs);
+        if (cachedHist) setHistorialData(cachedHist);
+        if (!cachedInfo && !cachedEstatus) {
+          setError('Sin conexión. Los datos no están disponibles en caché.');
+        }
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [loadInfo, loadEstatus, loadDocumentos, loadHistorial]);
+  }, [isOnline, loadInfo, loadEstatus, loadDocumentos, loadHistorial]);
 
   React.useEffect(() => {
     if (authLoading) return;
@@ -141,6 +217,15 @@ export default function AlumnoInscripcionesPage() {
     setError('');
     setMessage('');
     try {
+      if (!isOnline) {
+        await queueInscription({
+          id_periodo: solicitudForm.id_periodo || undefined,
+          tipo_inscripcion: solicitudForm.tipo_inscripcion
+        }, token);
+        setMessage('Solicitud guardada localmente. Se enviará al reconectar la conexión.');
+        await loadPendingQueue();
+        return;
+      }
       const res = await api.alumnoSolicitarInscripcion(token, {
         id_periodo: solicitudForm.id_periodo || undefined,
         tipo_inscripcion: solicitudForm.tipo_inscripcion
@@ -163,12 +248,32 @@ export default function AlumnoInscripcionesPage() {
       const file = e.target.files?.[0];
       if (!file) return;
 
+      if (file.size > 20 * 1024 * 1024) {
+        setError('El archivo no puede exceder 20MB');
+        return;
+      }
+
       setUploadStatus(prev => ({ ...prev, [tipoDocumento]: 'subiendo' }));
       try {
+        const formDataObj = { tipo_documento: tipoDocumento };
+        const ins = estatusList?.[0];
+        if (ins?.id_inscripcion) {
+          formDataObj.id_inscripcion = ins.id_inscripcion;
+        }
+
+        if (!isOnline) {
+          const { pendingFile } = await queueFileUpload(
+            file, formDataObj, '/inscripciones-alumno/documentos/subir', token
+          );
+          setMessage(`${tipoDocumento.replace(/_/g, ' ')} guardado localmente. Se subirá al reconectar.`);
+          setUploadStatus(prev => ({ ...prev, [tipoDocumento]: 'pending' }));
+          await loadPendingQueue();
+          return;
+        }
+
         const formData = new FormData();
         formData.append('archivo', file);
         formData.append('tipo_documento', tipoDocumento);
-        const ins = estatusList?.[0];
         if (ins?.id_inscripcion) {
           formData.append('id_inscripcion', ins.id_inscripcion);
         }
@@ -440,8 +545,12 @@ export default function AlumnoInscripcionesPage() {
                       </div>
                     </div>
                     <div className="row gap" style={{ gap: '0.35rem' }}>
-                      {uploading ? (
+                      {uploading || uploadStatus[td.tipo] === 'subiendo' ? (
                         <Loader2 className="animate-spin" size={16} />
+                      ) : uploadStatus[td.tipo] === 'pending' ? (
+                        <span className="offline-pending-badge" style={{ fontSize: '0.65rem' }}>
+                          <WifiOff size={10} /> Pendiente
+                        </span>
                       ) : (
                         <button type="button" className="btn secondary" style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}
                           onClick={() => handleSubirDocumento(td.tipo)}>
@@ -641,6 +750,26 @@ export default function AlumnoInscripcionesPage() {
 
   return (
     <div className="stack">
+      <OfflineBanner isOnline={isOnline} wasOffline={wasOffline} onDismiss={resetWasOffline} />
+
+      {!isOnline && (
+        <div className="offline-pending-badge" style={{ alignSelf: 'flex-start' }}>
+          <WifiOff size={12} /> Modo offline — Los datos se guardan localmente
+        </div>
+      )}
+
+      {pendingQueue.length > 0 && (
+        <div className="offline-pending-badge" style={{ alignSelf: 'flex-start' }}>
+          {pendingQueue.length} operación(es) pendiente(s) de sincronización
+        </div>
+      )}
+
+      {syncMessage && (
+        <div className={`alert ${syncMessage.includes('Error') || syncMessage.includes('fallaron') ? 'error' : 'success'}`}>
+          {syncMessage}
+        </div>
+      )}
+
       <section className="hero-banner">
         <div>
           <div className="badge light">

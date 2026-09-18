@@ -495,10 +495,10 @@ export default function DocenteTramitesPage() {
 
               {/* ---- Modal Opinión ---- */}
               {showOpinion === detalle.id_tramite && (
-                <div className="modal-overlay" onClick={() => setShowOpinion(null)}>
+                <div className="modal-overlay" onClick={() => setShowOpinion(null)} role="dialog" aria-modal="true" aria-labelledby="opinion-modal-title">
                   <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
                     <div className="modal-header">
-                      <h3>Emitir opinión académica</h3>
+                      <h3 id="opinion-modal-title">Emitir opinión académica</h3>
                       <button className="modal-close" onClick={() => setShowOpinion(null)}><X size={20} /></button>
                     </div>
                     <div className="modal-body">
@@ -534,10 +534,10 @@ export default function DocenteTramitesPage() {
 
               {/* ---- Modal Compatibilidad ---- */}
               {showCompatibilidad === detalle.id_tramite && (
-                <div className="modal-overlay" onClick={() => setShowCompatibilidad(null)}>
+                <div className="modal-overlay" onClick={() => setShowCompatibilidad(null)} role="dialog" aria-modal="true" aria-labelledby="compat-modal-title">
                   <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
                     <div className="modal-header">
-                      <h3>Confirmar compatibilidad de materias</h3>
+                      <h3 id="compat-modal-title">Confirmar compatibilidad de materias</h3>
                       <button className="modal-close" onClick={() => setShowCompatibilidad(null)}><X size={20} /></button>
                     </div>
                     <div className="modal-body">
@@ -578,10 +578,10 @@ export default function DocenteTramitesPage() {
 
               {/* ---- Modal Observación ---- */}
               {showObservacion === detalle.id_tramite && (
-                <div className="modal-overlay" onClick={() => setShowObservacion(null)}>
+                <div className="modal-overlay" onClick={() => setShowObservacion(null)} role="dialog" aria-modal="true" aria-labelledby="doc-obs-modal-title">
                   <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
                     <div className="modal-header">
-                      <h3>Agregar observación docente</h3>
+                      <h3 id="doc-obs-modal-title">Agregar observación docente</h3>
                       <button className="modal-close" onClick={() => setShowObservacion(null)}><X size={20} /></button>
                     </div>
                     <div className="modal-body">
@@ -612,10 +612,10 @@ export default function DocenteTramitesPage() {
 
               {/* ---- Modal Trayectoria ---- */}
               {showTrayectoria && (
-                <div className="modal-overlay" onClick={() => { setShowTrayectoria(null); setTrayectoria(null); }}>
+                <div className="modal-overlay" onClick={() => { setShowTrayectoria(null); setTrayectoria(null); }} role="dialog" aria-modal="true" aria-labelledby="trayectoria-modal-title">
                   <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '700px', maxHeight: '80vh', overflowY: 'auto' }}>
                     <div className="modal-header">
-                      <h3><BookOpen size={18} /> Trayectoria académica</h3>
+                      <h3 id="trayectoria-modal-title"><BookOpen size={18} /> Trayectoria académica</h3>
                       <button className="modal-close" onClick={() => { setShowTrayectoria(null); setTrayectoria(null); }}><X size={20} /></button>
                     </div>
                     <div className="modal-body">

@@ -501,7 +501,7 @@ export default function IABecasAdminPage() {
           ) : (
             <div className="list">
               {s.map((item) => (
-                <div key={item.id_solicitud} className="list-item" style={{ cursor: 'pointer' }} onClick={() => handleSolicitudDetalle(item.id_solicitud)}>
+                <div key={item.id_solicitud} className="list-item" style={{ cursor: 'pointer' }} role="button" tabIndex={0} onClick={() => handleSolicitudDetalle(item.id_solicitud)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSolicitudDetalle(item.id_solicitud); } }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-start' }}>
                     <div>
                       <strong>{item.nombre_alumno}</strong>

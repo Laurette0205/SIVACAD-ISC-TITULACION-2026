@@ -22,10 +22,10 @@ class ErrorBoundary extends React.Component {
             <h2 style={{ color: '#dc2626', marginBottom: '1rem' }}>
               Algo salio mal
             </h2>
-            <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
+            <p style={{ color: 'var(--muted)', marginBottom: '1.5rem' }}>
               Se produjo un error inesperado. Por favor, recarga la pagina.
             </p>
-            <p style={{ color: '#9ca3af', fontSize: '0.875rem', marginBottom: '1.5rem', wordBreak: 'break-all' }}>
+            <p style={{ color: 'var(--muted)', fontSize: '0.875rem', marginBottom: '1.5rem', wordBreak: 'break-all' }}>
               {this.state.error?.message || 'Error desconocido'}
             </p>
             <button

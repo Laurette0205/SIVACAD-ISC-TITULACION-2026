@@ -121,12 +121,13 @@ export default function AlumnoInfoLaboralPage() {
         <h3 style={{ marginBottom: '1rem' }}>Estado laboral</h3>
         <div style={{ display: 'grid', gap: '0.85rem' }}>
           <div className="field" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <input
+              <input
               type="checkbox"
               checked={!!form.trabaja_actualmente}
               onChange={(e) => handleChange('trabaja_actualmente', e.target.checked)}
               disabled={!editing}
               style={{ width: '18px', height: '18px' }}
+              aria-label="Trabajo actualmente"
             />
             <span style={{ fontSize: '0.95rem' }}>Trabajo actualmente</span>
           </div>
@@ -141,7 +142,7 @@ export default function AlumnoInfoLaboralPage() {
               <span>Empresa</span>
               {editing ? (
                 <input type="text" value={form.empresa || ''} onChange={(e) => handleChange('empresa', e.target.value)}
-                  placeholder="Nombre de la empresa" />
+                  placeholder="Nombre de la empresa" aria-label="Nombre de la empresa" />
               ) : (
                 <div className="info-value">{data?.empresa || '—'}</div>
               )}
@@ -152,7 +153,7 @@ export default function AlumnoInfoLaboralPage() {
                 <span>Puesto</span>
                 {editing ? (
                   <input type="text" value={form.puesto || ''} onChange={(e) => handleChange('puesto', e.target.value)}
-                    placeholder="Tu puesto actual" />
+                    placeholder="Tu puesto actual" aria-label="Puesto actual" />
                 ) : (
                   <div className="info-value">{data?.puesto || '—'}</div>
                 )}
@@ -161,7 +162,7 @@ export default function AlumnoInfoLaboralPage() {
                 <span>Teléfono laboral</span>
                 {editing ? (
                   <input type="tel" value={form.telefono_laboral || ''} onChange={(e) => handleChange('telefono_laboral', e.target.value)}
-                    placeholder="10 dígitos" maxLength={10} />
+                    placeholder="10 dígitos" maxLength={10} aria-label="Teléfono laboral" />
                 ) : (
                   <div className="info-value">{data?.telefono_laboral || '—'}</div>
                 )}
@@ -175,7 +176,7 @@ export default function AlumnoInfoLaboralPage() {
               <span>Dirección laboral</span>
               {editing ? (
                 <input type="text" value={form.direccion_laboral || ''} onChange={(e) => handleChange('direccion_laboral', e.target.value)}
-                  placeholder="Dirección completa" />
+                  placeholder="Dirección completa" aria-label="Dirección laboral" />
               ) : (
                 <div className="info-value">{data?.direccion_laboral || '—'}</div>
               )}
@@ -186,7 +187,7 @@ export default function AlumnoInfoLaboralPage() {
                 <span>Municipio/Alcaldía</span>
                 {editing ? (
                   <input type="text" value={form.municipio || ''} onChange={(e) => handleChange('municipio', e.target.value)}
-                    placeholder="Municipio" />
+                    placeholder="Municipio" aria-label="Municipio o alcaldía" />
                 ) : (
                   <div className="info-value">{data?.municipio || '—'}</div>
                 )}
@@ -195,7 +196,7 @@ export default function AlumnoInfoLaboralPage() {
                 <span>Horario</span>
                 {editing ? (
                   <input type="text" value={form.horario || ''} onChange={(e) => handleChange('horario', e.target.value)}
-                    placeholder="Ej: 8:00 - 17:00" />
+                    placeholder="Ej: 8:00 - 17:00" aria-label="Horario laboral" />
                 ) : (
                   <div className="info-value">{data?.horario || '—'}</div>
                 )}
@@ -206,7 +207,7 @@ export default function AlumnoInfoLaboralPage() {
               <span>Contacto laboral autorizado</span>
               {editing ? (
                 <input type="text" value={form.contacto_laboral_autorizado || ''} onChange={(e) => handleChange('contacto_laboral_autorizado', e.target.value)}
-                  placeholder="Nombre y teléfono del contacto autorizado" />
+                  placeholder="Nombre y teléfono del contacto autorizado" aria-label="Contacto laboral autorizado" />
               ) : (
                 <div className="info-value">{data?.contacto_laboral_autorizado || '—'}</div>
               )}

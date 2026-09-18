@@ -124,6 +124,31 @@ mountIfAvailable('/alumno-info-laboral', './alumnoInfoLaboral');
 mountIfAvailable('/alumno-documentos', './alumnoDocumentos');
 
 // =====================================================
+// MÓDULO 2: EMERGENCIAS, CONTACTOS Y LOCALIZACIÓN
+// =====================================================
+mountIfAvailable('/ubicacion-emergencia', './ubicacionEmergencia');
+mountIfAvailable('/sesiones-emergencia', './sesionesEmergencia');
+
+// =====================================================
+// MÓDULO 4: CALIFICACIONES, PREBOLETAS Y BOLETAS
+// =====================================================
+mountIfAvailable('/calificaciones', './calificaciones');
+mountIfAvailable('/preboletas', './preboletas');
+mountIfAvailable('/cal-seguimiento', './cal-seguimiento');
+
+// =====================================================
+// MÓDULO 6: EXPORTACIONES ACADÉMICAS UNIFICADAS
+// =====================================================
+mountIfAvailable('/academic-export', './academicExport');
+mountIfAvailable('/academic-pdf', './academicPDF');
+mountIfAvailable('/academic-control', './academicControl');
+
+// =====================================================
+// MÓDULO 5: SEGURIDAD CONTRA SUPLANTACIÓN Y ESCALAMIENTO
+// =====================================================
+mountIfAvailable('/security', './security');
+
+// =====================================================
 // EXPORTAR
 // =====================================================
 

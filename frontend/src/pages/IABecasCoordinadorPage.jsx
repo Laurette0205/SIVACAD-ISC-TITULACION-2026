@@ -330,7 +330,7 @@ export default function IABecasCoordinadorPage() {
           {loading.bandeja ? <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
           : s.length === 0 ? <div className="empty">No hay solicitudes en la bandeja</div>
           : <div className="list">{s.map(item => (
-              <div key={item.id_solicitud} className="list-item" style={{ cursor: 'pointer' }} onClick={() => verDetalle(item.id_solicitud)}>
+              <div key={item.id_solicitud} className="list-item" style={{ cursor: 'pointer' }} role="button" tabIndex={0} onClick={() => verDetalle(item.id_solicitud)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); verDetalle(item.id_solicitud); } }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'flex-start' }}>
                   <div>
                     <strong>{item.nombre_alumno}</strong>
@@ -551,7 +551,7 @@ export default function IABecasCoordinadorPage() {
           {loading.seguimiento ? <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem 0' }}><Loader2 size={24} /></div>
           : s.length === 0 ? <div className="empty">No hay casos en seguimiento</div>
           : <div className="list">{s.map((item, idx) => (
-              <div key={item.id_solicitud || idx} className="list-item" style={{ cursor: 'pointer' }} onClick={() => { setActiveTab('bandeja'); verDetalle(item.id_solicitud); }}>
+              <div key={item.id_solicitud || idx} className="list-item" style={{ cursor: 'pointer' }} role="button" tabIndex={0} onClick={() => { setActiveTab('bandeja'); verDetalle(item.id_solicitud); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('bandeja'); verDetalle(item.id_solicitud); } }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <div style={{ flex: 1 }}>
                     <strong>{item.nombre_alumno}</strong>

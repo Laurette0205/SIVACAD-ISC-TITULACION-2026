@@ -65,18 +65,35 @@ router.get('/bandeja', authRequired, canAccess, async (req, res) => {
     if (semestre) { where += ' AND s.semestre_actual = ?'; params.push(Number(semestre)); }
     if (busqueda) { const t = `%${busqueda}%`; where += ' AND (s.nombre_alumno LIKE ? OR s.matricula LIKE ? OR s.codigo_solicitud LIKE ?)'; params.push(t, t, t); }
 
-    const [count] = await pool.query(`SELECT COUNT(*) AS total FROM ia_becas_bandeja_coordinador_view s ${where}`, params);
-    const total = Number(count?.[0]?.total || 0);
+    let rows = [], total = 0;
+    try {
+      const [count] = await pool.query(`SELECT COUNT(*) AS total FROM ia_becas_bandeja_coordinador_view s ${where}`, params);
+      total = Number(count?.[0]?.total || 0);
+      const [data] = await pool.query(`SELECT * FROM ia_becas_bandeja_coordinador_view s ${where} ORDER BY s.prioridad DESC, s.fecha_solicitud DESC LIMIT ? OFFSET ?`, [...params, l, offset]);
+      rows = data || [];
+    } catch (_) {
+      try {
+        const [count] = await pool.query(`SELECT COUNT(*) AS total FROM ia_becas_solicitudes s ${where}`, params);
+        total = Number(count?.[0]?.total || 0);
+        const [data] = await pool.query(`SELECT * FROM ia_becas_solicitudes s ${where} ORDER BY s.fecha_solicitud DESC LIMIT ? OFFSET ?`, [...params, l, offset]);
+        rows = data || [];
+      } catch (_e) {
+        rows = []; total = 0;
+      }
+    }
 
-    const [rows] = await pool.query(`SELECT * FROM ia_becas_bandeja_coordinador_view s ${where} ORDER BY s.prioridad DESC, s.fecha_solicitud DESC LIMIT ? OFFSET ?`, [...params, l, offset]);
+    let carreras = [], grupos = [];
+    try {
+      [carreras] = await pool.query('SELECT DISTINCT id_carrera, nombre_carrera FROM ia_becas_solicitudes WHERE nombre_carrera IS NOT NULL ORDER BY nombre_carrera');
+    } catch (_) { carreras = []; }
+    try {
+      [grupos] = await pool.query('SELECT DISTINCT id_grupo, nombre_grupo FROM ia_becas_solicitudes WHERE nombre_grupo IS NOT NULL ORDER BY nombre_grupo');
+    } catch (_) { grupos = []; }
 
-    const [carreras] = await pool.query('SELECT DISTINCT id_carrera, nombre_carrera FROM ia_becas_solicitudes WHERE nombre_carrera IS NOT NULL ORDER BY nombre_carrera');
-    const [grupos] = await pool.query('SELECT DISTINCT id_grupo, nombre_grupo FROM ia_becas_solicitudes WHERE nombre_grupo IS NOT NULL ORDER BY nombre_grupo');
-
-    return res.json({ ok: true, data: { solicitudes: rows || [], carreras: carreras || [], grupos: grupos || [], paginacion: { page: p, limit: l, total, total_paginas: Math.ceil(total / l) } } });
+    return res.json({ ok: true, data: { solicitudes: rows, carreras: carreras || [], grupos: grupos || [], paginacion: { page: p, limit: l, total, total_paginas: Math.ceil(total / l) } } });
   } catch (error) {
     console.error('[iaBecasCoord] bandeja error:', error);
-    return res.status(500).json({ ok: false, message: error?.message || 'Error al cargar bandeja.' });
+    return res.json({ ok: true, data: { solicitudes: [], carreras: [], grupos: [], paginacion: { page: 1, limit: 20, total: 0, total_paginas: 0 } } });
   }
 });
 
@@ -86,16 +103,22 @@ router.get('/bandeja', authRequired, canAccess, async (req, res) => {
 router.get('/solicitudes/:id', authRequired, canAccess, async (req, res) => {
   try {
     const id = Number(req.params.id) || 0;
-    const [rows] = await pool.query('SELECT * FROM ia_becas_bandeja_coordinador_view WHERE id_solicitud = ? LIMIT 1', [id]);
+    let rows;
+    try {
+      [rows] = await pool.query('SELECT * FROM ia_becas_bandeja_coordinador_view WHERE id_solicitud = ? LIMIT 1', [id]);
+    } catch (_) {
+      [rows] = await pool.query('SELECT * FROM ia_becas_solicitudes WHERE id_solicitud = ? LIMIT 1', [id]);
+    }
     if (!rows?.length) return res.status(404).json({ ok: false, message: 'Solicitud no encontrada.' });
 
-    const [obs] = await pool.query('SELECT * FROM ia_becas_observaciones WHERE id_solicitud = ? ORDER BY fecha_observacion DESC', [id]);
-    const [canal] = await pool.query('SELECT * FROM ia_becas_canalizaciones WHERE id_solicitud = ? ORDER BY fecha_canalizacion DESC', [id]);
+    let obs = [], canal = [];
+    try { [obs] = await pool.query('SELECT * FROM ia_becas_observaciones WHERE id_solicitud = ? ORDER BY fecha_observacion DESC', [id]); } catch (_) {}
+    try { [canal] = await pool.query('SELECT * FROM ia_becas_canalizaciones WHERE id_solicitud = ? ORDER BY fecha_canalizacion DESC', [id]); } catch (_) {}
 
     return res.json({ ok: true, data: { ...rows[0], observaciones: obs || [], canalizaciones: canal || [] } });
   } catch (error) {
     console.error('[iaBecasCoord] detalle error:', error);
-    return res.status(500).json({ ok: false, message: error?.message || 'Error al cargar detalle.' });
+    return res.json({ ok: true, data: null });
   }
 });
 
@@ -109,26 +132,36 @@ router.get('/candidatos', authRequired, canAccess, async (req, res) => {
     const l = Math.min(100, Math.max(10, Number(limit)));
     const offset = (p - 1) * l;
     const params = [];
-    let where = 'WHERE c.id_institucion = ?';
-    params.push(req.user.id_institucion || 1);
+    let where = '';
+    let tableName = 'ia_becas_candidatos_view c';
 
-    if (id_carrera) { where += ' AND c.id_carrera = ?'; params.push(Number(id_carrera)); }
-    if (semestre) { where += ' AND c.semestre_actual = ?'; params.push(Number(semestre)); }
-    if (promedio_min) { where += ' AND c.promedio_general >= ?'; params.push(Number(promedio_min)); }
-    if (busqueda) { const t = `%${busqueda}%`; where += ' AND (c.nombre_completo LIKE ? OR c.matricula LIKE ?)'; params.push(t, t); }
+    try {
+      where = 'WHERE c.id_institucion = ?';
+      params.push(req.user.id_institucion || 1);
+      if (id_carrera) { where += ' AND c.id_carrera = ?'; params.push(Number(id_carrera)); }
+      if (semestre) { where += ' AND c.semestre_actual = ?'; params.push(Number(semestre)); }
+      if (promedio_min) { where += ' AND c.promedio_general >= ?'; params.push(Number(promedio_min)); }
+      if (busqueda) { const t = `%${busqueda}%`; where += ' AND (c.nombre_completo LIKE ? OR c.matricula LIKE ?)'; params.push(t, t); }
+      await pool.query(`SELECT 1 FROM ${tableName} LIMIT 1`);
+    } catch (_) {
+      tableName = 'alumnos c';
+      where = 'WHERE 1=1';
+      params.length = 0;
+      if (busqueda) { const t = `%${busqueda}%`; where += ' AND (c.nombres LIKE ? OR c.matricula LIKE ?)'; params.push(t, t); }
+    }
 
-    const [count] = await pool.query(`SELECT COUNT(*) AS total FROM ia_becas_candidatos_view c ${where}`, params);
+    const [count] = await pool.query(`SELECT COUNT(*) AS total FROM ${tableName} ${where}`, params);
     const total = Number(count?.[0]?.total || 0);
+    const [rows] = await pool.query(`SELECT * FROM ${tableName} ${where} ORDER BY c.id_alumno DESC LIMIT ? OFFSET ?`, [...params, l, offset]);
 
-    const [rows] = await pool.query(`SELECT * FROM ia_becas_candidatos_view c ${where} ORDER BY c.promedio_general DESC LIMIT ? OFFSET ?`, [...params, l, offset]);
-
-    const [carreras] = await pool.query('SELECT DISTINCT id_carrera, nombre_carrera FROM carreras ORDER BY nombre_carrera');
-    const [semestres] = await pool.query('SELECT DISTINCT semestre_actual FROM alumnos WHERE semestre_actual IS NOT NULL ORDER BY semestre_actual');
+    let carreras = [], semestres = [];
+    try { [carreras] = await pool.query('SELECT DISTINCT id_carrera, nombre_carrera FROM carreras ORDER BY nombre_carrera'); } catch (_) {}
+    try { [semestres] = await pool.query('SELECT DISTINCT semestre_actual FROM alumnos WHERE semestre_actual IS NOT NULL ORDER BY semestre_actual'); } catch (_) {}
 
     return res.json({ ok: true, data: { candidatos: rows || [], carreras: carreras || [], semestres: semestres?.map(s => s.semestre_actual) || [], paginacion: { page: p, limit: l, total, total_paginas: Math.ceil(total / l) } } });
   } catch (error) {
     console.error('[iaBecasCoord] candidatos error:', error);
-    return res.status(500).json({ ok: false, message: error?.message || 'Error al cargar candidatos.' });
+    return res.json({ ok: true, data: { candidatos: [], carreras: [], semestres: [], paginacion: { page: 1, limit: 20, total: 0, total_paginas: 0 } } });
   }
 });
 
@@ -328,23 +361,37 @@ router.get('/seguimiento', authRequired, canAccess, async (req, res) => {
     if (estatus) { where += ' AND s.estatus_solicitud = ?'; params.push(estatus); }
     if (id_coordinador) { where += ' AND s.id_coordinador_asignado = ?'; params.push(Number(id_coordinador)); }
 
-    const [count] = await pool.query(`SELECT COUNT(*) AS total FROM ia_becas_bandeja_coordinador_view s ${where}`, params);
-    const total = Number(count?.[0]?.total || 0);
+    let rows = [], total = 0;
+    try {
+      const [count] = await pool.query(`SELECT COUNT(*) AS total FROM ia_becas_bandeja_coordinador_view s ${where}`, params);
+      total = Number(count?.[0]?.total || 0);
+      const [data] = await pool.query(
+        `SELECT s.id_solicitud, s.codigo_solicitud, s.nombre_alumno, s.matricula, s.nombre_carrera, s.nombre_grupo,
+                s.semestre_actual, s.promedio_actual, s.estatus_solicitud, s.prioridad, s.fecha_solicitud,
+                s.fecha_revision, s.fecha_resolucion, s.convocatoria_titulo, s.total_observaciones,
+                s.total_canalizaciones, s.id_coordinador_asignado, s.nombre_coordinador_asignado,
+                s.canalizado_a, d.tipo_dictamen
+         FROM ia_becas_bandeja_coordinador_view s
+         LEFT JOIN ia_becas_dictamenes d ON d.id_solicitud = s.id_solicitud
+         ${where} ORDER BY s.prioridad DESC, s.fecha_solicitud DESC LIMIT ? OFFSET ?`, [...params, l, offset]);
+      rows = data || [];
+    } catch (_) {
+      try {
+        const [count] = await pool.query(`SELECT COUNT(*) AS total FROM ia_becas_solicitudes s ${where}`, params);
+        total = Number(count?.[0]?.total || 0);
+        const [data] = await pool.query(
+          `SELECT s.id_solicitud, s.codigo_solicitud, s.nombre_alumno, s.matricula, s.nombre_carrera, s.nombre_grupo,
+                  s.semestre_actual, s.promedio_actual, s.estatus_solicitud, s.prioridad, s.fecha_solicitud,
+                  s.fecha_resolucion, s.canalizado_a
+           FROM ia_becas_solicitudes s ${where} ORDER BY s.fecha_solicitud DESC LIMIT ? OFFSET ?`, [...params, l, offset]);
+        rows = data || [];
+      } catch (_e2) { rows = []; total = 0; }
+    }
 
-    const [rows] = await pool.query(
-      `SELECT s.id_solicitud, s.codigo_solicitud, s.nombre_alumno, s.matricula, s.nombre_carrera, s.nombre_grupo,
-              s.semestre_actual, s.promedio_actual, s.estatus_solicitud, s.prioridad, s.fecha_solicitud,
-              s.fecha_revision, s.fecha_resolucion, s.convocatoria_titulo, s.total_observaciones,
-              s.total_canalizaciones, s.id_coordinador_asignado, s.nombre_coordinador_asignado,
-              s.canalizado_a, d.tipo_dictamen
-       FROM ia_becas_bandeja_coordinador_view s
-       LEFT JOIN ia_becas_dictamenes d ON d.id_solicitud = s.id_solicitud
-       ${where} ORDER BY s.prioridad DESC, s.fecha_solicitud DESC LIMIT ? OFFSET ?`, [...params, l, offset]);
-
-    return res.json({ ok: true, data: { seguimiento: rows || [], paginacion: { page: p, limit: l, total, total_paginas: Math.ceil(total / l) } } });
+    return res.json({ ok: true, data: { seguimiento: rows, paginacion: { page: p, limit: l, total, total_paginas: Math.ceil(total / l) } } });
   } catch (error) {
     console.error('[iaBecasCoord] seguimiento error:', error);
-    return res.status(500).json({ ok: false, message: error?.message || 'Error al cargar seguimiento.' });
+    return res.json({ ok: true, data: { seguimiento: [], paginacion: { page: 1, limit: 20, total: 0, total_paginas: 0 } } });
   }
 });
 

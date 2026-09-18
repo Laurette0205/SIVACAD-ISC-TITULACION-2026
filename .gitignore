@@ -59,3 +59,8 @@ SIVACAD-ISC-TITULACION-2026/
 # NUL error artifacts
 NUL_FILE.txt
 nul_file.txt
+nul
+
+# Backend kardex QR codes
+backend/uploads/kardex/*
+!backend/uploads/kardex/.gitkeep

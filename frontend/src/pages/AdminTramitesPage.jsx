@@ -380,11 +380,11 @@ export default function AdminTramitesPage() {
     const tipos = safeList(catalogos?.tipos);
     const alumnos = safeList(catalogos?.alumnos);
     return (
-      <div className="modal-backdrop" onClick={() => setShowCrear(false)}>
-        <div className="modal-card" onClick={e => e.stopPropagation()}>
+      <div className="modal-backdrop" onClick={() => setShowCrear(false)} role="dialog" aria-modal="true" aria-labelledby="crear-modal-title">
+        <div className="modal-card" id="crear-modal" onClick={e => e.stopPropagation()}>
           <div className="modal-head">
-            <h3>Nuevo Trámite</h3>
-            <button type="button" className="icon-btn modal-close" onClick={() => setShowCrear(false)}>✕</button>
+            <h3 id="crear-modal-title">Nuevo Trámite</h3>
+            <button type="button" className="icon-btn modal-close" onClick={() => setShowCrear(false)} aria-label="Cerrar">✕</button>
           </div>
           <form onSubmit={handleCrear} className="form-stack" style={{ padding: '1.25rem' }}>
             <div className="field">
@@ -435,10 +435,10 @@ export default function AdminTramitesPage() {
   function renderDictamenModal() {
     if (!showDictamen) return null;
     return (
-      <div className="modal-backdrop" onClick={() => setShowDictamen(null)}>
-        <div className="modal-card" onClick={e => e.stopPropagation()}>
+      <div className="modal-backdrop" onClick={() => setShowDictamen(null)} role="dialog" aria-modal="true" aria-labelledby="dictamen-modal-title">
+        <div className="modal-card" id="dictamen-modal" onClick={e => e.stopPropagation()}>
           <div className="modal-head">
-            <h3>Emitir Dictamen — {showDictamen.folio}</h3>
+            <h3 id="dictamen-modal-title">Emitir Dictamen — {showDictamen.folio}</h3>
             <button type="button" className="icon-btn modal-close" onClick={() => setShowDictamen(null)}>✕</button>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); handleEmitirDictamen(showDictamen.id_tramite); }} className="form-stack" style={{ padding: '1.25rem' }}>
@@ -468,10 +468,10 @@ export default function AdminTramitesPage() {
   function renderRechazoModal() {
     if (!showRechazo) return null;
     return (
-      <div className="modal-backdrop" onClick={() => setShowRechazo(null)}>
-        <div className="modal-card" onClick={e => e.stopPropagation()}>
+      <div className="modal-backdrop" onClick={() => setShowRechazo(null)} role="dialog" aria-modal="true" aria-labelledby="admin-rech-modal-title">
+        <div className="modal-card" id="admin-rech-modal" onClick={e => e.stopPropagation()}>
           <div className="modal-head">
-            <h3>Rechazar Trámite — {showRechazo.folio}</h3>
+            <h3 id="admin-rech-modal-title">Rechazar Trámite — {showRechazo.folio}</h3>
             <button type="button" className="icon-btn modal-close" onClick={() => setShowRechazo(null)}>✕</button>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); handleRechazar(showRechazo.id_tramite); }} className="form-stack" style={{ padding: '1.25rem' }}>
@@ -494,10 +494,10 @@ export default function AdminTramitesPage() {
   function renderEmitirModal() {
     if (!showEmitir) return null;
     return (
-      <div className="modal-backdrop" onClick={() => setShowEmitir(null)}>
-        <div className="modal-card" onClick={e => e.stopPropagation()}>
+      <div className="modal-backdrop" onClick={() => setShowEmitir(null)} role="dialog" aria-modal="true" aria-labelledby="emitir-modal-title">
+        <div className="modal-card" id="emitir-modal" onClick={e => e.stopPropagation()}>
           <div className="modal-head">
-            <h3>Emitir Documento Oficial — {showEmitir.folio}</h3>
+            <h3 id="emitir-modal-title">Emitir Documento Oficial — {showEmitir.folio}</h3>
             <button type="button" className="icon-btn modal-close" onClick={() => setShowEmitir(null)}>✕</button>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); handleEmitirDocumento(showEmitir.id_tramite); }} className="form-stack" style={{ padding: '1.25rem' }}>
@@ -524,10 +524,10 @@ export default function AdminTramitesPage() {
   function renderDocUploadModal() {
     if (!showDocUpload) return null;
     return (
-      <div className="modal-backdrop" onClick={() => setShowDocUpload(null)}>
-        <div className="modal-card" onClick={e => e.stopPropagation()}>
+      <div className="modal-backdrop" onClick={() => setShowDocUpload(null)} role="dialog" aria-modal="true" aria-labelledby="doc-upload-modal-title">
+        <div className="modal-card" id="doc-upload-modal" onClick={e => e.stopPropagation()}>
           <div className="modal-head">
-            <h3>Subir Documento</h3>
+            <h3 id="doc-upload-modal-title">Subir Documento</h3>
             <button type="button" className="icon-btn modal-close" onClick={() => setShowDocUpload(null)}>✕</button>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); handleSubirDocumento(showDocUpload); }} className="form-stack" style={{ padding: '1.25rem' }}>

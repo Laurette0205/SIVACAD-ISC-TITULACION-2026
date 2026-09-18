@@ -13,11 +13,11 @@ const ESTATUS_DOCENTE_OPTIONS = ['Activo', 'Inactivo'];
 
 function ConfirmModal({ title, message, onConfirm, onCancel, loading }) {
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-backdrop" onClick={onCancel} role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+      <div className="modal-card" id="confirm-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
           <div>
-            <h3>{title}</h3>
+            <h3 id="confirm-modal-title">{title}</h3>
             <p>{message}</p>
           </div>
           <div className="modal-icon danger">!</div>
@@ -38,11 +38,11 @@ function ConfirmModal({ title, message, onConfirm, onCancel, loading }) {
 
 function EditModal({ title, fields, values, onChange, onSave, onCancel, saving }) {
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '640px' }}>
+    <div className="modal-backdrop" onClick={onCancel} role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+      <div className="modal-card" id="edit-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '640px' }}>
         <div className="modal-head">
           <div>
-            <h3>Modificar {title}</h3>
+            <h3 id="edit-modal-title">Modificar {title}</h3>
             <p>Actualiza los campos que deseas cambiar.</p>
           </div>
         </div>

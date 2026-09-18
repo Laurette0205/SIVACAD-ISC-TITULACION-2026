@@ -283,9 +283,9 @@ async function loadCatalogs(conn, idInstitucion = 1) {
   return { plantillas, preguntas: questionRows.map(mapQuestionRow), resumen, periodos: periodRows };
 }
 
-async function loadEvaluations(conn, filters = {}, idInstitucion = 1) {
-  const where = ['e.id_institucion = ?'];
-  const params = [idInstitucion];
+async function loadEvaluations(conn, filters = {}) {
+  const where = ['1=1'];
+  const params = [];
   if (filters.id_periodo) { where.push('e.id_periodo = ?'); params.push(Number(filters.id_periodo)); }
   if (filters.estado) { where.push('UPPER(e.estado) = ?'); params.push(normalizeUpper(filters.estado)); }
   if (filters.tipo_instrumento) { where.push('UPPER(e.tipo_instrumento) = ?'); params.push(normalizeUpper(filters.tipo_instrumento)); }
@@ -326,7 +326,7 @@ async function loadEvaluationDetail(conn, idEvaluacion, idInstitucion = 1) {
     FROM evaluaciones e
     LEFT JOIN periodos p ON p.id_periodo = e.id_periodo
     LEFT JOIN evaluacion_plantillas tp ON tp.id_plantilla = e.id_plantilla
-    WHERE e.id_evaluacion = ? AND e.id_institucion = ? LIMIT 1`, [idEvaluacion, idInstitucion]);
+    WHERE e.id_evaluacion = ? LIMIT 1`, [idEvaluacion]);
   const evaluation = rows?.[0] || null;
   if (!evaluation) return null;
   const [questions] = await conn.execute('SELECT id_pregunta, id_evaluacion, id_pregunta_plantilla, criterio, descripcion, peso, tipo_respuesta, orden_pregunta, activo FROM evaluacion_preguntas WHERE id_evaluacion = ? ORDER BY orden_pregunta ASC, id_pregunta ASC', [idEvaluacion]);
@@ -445,7 +445,7 @@ router.post('/', authFromHeader, async (req, res) => {
     const preguntasDesdePlantilla = Array.isArray(body.preguntas) && body.preguntas.length ? body.preguntas : templateByCode?.preguntas || [];
     if (!preguntasDesdePlantilla.length) return sendError(res, 400, 'La evaluaci\u00f3n debe incluir preguntas o una plantilla v\u00e1lida.');
     const idEvaluacion = await insertEvaluationWithQuestions(conn, { ...body, id_plantilla: body.id_plantilla || templateByCode?.id_plantilla, tipo_instrumento: body.tipo_instrumento || templateByCode?.tipo_instrumento || 'POR_PERIODO', publico_objetivo: body.publico_objetivo || templateByCode?.publico_objetivo || 'PERIODOS', escala: body.escala || templateByCode?.escala || '1-5', ponderacion_total: body.ponderacion_total || templateByCode?.ponderacion_total || 100, preguntas: preguntasDesdePlantilla }, req.user, templateByCode, req.ip, idInstitucion);
-    const [rows] = await conn.execute('SELECT e.id_evaluacion, e.id_periodo, e.id_plantilla, e.titulo, e.descripcion, e.fecha_inicio, e.fecha_fin, UPPER(e.estado) AS estado, e.tipo_instrumento, e.publico_objetivo, e.escala, e.ponderacion_total, p.nombre_periodo FROM evaluaciones e LEFT JOIN periodos p ON p.id_periodo = e.id_periodo WHERE e.id_evaluacion = ? AND e.id_institucion = ? LIMIT 1', [idEvaluacion, idInstitucion]);
+    const [rows] = await conn.execute('SELECT e.id_evaluacion, e.id_periodo, e.id_plantilla, e.titulo, e.descripcion, e.fecha_inicio, e.fecha_fin, UPPER(e.estado) AS estado, e.tipo_instrumento, e.publico_objetivo, e.escala, e.ponderacion_total, p.nombre_periodo FROM evaluaciones e LEFT JOIN periodos p ON p.id_periodo = e.id_periodo WHERE e.id_evaluacion = ? LIMIT 1', [idEvaluacion]);
     return res.status(201).json({ ok: true, message: 'Evaluaci\u00f3n creada correctamente.', data: rows?.[0] || { id_evaluacion: idEvaluacion } });
   } catch (error) {
     try { await conn.rollback(); } catch (_) {}
@@ -527,10 +527,10 @@ router.get('/seguimiento', authFromHeader, async (req, res) => {
       LEFT JOIN respuestas_evaluacion rsp ON rsp.id_evaluacion = e.id_evaluacion
       LEFT JOIN evaluacion_resultados rr ON rr.id_evaluacion = e.id_evaluacion
       LEFT JOIN usuarios u ON u.id_usuario = e.creado_por
-      WHERE e.id_institucion = ?
+      WHERE 1=1
       GROUP BY e.id_evaluacion
       ORDER BY e.creado_en DESC
-      LIMIT 200`, [idInstitucion]);
+      LIMIT 200`);
     return res.json({ ok: true, data: rows, seguimiento: rows });
   } catch (error) {
     console.error('ERROR GET /evaluaciones/seguimiento:', error);
@@ -660,8 +660,8 @@ router.get('/resultados/parciales', authFromHeader, async (req, res) => {
     const idInstitucion = req.user.id_institucion || 1;
     const idEvaluacion = Number(req.query?.id_evaluacion || 0);
     const idGrupo = Number(req.query?.id_grupo || 0);
-    const where = ['e.id_institucion = ?'];
-    const params = [idInstitucion];
+    const where = ['1=1'];
+    const params = [];
     if (idEvaluacion) { where.push('e.id_evaluacion = ?'); params.push(idEvaluacion); }
     if (idGrupo) { where.push('g.id_grupo = ?'); params.push(idGrupo); }
     const [rows] = await conn.execute(`

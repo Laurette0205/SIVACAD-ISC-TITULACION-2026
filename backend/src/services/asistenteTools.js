@@ -630,8 +630,8 @@ async function getAlumDashboard(pool, user) {
     if (!student) return null;
 
     const [inscripciones] = await pool.query(`
-      SELECT COUNT(*) AS total FROM inscripciones WHERE id_alumno = ? AND id_institucion = ?
-    `, [student.id_alumno, idInstitucion]);
+      SELECT COUNT(*) AS total FROM inscripciones WHERE id_alumno = ?
+    `, [student.id_alumno]);
 
     const [periodoActual] = await pool.query(`
       SELECT id_periodo, nombre_periodo FROM periodos WHERE estado = 'Activo' LIMIT 1

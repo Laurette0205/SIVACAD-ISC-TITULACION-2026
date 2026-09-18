@@ -1,11 +1,15 @@
 /**
  * SIVACAD-ISC — Documentos Sensibles del Alumno
  * FASE 8: Subida, visualización y eliminación de documentos personales
+ * MÓDULO 1: Soporte offline para subida de documentos
  */
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText, Upload, Trash2, Loader2, AlertTriangle, Download } from 'lucide-react';
+import { ArrowLeft, FileText, Upload, Trash2, Loader2, AlertTriangle, Download, WifiOff, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
+import { queueFileUpload, syncPendingItems } from '../services/offlineQueue';
+import offlineDB from '../services/offlineDB';
 import api from '../services/api';
 
 const TIPOS_DOCUMENTO = [
@@ -16,6 +20,7 @@ const TIPOS_DOCUMENTO = [
 export default function AlumnoDocumentosPage() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
+  const { isOnline, wasOffline, resetWasOffline } = useOnlineStatus();
   const fileInputRef = useRef(null);
   const [documentos, setDocumentos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,8 +33,44 @@ export default function AlumnoDocumentosPage() {
     descripcion: ''
   });
   const [selectedFile, setSelectedFile] = useState(null);
+  const [pendingFiles, setPendingFiles] = useState([]);
+  const [syncMessage, setSyncMessage] = useState('');
 
-  useEffect(() => { loadDocuments(); }, []);
+  const loadPendingFiles = useCallback(async () => {
+    try {
+      const files = await offlineDB.getPendingFiles();
+      setPendingFiles(files);
+    } catch (_) {
+      setPendingFiles([]);
+    }
+  }, []);
+
+  useEffect(() => { loadDocuments(); loadPendingFiles(); }, []);
+
+  useEffect(() => {
+    const handleSync = async () => {
+      setSyncMessage('Sincronizando documentos pendientes...');
+      try {
+        const result = await syncPendingItems();
+        if (result.synced > 0) {
+          setSyncMessage(`Sincronizados ${result.synced} documento(s)`);
+          loadDocuments();
+        } else if (result.failed > 0) {
+          setSyncMessage(`${result.failed} documento(s) fallaron. Se reintentará.`);
+        } else {
+          setSyncMessage('');
+        }
+      } catch (_) {
+        setSyncMessage('Error durante la sincronización');
+      } finally {
+        loadPendingFiles();
+        setTimeout(() => setSyncMessage(''), 5000);
+      }
+    };
+
+    window.addEventListener('sivacad:sync-pending', handleSync);
+    return () => window.removeEventListener('sivacad:sync-pending', handleSync);
+  }, [loadPendingFiles]);
 
   const loadDocuments = async () => {
     try {
@@ -39,18 +80,30 @@ export default function AlumnoDocumentosPage() {
         navigate('/login', { replace: true });
         return;
       }
-      const resp = await api.alumnoDocumentos(token);
-      if (resp.ok) setDocumentos(resp.data || []);
-      else if (resp.status === 401) {
-        navigate('/login', { replace: true });
-        return;
+
+      if (isOnline) {
+        const resp = await api.alumnoDocumentos(token);
+        if (resp.ok) {
+          setDocumentos(resp.data || []);
+          await offlineDB.cacheData('documentos_personales', resp.data || [], 600000);
+        } else if (resp.status === 401) {
+          navigate('/login', { replace: true });
+          return;
+        }
+      } else {
+        const cached = await offlineDB.getCachedData('documentos_personales');
+        if (cached) {
+          setDocumentos(cached);
+        } else {
+          setError('Sin conexión. Los documentos no están disponibles en caché.');
+        }
       }
     } catch (e) {
       if (e?.status === 401) {
         navigate('/login', { replace: true });
         return;
       }
-      setError(e.message);
+      if (isOnline) setError(e.message);
     } finally {
       setLoading(false);
     }
@@ -76,6 +129,24 @@ export default function AlumnoDocumentosPage() {
     try {
       setUploading(true);
       setError(null);
+
+      if (!isOnline) {
+        const formDataObj = {
+          tipo_documento: uploadForm.tipo_documento,
+          fecha_documento: uploadForm.fecha_documento || '',
+          descripcion: uploadForm.descripcion || ''
+        };
+        await queueFileUpload(selectedFile, formDataObj, '/alumno-documentos', token);
+        setShowUploadModal(false);
+        setSelectedFile(null);
+        setUploadForm({ tipo_documento: '', fecha_documento: '', descripcion: '' });
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        setSyncMessage('Documento guardado localmente. Se subirá al reconectar.');
+        await loadPendingFiles();
+        setTimeout(() => setSyncMessage(''), 5000);
+        return;
+      }
+
       const formData = new FormData();
       formData.append('archivo', selectedFile);
       formData.append('tipo_documento', uploadForm.tipo_documento);
@@ -153,6 +224,24 @@ export default function AlumnoDocumentosPage() {
         </label>
       </div>
 
+      {!isOnline && (
+        <div className="offline-pending-badge" style={{ marginBottom: '1rem' }}>
+          <WifiOff size={12} /> Modo offline — Los documentos se guardarán localmente
+        </div>
+      )}
+
+      {pendingFiles.length > 0 && (
+        <div className="offline-pending-badge" style={{ marginBottom: '1rem' }}>
+          {pendingFiles.length} documento(s) pendiente(s) de sincronización
+        </div>
+      )}
+
+      {syncMessage && (
+        <div className={`alert ${syncMessage.includes('Error') || syncMessage.includes('fallaron') ? 'error' : 'success'}`} style={{ marginBottom: '1rem' }}>
+          {syncMessage}
+        </div>
+      )}
+
       {error && (
         <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
           <AlertTriangle size={16} /> {error}
@@ -197,11 +286,11 @@ export default function AlumnoDocumentosPage() {
 
       {/* Upload Modal */}
       {showUploadModal && (
-        <div className="modal-backdrop" onClick={() => setShowUploadModal(false)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+        <div className="modal-backdrop" onClick={() => setShowUploadModal(false)} role="dialog" aria-modal="true" aria-labelledby="upload-doc-modal-title">
+          <div className="modal-card" id="upload-doc-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
             <div className="modal-head">
               <div>
-                <h3>Subir documento</h3>
+                <h3 id="upload-doc-modal-title">Subir documento</h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
                   Archivo: {selectedFile?.name} ({formatSize(selectedFile?.size)})
                 </p>

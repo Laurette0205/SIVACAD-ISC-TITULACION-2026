@@ -86,6 +86,14 @@ const SoporteKardexPage = React.lazy(() => import('./pages/SoporteKardexPage'));
 const SoporteTramitesPage = React.lazy(() => import('./pages/SoporteTramitesPage'));
 const MFAPage = React.lazy(() => import('./pages/MFAPage'));
 const EmergencyContactsPage = React.lazy(() => import('./pages/EmergencyContactsPage'));
+const EmergencyLocationPage = React.lazy(() => import('./pages/EmergencyLocationPage'));
+const EmergencyAccessPage = React.lazy(() => import('./pages/EmergencyAccessPage'));
+const ConnectivityMonitorPage = React.lazy(() => import('./pages/ConnectivityMonitorPage'));
+const DocenteCalificacionesPage = React.lazy(() => import('./pages/DocenteCalificacionesPage'));
+const AlumnoBoletaPage = React.lazy(() => import('./pages/AlumnoBoletaPage'));
+const AlumnoPreboletaPage = React.lazy(() => import('./pages/AlumnoPreboletaPage'));
+const CoordinadorCalificacionesPage = React.lazy(() => import('./pages/CoordinadorCalificacionesPage'));
+const SecurityDashboardPage = React.lazy(() => import('./pages/SecurityDashboardPage'));
 const AlumnoInfoMedicaPage = React.lazy(() => import('./pages/AlumnoInfoMedicaPage'));
 const AlumnoInfoLaboralPage = React.lazy(() => import('./pages/AlumnoInfoLaboralPage'));
 const AlumnoDocumentosPage = React.lazy(() => import('./pages/AlumnoDocumentosPage'));
@@ -457,6 +465,49 @@ function AppRoutes() {
               1
             ]}>
               <DocenteKardexPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="docente/calificaciones"
+          element={
+            <ProtectedRoute allowedRoles={[
+              ROLE_NAMES.DOCENTE,
+              3,
+              ROLE_NAMES.COORDINADOR,
+              2,
+              ROLE_NAMES.ADMINISTRADOR,
+              1
+            ]}>
+              <DocenteCalificacionesPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="boleta"
+          element={
+            <ProtectedRoute allowedRoles={ALL_ROLES}>
+              <AlumnoBoletaPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="preboleta"
+          element={
+            <ProtectedRoute allowedRoles={ALL_ROLES}>
+              <AlumnoPreboletaPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="coordinador/calificaciones"
+          element={
+            <ProtectedRoute allowedRoles={[ROLE_NAMES.COORDINADOR, 3]}>
+              <CoordinadorCalificacionesPage />
             </ProtectedRoute>
           }
         />
@@ -988,6 +1039,42 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={ALL_ROLES}>
               <EmergencyContactsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="ubicacion-emergencia"
+          element={
+            <ProtectedRoute allowedRoles={ALL_ROLES}>
+              <EmergencyLocationPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="acceso-emergencia"
+          element={
+            <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'SOPORTE']}>
+              <EmergencyAccessPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="monitoreo-conectividad"
+          element={
+            <ProtectedRoute allowedRoles={['ADMINISTRADOR', 'SOPORTE']}>
+              <ConnectivityMonitorPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="seguridad"
+          element={
+            <ProtectedRoute allowedRoles={[ROLE_NAMES.ADMINISTRADOR, 1]}>
+              <SecurityDashboardPage />
             </ProtectedRoute>
           }
         />

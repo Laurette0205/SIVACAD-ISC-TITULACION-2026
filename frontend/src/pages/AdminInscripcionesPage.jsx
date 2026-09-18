@@ -748,7 +748,7 @@ export default function AdminInscripcionesPage() {
       )}
 
       {showStatusModal && (
-        <div className="modal-overlay" style={{
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="status-modal-title" style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }}>
@@ -757,7 +757,7 @@ export default function AdminInscripcionesPage() {
             padding: '1.5rem', maxWidth: 480, width: '90%',
             boxShadow: '0 25px 50px rgba(0,0,0,0.25)'
           }}>
-            <h3 style={{ margin: '0 0 0.75rem' }}>Cambiar estado</h3>
+            <h3 id="status-modal-title" style={{ margin: '0 0 0.75rem' }}>Cambiar estado</h3>
             <p style={{ color: 'var(--muted)', margin: '0 0 1rem', fontSize: '0.9rem' }}>
               Inscripcion #{statusForm.id}
             </p>

@@ -952,7 +952,7 @@ export default function CoordinadorInscripcionesPage() {
     };
 
     return (
-      <div className="modal-overlay" style={{
+      <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="insc-modal-title" style={{
         position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
       }}>
@@ -961,7 +961,7 @@ export default function CoordinadorInscripcionesPage() {
           padding: '1.5rem', maxWidth: 480, width: '90%',
           boxShadow: '0 25px 50px rgba(0,0,0,0.25)'
         }}>
-          <h3 style={{ margin: '0 0 0.75rem' }}>
+          <h3 id="insc-modal-title" style={{ margin: '0 0 0.75rem' }}>
             {modal.type === 'validar' ? 'Validar inscripcion' :
              modal.type === 'rechazar' ? 'Rechazar inscripcion' :
              modal.type === 'asignarGrupo' ? 'Asignar grupo' :

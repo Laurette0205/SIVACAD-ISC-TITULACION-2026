@@ -379,6 +379,24 @@ export default function AlumnoPerfilPage() {
         </div>
       </SectionCard>
 
+      {/* UBICACIÓN DE EMERGENCIA */}
+      <SectionCard title="Compartir ubicación" subtitle="Comparte tu ubicación solo durante emergencias">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              Activa la compartición de ubicación de forma voluntaria y revocable.
+            </p>
+          </div>
+          <button
+            className="btn btn-secondary"
+            type="button"
+            onClick={() => navigate('/app/ubicacion-emergencia')}
+          >
+            <MapPin size={16} /> Compartir ubicación
+          </button>
+        </div>
+      </SectionCard>
+
       {/* INFORMACIÓN MÉDICA */}
       <SectionCard title="Información médica y psicológica" subtitle="Datos de salud confidenciales">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

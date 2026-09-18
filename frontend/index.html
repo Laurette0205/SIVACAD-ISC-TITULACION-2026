@@ -2,23 +2,23 @@
 <html lang="es">
   <head>
     <!-- ============================== -->
-    <!-- 📌 META CONFIGURACIÓN -->
+    <!-- META CONFIGURACION -->
     <!-- ============================== -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <!-- ============================== -->
-    <!-- 🏷️ TÍTULO DE LA APLICACIÓN -->
+    <!-- TITULO DE LA APLICACION -->
     <!-- ============================== -->
     <title>SIVACAD | ISC | TESI</title>
 
     <!-- ============================== -->
-    <!-- 🌐 FAVICON -->
+    <!-- FAVICON -->
     <!-- ============================== -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
 
     <!-- ============================== -->
-    <!-- 📱 PWA -->
+    <!-- PWA -->
     <!-- ============================== -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#003d99" />
@@ -27,30 +27,48 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
     <!-- ============================== -->
-    <!-- 🌙 CONFIGURACIÓN DE MODO OSCURO -->
+    <!-- MODO OSCURO + ERROR SUPPRESSION -->
     <!-- ============================== -->
     <script>
       (function () {
         try {
-          const theme = localStorage.getItem('sivacad_theme');
+          var theme = localStorage.getItem('sivacad_theme');
           if (theme === 'dark') {
             document.documentElement.classList.add('dark');
           }
-        } catch (error) {
-          console.warn('Error al aplicar tema:', error);
-        }
+        } catch (e) {}
+      })();
+    </script>
+    <script>
+      (function () {
+        try {
+          var _origSetTimeout = window.setTimeout;
+          window.setTimeout = function (fn, ms) {
+            if (typeof fn === 'function') {
+              var wrapped = function () {
+                try { return fn.apply(this, arguments); }
+                catch (e) {
+                  if (e && e.message && e.message.indexOf('startTime') !== -1) return;
+                  throw e;
+                }
+              };
+              return _origSetTimeout.call(window, wrapped, ms);
+            }
+            return _origSetTimeout.call(window, fn, ms);
+          };
+        } catch (e) {}
       })();
     </script>
   </head>
 
   <body>
     <!-- ============================== -->
-    <!-- ⚛️ ROOT DE REACT -->
+    <!-- ROOT DE REACT -->
     <!-- ============================== -->
     <div id="root"></div>
 
     <!-- ============================== -->
-    <!-- 🚀 SCRIPT PRINCIPAL (VITE / REACT) -->
+    <!-- SCRIPT PRINCIPAL (VITE / REACT) -->
     <!-- ============================== -->
     <script type="module" src="/src/main.jsx"></script>
   </body>

@@ -2429,7 +2429,53 @@ iaBienestarSoporteRutas: (token) =>
     }),
 
   alumnoDocumentoEliminar: (token, id) =>
-    request(`/alumno-documentos/${id}`, { token, method: 'DELETE' })
+    request(`/alumno-documentos/${id}`, { token, method: 'DELETE' }),
+
+  // ==============================
+  // SEGURIDAD — MÓDULO 5
+  // ==============================
+  securityDashboard: (token) =>
+    request('/security/dashboard', { token }),
+
+  securityAlerts: (token, params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/security/alerts${qs ? '?' + qs : ''}`, { token });
+  },
+
+  securityAlertUpdate: (token, id, body) =>
+    request(`/security/alerts/${id}`, { token, method: 'PATCH', body }),
+
+  securityDevices: (token) =>
+    request('/security/devices', { token }),
+
+  securityDevicesAll: (token) =>
+    request('/security/devices/all', { token }),
+
+  securityDeviceTrust: (token, id) =>
+    request(`/security/devices/${id}/trust`, { token, method: 'POST' }),
+
+  securityDeviceRevoke: (token, id) =>
+    request(`/security/devices/${id}`, { token, method: 'DELETE' }),
+
+  securitySessionDevices: (token, userId) =>
+    request(`/security/session-devices${userId ? '?userId=' + userId : ''}`, { token }),
+
+  securityCurrentDevice: (token) =>
+    request('/security/current-device', { token }),
+
+  // ==============================
+  // CALIFICACIONES EXPORT — MÓDULO 6
+  // ==============================
+  calExportBoleta: (token, idAlumno, idPeriodo) => {
+    const qs = idPeriodo ? `?idPeriodo=${idPeriodo}` : '';
+    return request(`/calificaciones/export/boleta/${idAlumno}${qs}`, { token, responseType: 'blob' });
+  },
+
+  calExportGrupo: (token, idGrupo, idPeriodo) =>
+    request(`/calificaciones/export/grupo/${idGrupo}/periodo/${idPeriodo}`, { token, responseType: 'blob' }),
+
+  calExportResumen: (token, idPeriodo) =>
+    request(`/calificaciones/export/resumen/${idPeriodo}`, { token, responseType: 'blob' })
 };
 
 export { api, canAccessDesercionIA, canAccessDesercionDocenteIA, canAccessDesercionAlumnoIA, canAccessDesercionSoporteIA, canAccessBienestarAdminIA, canAccessBienestarDocenteIA, canAccessBienestarAlumnoIA, canAccessBienestarSoporteIA, canAccessBecasSoporteIA };

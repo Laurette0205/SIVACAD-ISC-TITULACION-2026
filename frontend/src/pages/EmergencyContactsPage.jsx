@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Phone, ArrowLeft, Plus, Pencil, Trash2, UserPlus, CheckCircle2 } from 'lucide-react';
+import { Phone, ArrowLeft, Plus, Pencil, Trash2, UserPlus, CheckCircle2, MapPin, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -13,6 +13,20 @@ const RELACION_OPTIONS = [
   'Esposo/a', 'Pareja', 'Amigo/a', 'Tutor legal', 'Otro'
 ];
 
+const PRIORIDAD_OPTIONS = [
+  { value: 'BAJA', label: 'Baja', color: '#6b7280' },
+  { value: 'MEDIA', label: 'Media', color: '#f59e0b' },
+  { value: 'ALTA', label: 'Alta', color: '#f97316' },
+  { value: 'CRITICA', label: 'Crítica', color: '#ef4444' }
+];
+
+const PRIORIDAD_COLORS = {
+  BAJA: '#6b7280',
+  MEDIA: '#f59e0b',
+  ALTA: '#f97316',
+  CRITICA: '#ef4444'
+};
+
 function ContactModal({ contact, onSave, onCancel, saving }) {
   const [form, setForm] = React.useState({
     nombre: contact?.nombre || '',
@@ -20,7 +34,8 @@ function ContactModal({ contact, onSave, onCancel, saving }) {
     relacion: contact?.relacion || '',
     correo: contact?.correo || '',
     direccion: contact?.direccion || '',
-    es_principal: contact?.es_principal || false
+    es_principal: contact?.es_principal || false,
+    prioridad: contact?.prioridad || 'MEDIA'
   });
 
   const handleChange = (key, value) => {
@@ -28,11 +43,11 @@ function ContactModal({ contact, onSave, onCancel, saving }) {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+    <div className="modal-backdrop" onClick={onCancel} role="dialog" aria-modal="true" aria-labelledby="contact-form-modal-title">
+      <div className="modal-card" id="contact-form-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
         <div className="modal-head">
           <div>
-            <h3>{contact ? 'Editar contacto' : 'Agregar contacto de emergencia'}</h3>
+            <h3 id="contact-form-modal-title">{contact ? 'Editar contacto' : 'Agregar contacto de emergencia'}</h3>
             <p>Completa la información del contacto.</p>
           </div>
         </div>
@@ -84,6 +99,14 @@ function ContactModal({ contact, onSave, onCancel, saving }) {
               placeholder="Dirección (opcional)"
             />
           </div>
+          <div className="field">
+            <span>Prioridad</span>
+            <select value={form.prioridad} onChange={(e) => handleChange('prioridad', e.target.value)}>
+              {PRIORIDAD_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
             <input
               type="checkbox"
@@ -110,11 +133,11 @@ function ContactModal({ contact, onSave, onCancel, saving }) {
 
 function ConfirmModal({ title, message, onConfirm, onCancel, loading }) {
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-backdrop" onClick={onCancel} role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+      <div className="modal-card" id="confirm-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
           <div>
-            <h3>{title}</h3>
+            <h3 id="confirm-modal-title">{title}</h3>
             <p>{message}</p>
           </div>
           <div className="modal-icon danger">!</div>
@@ -311,7 +334,28 @@ export default function EmergencyContactsPage() {
                       <div>Tel: {contact.telefono}</div>
                       {contact.relacion && <div>Relación: {contact.relacion}</div>}
                       {contact.correo && <div>Correo: {contact.correo}</div>}
+                      {contact.direccion && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.25rem' }}>
+                          <MapPin size={12} /> {contact.direccion}
+                        </div>
+                      )}
                     </div>
+                    {contact.prioridad && contact.prioridad !== 'MEDIA' && (
+                      <div style={{
+                        marginTop: '0.35rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.3rem',
+                        fontSize: '0.75rem',
+                        padding: '0.15rem 0.5rem',
+                        borderRadius: '9999px',
+                        background: `${PRIORIDAD_COLORS[contact.prioridad]}20`,
+                        color: PRIORIDAD_COLORS[contact.prioridad],
+                        fontWeight: 600
+                      }}>
+                        <AlertTriangle size={10} /> {PRIORIDAD_OPTIONS.find(p => p.value === contact.prioridad)?.label}
+                      </div>
+                    )}
                   </div>
                   <div style={{ display: 'flex', gap: '0.35rem' }}>
                     <button

@@ -35,7 +35,7 @@ export default function KardexPreview({ data, loading, error, onExportPDF, onExp
 
   if (!data) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>
+      <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>
         <FileText size={48} style={{ opacity: 0.4, marginBottom: '0.5rem' }} />
         <p>No hay datos de kardex para mostrar.</p>
         <p style={{ fontSize: '0.8rem' }}>Consulta un alumno para previsualizar su kardex.</p>
@@ -171,7 +171,7 @@ export default function KardexPreview({ data, loading, error, onExportPDF, onExp
             </table>
           </div>
         ) : (
-          <p style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '0.85rem', padding: '1rem 0' }}>
+          <p style={{ color: 'var(--muted)', fontStyle: 'italic', fontSize: '0.85rem', padding: '1rem 0' }}>
             No se encontraron materias registradas en el historial académico.
           </p>
         )}

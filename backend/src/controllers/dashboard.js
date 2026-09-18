@@ -10,18 +10,15 @@ exports.getDashboard = async (req, res) => {
     );
 
     const [docentes] = await pool.execute(
-      `SELECT COUNT(*) AS total FROM docentes WHERE id_institucion = ?`,
-      [idInstitucion]
+      `SELECT COUNT(*) AS total FROM docentes`
     );
 
     const [inscripciones] = await pool.execute(
-      `SELECT COUNT(*) AS total FROM inscripciones WHERE id_institucion = ?`,
-      [idInstitucion]
+      `SELECT COUNT(*) AS total FROM inscripciones`
     );
 
     const [evaluaciones] = await pool.execute(
-      `SELECT COUNT(*) AS total FROM evaluaciones WHERE id_institucion = ?`,
-      [idInstitucion]
+      `SELECT COUNT(*) AS total FROM evaluaciones`
     );
 
     const [periodos] = await pool.execute(
@@ -29,8 +26,7 @@ exports.getDashboard = async (req, res) => {
     );
 
     const [grupos] = await pool.execute(
-      `SELECT COUNT(*) AS total FROM grupos WHERE id_institucion = ?`,
-      [idInstitucion]
+      `SELECT COUNT(*) AS total FROM grupos`
     );
 
     return res.json({

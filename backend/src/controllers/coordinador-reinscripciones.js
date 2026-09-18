@@ -45,9 +45,8 @@ exports.getBandeja = async (req, res) => {
     const estado = req.query.estado || '';
     const busqueda = req.query.busqueda || '';
 
-    const idInstitucion = req.user.id_institucion || 1;
-    const where = ["i.tipo_inscripcion = 'Reinscripcion'", 'i.id_institucion = ?'];
-    const params = [idInstitucion];
+    const where = ["i.tipo_inscripcion = 'Reinscripcion'"];
+    const params = [];
 
     if (idPeriodo) { where.push('i.id_periodo = ?'); params.push(idPeriodo); }
     if (idGrupo) { where.push('i.id_grupo = ?'); params.push(idGrupo); }
@@ -94,8 +93,8 @@ exports.getBandeja = async (req, res) => {
         SUM(CASE WHEN i.estado = 'Cancelada' THEN 1 ELSE 0 END) AS canceladas,
         SUM(CASE WHEN i.estado IN ('Activo','Aprobada','Completada') THEN 1 ELSE 0 END) AS activas
       FROM inscripciones i
-      WHERE i.tipo_inscripcion = 'Reinscripcion' AND i.id_institucion = ?
-    `, [req.user.id_institucion || 1]);
+      WHERE i.tipo_inscripcion = 'Reinscripcion'
+    `);
 
     return res.json({
       ok: true,
@@ -119,9 +118,8 @@ exports.getValidacionPorGrupo = async (req, res) => {
 
     const idPeriodo = Number(req.query.id_periodo) || 0;
 
-    const idInstitucion = req.user.id_institucion || 1;
-    let whereExtra = "i.tipo_inscripcion = 'Reinscripcion' AND i.id_institucion = ?";
-    const params = [idInstitucion];
+    let whereExtra = "i.tipo_inscripcion = 'Reinscripcion'";
+    const params = [];
     if (idPeriodo) { whereExtra += ' AND i.id_periodo = ?'; params.push(idPeriodo); }
 
     const [rows] = await conn.execute(`
@@ -165,8 +163,6 @@ exports.getDetalleAlumno = async (req, res) => {
       return res.status(400).json({ ok: false, message: 'ID de inscripción inválido' });
     }
 
-    const idInstitucion = req.user.id_institucion || 1;
-
     const [detalle] = await conn.execute(`
       SELECT
         i.id_inscripcion, i.id_alumno, i.id_periodo, i.id_grupo, i.id_carrera,
@@ -189,9 +185,9 @@ exports.getDetalleAlumno = async (req, res) => {
       LEFT JOIN carreras c ON c.id_carrera = COALESCE(i.id_carrera, a.id_carrera)
       LEFT JOIN reinscripciones r ON r.id_inscripcion = i.id_inscripcion
       LEFT JOIN usuarios uv ON uv.id_usuario = r.validada_por
-      WHERE i.id_inscripcion = ? AND i.tipo_inscripcion = 'Reinscripcion' AND i.id_institucion = ?
+      WHERE i.id_inscripcion = ? AND i.tipo_inscripcion = 'Reinscripcion'
       LIMIT 1
-    `, [idInscripcion, idInstitucion]);
+    `, [idInscripcion]);
 
     if (!detalle.length) {
       return res.status(404).json({ ok: false, message: 'Reinscripción no encontrada' });
@@ -236,11 +232,9 @@ exports.updateEstado = async (req, res) => {
     conn = await pool.getConnection();
     await conn.beginTransaction();
 
-    const idInstitucion = req.user.id_institucion || 1;
-
     const [existing] = await conn.execute(
-      "SELECT id_inscripcion, estado, id_grupo, id_periodo FROM inscripciones WHERE id_inscripcion = ? AND tipo_inscripcion = 'Reinscripcion' AND id_institucion = ? LIMIT 1",
-      [id, idInstitucion]
+      "SELECT id_inscripcion, estado, id_grupo, id_periodo FROM inscripciones WHERE id_inscripcion = ? AND tipo_inscripcion = 'Reinscripcion' LIMIT 1",
+      [id]
     );
 
     if (!existing.length) {
@@ -325,11 +319,9 @@ exports.asignarGrupo = async (req, res) => {
     conn = await pool.getConnection();
     await conn.beginTransaction();
 
-    const idInstitucion = req.user.id_institucion || 1;
-
     const [existing] = await conn.execute(
-      "SELECT id_inscripcion, id_grupo AS grupo_anterior, id_periodo FROM inscripciones WHERE id_inscripcion = ? AND tipo_inscripcion = 'Reinscripcion' AND id_institucion = ? LIMIT 1",
-      [id, idInstitucion]
+      "SELECT id_inscripcion, id_grupo AS grupo_anterior, id_periodo FROM inscripciones WHERE id_inscripcion = ? AND tipo_inscripcion = 'Reinscripcion' LIMIT 1",
+      [id]
     );
     if (!existing.length) {
       await conn.rollback();
@@ -394,11 +386,9 @@ exports.registrarObservacion = async (req, res) => {
 
     conn = await pool.getConnection();
 
-    const idInstitucion = req.user.id_institucion || 1;
-
     const [existing] = await conn.execute(
-      "SELECT id_inscripcion, observaciones FROM inscripciones WHERE id_inscripcion = ? AND tipo_inscripcion = 'Reinscripcion' AND id_institucion = ? LIMIT 1",
-      [id, idInstitucion]
+      "SELECT id_inscripcion, observaciones FROM inscripciones WHERE id_inscripcion = ? AND tipo_inscripcion = 'Reinscripcion' LIMIT 1",
+      [id]
     );
     if (!existing.length) {
       return res.status(404).json({ ok: false, message: 'Reinscripción no encontrada' });

@@ -455,14 +455,14 @@ export default function EstudianteEvaluacionesPage() {
       )}
 
       {mostrarInstrucciones && evaluacionActiva && !respondiendo && (
-        <div className="modal-backdrop" onClick={() => {}}>
-          <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: 640 }}>
+        <div className="modal-backdrop" onClick={() => {}} role="dialog" aria-modal="true" aria-labelledby="instrucciones-modal-title">
+          <div className="modal-card" id="instrucciones-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 640 }}>
             <div className="modal-head">
               <div>
                 <div className="badge light" style={{ marginBottom: '0.75rem' }}>
                   <HelpCircle size={14} /> Instrucciones
                 </div>
-                <h3>{evaluacionActiva.titulo}</h3>
+                <h3 id="instrucciones-modal-title">{evaluacionActiva.titulo}</h3>
                 <p style={{ marginTop: '0.5rem' }}>
                   Lee atentamente las siguientes instrucciones antes de comenzar.
                 </p>

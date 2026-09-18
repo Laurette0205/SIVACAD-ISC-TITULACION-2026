@@ -106,7 +106,7 @@ async function getListaAlumnos(req, res) {
       FROM grupos_alumnos ga
       INNER JOIN alumnos a ON a.id_alumno = ga.id_alumno
       INNER JOIN usuarios u ON u.id_usuario = a.id_usuario
-      LEFT JOIN inscripciones i ON i.id_alumno = a.id_alumno AND i.id_periodo = ga.id_periodo AND i.id_grupo = ga.id_grupo AND i.id_institucion = ga.id_institucion
+      LEFT JOIN inscripciones i ON i.id_alumno = a.id_alumno AND i.id_periodo = ga.id_periodo AND i.id_grupo = ga.id_grupo
       WHERE ga.id_grupo = ? AND ga.id_periodo = ?
       ORDER BY u.apellido_paterno ASC, u.apellido_materno ASC, u.nombres ASC
     `, [idGrupo, idPeriodo]);

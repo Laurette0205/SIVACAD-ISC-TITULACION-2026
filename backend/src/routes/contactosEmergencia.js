@@ -10,6 +10,7 @@ const { registrarAuditoria } = require('../middleware/auditoria');
 const PHONE_REGEX = /^\d{10}$/;
 const NAME_REGEX = /^[a-zA-ZáéíóúñüÁÉÍÓÚÑÜ\s'-]{2,200}$/;
 const PARENTESCO_OPTIONS = ['Madre', 'Padre', 'Hermano/a', 'Tío/a', 'Abuelo/a', 'Esposo/a', 'Pareja', 'Amigo/a', 'Tutor legal', 'Otro'];
+const PRIORIDAD_OPTIONS = ['BAJA', 'MEDIA', 'ALTA', 'CRITICA'];
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // ==============================
@@ -20,14 +21,20 @@ router.get('/',
   async (req, res) => {
     try {
       const [rows] = await pool.execute(
-        `SELECT id, nombre, parentesco, telefono, telefono_alt, correo, principal
+        `SELECT id, nombre, parentesco, telefono, telefono_alt, correo,
+                principal, prioridad, direccion
          FROM contactos_emergencia
          WHERE id_usuario = ?
-         ORDER BY principal DESC, nombre ASC`,
+         ORDER BY
+           CASE prioridad WHEN 'CRITICA' THEN 1 WHEN 'ALTA' THEN 2 WHEN 'MEDIA' THEN 3 ELSE 4 END,
+           principal DESC, nombre ASC`,
         [req.user.id_usuario]
       );
       return res.json({ ok: true, contactos: rows });
     } catch (error) {
+      if (error.code === 'ER_NO_SUCH_TABLE') {
+        return res.json({ ok: true, contactos: [] });
+      }
       return res.status(500).json({ ok: false, message: 'Error obteniendo contactos' });
     }
   }
@@ -40,13 +47,17 @@ router.post('/',
   auth,
   async (req, res) => {
     try {
-      const { nombre, parentesco, telefono, telefono_alt, correo, principal } = req.body;
+      const { nombre, parentesco, telefono, telefono_alt, correo, principal, prioridad, direccion } = req.body;
 
       if (!nombre || !parentesco || !telefono) {
         return res.status(400).json({
           ok: false,
           message: 'nombre, parentesco y telefono son requeridos'
         });
+      }
+
+      if (prioridad && !PRIORIDAD_OPTIONS.includes(prioridad)) {
+        return res.status(400).json({ ok: false, message: `prioridad debe ser: ${PRIORIDAD_OPTIONS.join(', ')}` });
       }
 
       if (!NAME_REGEX.test(String(nombre).trim())) {
@@ -74,9 +85,10 @@ router.post('/',
 
       const [result] = await pool.execute(
         `INSERT INTO contactos_emergencia
-         (id_usuario, nombre, parentesco, telefono, telefono_alt, correo, principal, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
-        [req.user.id_usuario, nombre.trim(), parentesco, telefono.trim(), telefono_alt?.trim() || null, correo?.trim() || null, principal ? 1 : 0]
+         (id_usuario, nombre, parentesco, telefono, telefono_alt, correo, principal, prioridad, direccion, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+        [req.user.id_usuario, nombre.trim(), parentesco, telefono.trim(), telefono_alt?.trim() || null,
+         correo?.trim() || null, principal ? 1 : 0, prioridad || 'MEDIA', direccion?.trim() || null]
       );
 
       await registrarAuditoria({
@@ -107,7 +119,7 @@ router.put('/:id',
   auth,
   async (req, res) => {
     try {
-      const { nombre, parentesco, telefono, telefono_alt, correo, principal } = req.body;
+      const { nombre, parentesco, telefono, telefono_alt, correo, principal, prioridad, direccion } = req.body;
 
       const [existing] = await pool.execute(
         `SELECT id, nombre FROM contactos_emergencia WHERE id = ? AND id_usuario = ?`,
@@ -143,9 +155,13 @@ router.put('/:id',
 
       await pool.execute(
         `UPDATE contactos_emergencia
-         SET nombre = ?, parentesco = ?, telefono = ?, telefono_alt = ?, correo = ?, principal = ?
+         SET nombre = ?, parentesco = ?, telefono = ?, telefono_alt = ?, correo = ?,
+             principal = ?, prioridad = ?, direccion = ?
          WHERE id = ? AND id_usuario = ?`,
-        [(nombre || existing[0].nombre).trim(), parentesco, (telefono || '').trim() || null, telefono_alt?.trim() || null, correo?.trim() || null, principal ? 1 : 0, req.params.id, req.user.id_usuario]
+        [(nombre || existing[0].nombre).trim(), parentesco, (telefono || '').trim() || null,
+         telefono_alt?.trim() || null, correo?.trim() || null, principal ? 1 : 0,
+         prioridad || 'MEDIA', direccion?.trim() || null,
+         req.params.id, req.user.id_usuario]
       );
 
       await registrarAuditoria({

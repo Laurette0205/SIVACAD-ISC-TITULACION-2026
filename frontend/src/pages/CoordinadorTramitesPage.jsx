@@ -155,10 +155,10 @@ export default function CoordinadorTramitesPage() {
   function renderObsModal() {
     if (!showObservacion) return null;
     return (
-      <div className="modal-backdrop" onClick={() => setShowObservacion(null)}>
-        <div className="modal-card" onClick={e => e.stopPropagation()}>
+      <div className="modal-backdrop" onClick={() => setShowObservacion(null)} role="dialog" aria-modal="true" aria-labelledby="obs-modal-title">
+        <div className="modal-card" id="obs-modal" onClick={e => e.stopPropagation()}>
           <div className="modal-head">
-            <h3>Agregar Observación</h3>
+            <h3 id="obs-modal-title">Agregar Observación</h3>
             <button type="button" className="icon-btn modal-close" onClick={() => setShowObservacion(null)}>✕</button>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); handleAgregarObs(showObservacion); }} className="form-stack" style={{ padding: '1.25rem' }}>
@@ -189,10 +189,10 @@ export default function CoordinadorTramitesPage() {
   function renderProcedenciaModal() {
     if (!showProcedencia) return null;
     return (
-      <div className="modal-backdrop" onClick={() => setShowProcedencia(null)}>
-        <div className="modal-card" onClick={e => e.stopPropagation()}>
+      <div className="modal-backdrop" onClick={() => setShowProcedencia(null)} role="dialog" aria-modal="true" aria-labelledby="proc-modal-title">
+        <div className="modal-card" id="proc-modal" onClick={e => e.stopPropagation()}>
           <div className="modal-head">
-            <h3>Determinar Procedencia — {showProcedencia.folio}</h3>
+            <h3 id="proc-modal-title">Determinar Procedencia — {showProcedencia.folio}</h3>
             <button type="button" className="icon-btn modal-close" onClick={() => setShowProcedencia(null)}>✕</button>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); handleDeterminarProcedencia(showProcedencia.id_tramite); }} className="form-stack" style={{ padding: '1.25rem' }}>
@@ -224,10 +224,10 @@ export default function CoordinadorTramitesPage() {
   function renderRechazoModal() {
     if (!showRechazo) return null;
     return (
-      <div className="modal-backdrop" onClick={() => setShowRechazo(null)}>
-        <div className="modal-card" onClick={e => e.stopPropagation()}>
+      <div className="modal-backdrop" onClick={() => setShowRechazo(null)} role="dialog" aria-modal="true" aria-labelledby="rech-modal-title">
+        <div className="modal-card" id="rech-modal" onClick={e => e.stopPropagation()}>
           <div className="modal-head">
-            <h3>Rechazar Trámite — {showRechazo.folio}</h3>
+            <h3 id="rech-modal-title">Rechazar Trámite — {showRechazo.folio}</h3>
             <button type="button" className="icon-btn modal-close" onClick={() => setShowRechazo(null)}>✕</button>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); handleRechazar(showRechazo.id_tramite); }} className="form-stack" style={{ padding: '1.25rem' }}>
@@ -248,10 +248,10 @@ export default function CoordinadorTramitesPage() {
   function renderAnalisisModal() {
     if (!showAnalisis) return null;
     return (
-      <div className="modal-backdrop" onClick={() => setShowAnalisis(null)}>
-        <div className="modal-card" onClick={e => e.stopPropagation()}>
+      <div className="modal-backdrop" onClick={() => setShowAnalisis(null)} role="dialog" aria-modal="true" aria-labelledby="analisis-modal-title">
+        <div className="modal-card" id="analisis-modal" onClick={e => e.stopPropagation()}>
           <div className="modal-head">
-            <h3>Iniciar Análisis Curricular</h3>
+            <h3 id="analisis-modal-title">Iniciar Análisis Curricular</h3>
             <button type="button" className="icon-btn modal-close" onClick={() => setShowAnalisis(null)}>✕</button>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); handlePasarAnalisis(showAnalisis); }} className="form-stack" style={{ padding: '1.25rem' }}>

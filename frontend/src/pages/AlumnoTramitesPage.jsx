@@ -256,10 +256,10 @@ export default function AlumnoTramitesPage() {
 
       {/* ────────────── SOLICITAR ────────────── */}
       {(activeTab === 'solicitar' || showSolicitar) && (
-        <div className="modal-overlay" onClick={() => { setShowSolicitar(false); setActiveTab('mis-tramites'); }}>
+          <div className="modal-overlay" onClick={() => { setShowSolicitar(false); setActiveTab('mis-tramites'); }} role="dialog" aria-modal="true" aria-labelledby="solicitar-modal-title">
           <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '520px' }}>
             <div className="modal-header">
-              <h3><Plus size={18} /> Nueva solicitud de trámite</h3>
+              <h3 id="solicitar-modal-title"><Plus size={18} /> Nueva solicitud de trámite</h3>
               <button className="modal-close" onClick={() => { setShowSolicitar(false); setActiveTab('mis-tramites'); }}><X size={20} /></button>
             </div>
             <form onSubmit={handleSolicitar}>

@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   Activity,
+  Award,
   BarChart3,
   BookOpen,
   Bot,
@@ -20,6 +21,7 @@ import {
   HeartPulse,
   Brain,
   Shield,
+  MapPin,
   AlertTriangle,
   Folders,
   X,
@@ -82,7 +84,9 @@ const ROLE_SECTIONS = {
         { to: '/app/usuarios', label: 'Usuarios', icon: Users },
         { to: '/app/admin/tramites', label: 'Trámites', icon: Folders },
         { to: '/app/admin/inscripciones', label: 'Admin Inscripciones', icon: Shield },
-        { to: '/app/admin/reinscripciones', label: 'Admin Reinscripciones', icon: ClipboardList }
+        { to: '/app/admin/reinscripciones', label: 'Admin Reinscripciones', icon: ClipboardList },
+        { to: '/app/monitoreo-conectividad', label: 'Monitoreo sistema', icon: Activity, roles: ['ADMINISTRADOR', 'SOPORTE'] },
+        { to: '/app/seguridad', label: 'Seguridad', icon: ShieldAlert, roles: ['ADMINISTRADOR'] }
       ]
     }
   ],
@@ -101,6 +105,7 @@ const ROLE_SECTIONS = {
         { to: '/app/coordinador/inscripciones', label: 'Inscripciones', icon: Shield },
         { to: '/app/coordinador/reinscripciones', label: 'Reinscripciones', icon: ClipboardCheck },
         { to: '/app/coordinador/kardex', label: 'Kardex', icon: FileText },
+        { to: '/app/coordinador/calificaciones', label: 'Seguimiento Calif.', icon: BarChart3 },
         { to: '/app/evaluaciones', label: 'Evaluaciones', icon: BookOpen }
       ]
     },
@@ -136,6 +141,7 @@ const ROLE_SECTIONS = {
         { to: '/app/docente/inscripciones', label: 'Inscripciones', icon: ClipboardList },
         { to: '/app/docente/reinscripciones', label: 'Reinscripciones', icon: ClipboardCheck },
         { to: '/app/docente/kardex', label: 'Kardex', icon: FileText },
+        { to: '/app/docente/calificaciones', label: 'Calificaciones', icon: BookOpen },
         { to: '/app/docente/tramites', label: 'Trámites académicos', icon: ClipboardList },
         { to: '/app/docente-evaluaciones', label: 'Evaluaciones', icon: BookOpen }
       ]
@@ -165,6 +171,8 @@ const ROLE_SECTIONS = {
       items: [
         { to: '/app/alumno/perfil', label: 'Perfil y configuración', icon: User },
         { to: '/app/contactos-emergencia', label: 'Contactos de emergencia', icon: AlertTriangle },
+        { to: '/app/ubicacion-emergencia', label: 'Compartir ubicación', icon: MapPin },
+        { to: '/app/acceso-emergencia', label: 'Acceso de emergencia', icon: Shield, roles: ['ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'SOPORTE'] },
         { to: '/app/alumno-info-medica', label: 'Información médica', icon: HeartPulse },
         { to: '/app/alumno-info-laboral', label: 'Información laboral', icon: Briefcase },
         { to: '/app/alumno-documentos', label: 'Documentos personales', icon: FileText }
@@ -177,6 +185,8 @@ const ROLE_SECTIONS = {
         { to: '/app/alumno/reinscripciones', label: 'Reinscripciones', icon: ClipboardCheck },
         { to: '/app/alumno/tramites', label: 'Trámites', icon: ClipboardList },
         { to: '/app/kardex', label: 'Kardex', icon: FileText },
+        { to: '/app/preboleta', label: 'Mi Preboleta', icon: FileText },
+        { to: '/app/boleta', label: 'Mi Boleta', icon: Award },
         { to: '/app/estudiante-evaluaciones', label: 'Evaluaciones', icon: BookOpen }
       ]
     },
@@ -249,13 +259,20 @@ function getShellRoleClass(roleName) {
   }
 }
 
-function MenuSection({ title, items, collapsed, onItemClick }) {
+function MenuSection({ title, items, collapsed, onItemClick, userRole }) {
+  const visibleItems = items.filter((item) => {
+    if (!item.roles) return true;
+    return item.roles.includes(userRole);
+  });
+
+  if (visibleItems.length === 0) return null;
+
   return (
     <div className="nav-section">
       {!collapsed && <div className="nav-section-title">{title}</div>}
 
       <div className="nav-section-items">
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const Icon = item.icon;
 
           return (
@@ -386,14 +403,23 @@ export function AppShell() {
     .toUpperCase();
 
   return (
-    <div className={`shell ${shellRoleClass}`}>
+    <div className={`shell ${shellRoleClass} ${collapsed ? 'sidebar-collapsed' : ''}`}>
+      <a href="#main-content" className="skip-link">Saltar al contenido principal</a>
+
       {mobileMenuOpen && (
-        <div className="sidebar-overlay" onClick={closeMobileMenu} />
+        <div
+          className="sidebar-overlay"
+          onClick={closeMobileMenu}
+          onKeyDown={(e) => { if (e.key === 'Escape') closeMobileMenu(); }}
+          role="button"
+          tabIndex={-1}
+          aria-label="Cerrar menú de navegación"
+        />
       )}
 
       <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="brand-row">
-          <div className="brand-mark">ISC</div>
+          <div className="brand-mark" aria-hidden="true">ISC</div>
 
           {!collapsed && (
             <div>
@@ -409,6 +435,8 @@ export function AppShell() {
             className="icon-btn"
             onClick={() => setCollapsed((prev) => !prev)}
             aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+            aria-expanded={!collapsed}
+            aria-controls="sidebar-nav"
             title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
           >
             <Menu size={18} />
@@ -445,7 +473,7 @@ export function AppShell() {
           />
         )}
 
-        <nav className="nav-list">
+        <nav className="nav-list" id="sidebar-nav">
           {sections.map((section) => (
             <MenuSection
               key={section.title}
@@ -453,6 +481,7 @@ export function AppShell() {
               items={section.items}
               collapsed={collapsed}
               onItemClick={closeMobileMenu}
+              userRole={user?.rol || user?.rol_nombre || ''}
             />
           ))}
         </nav>
@@ -499,6 +528,8 @@ export function AppShell() {
               className="btn secondary mobile-hamburger"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
               aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="sidebar-nav"
             >
               {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
@@ -526,7 +557,7 @@ export function AppShell() {
           </div>
         </header>
 
-        <main className="content">
+        <main className="content" id="main-content">
           <Outlet />
         </main>
       </div>

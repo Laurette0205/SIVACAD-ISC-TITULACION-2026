@@ -131,14 +131,13 @@ router.get('/incidencias', async (req, res) => {
     const [sinResultados] = await conn.execute(`
       SELECT e.id_evaluacion, e.titulo, UPPER(e.estado) AS estado,
         e.fecha_fin, e.creado_en,
-        (SELECT COUNT(*) FROM evaluacion_resultados WHERE id_evaluacion = e.id_evaluacion AND id_institucion = ?) AS total_resultados
+        (SELECT COUNT(*) FROM evaluacion_resultados WHERE id_evaluacion = e.id_evaluacion) AS total_resultados
       FROM evaluaciones e
-      WHERE e.id_institucion = ?
-        AND (SELECT COUNT(*) FROM evaluacion_resultados WHERE id_evaluacion = e.id_evaluacion AND id_institucion = ?) = 0
+      WHERE (SELECT COUNT(*) FROM evaluacion_resultados WHERE id_evaluacion = e.id_evaluacion) = 0
         AND UPPER(e.estado) != 'BORRADOR'
       ORDER BY e.creado_en DESC
       LIMIT 30
-    `, [idInstitucion, idInstitucion, idInstitucion]);
+    `);
 
     const [alertasAltas] = await conn.execute(`
       SELECT a.id_alerta, a.tipo_alerta, a.descripcion, a.nivel, a.atendida, a.creado_en,

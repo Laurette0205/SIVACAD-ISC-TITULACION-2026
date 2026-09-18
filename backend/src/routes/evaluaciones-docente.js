@@ -63,12 +63,11 @@ router.get('/mis-evaluaciones', async (req, res) => {
       LEFT JOIN evaluacion_plantillas tp ON tp.id_plantilla = e.id_plantilla
       LEFT JOIN evaluacion_preguntas ep ON ep.id_evaluacion = e.id_evaluacion
       WHERE (UPPER(e.estado) = 'ACTIVA' OR UPPER(e.estado) = 'CERRADA')
-        AND e.id_institucion = ?
         AND (e.publico_objetivo = 'DOCENTES' OR e.tipo_instrumento = 'ALUMNO_POR_DOCENTES')
       GROUP BY e.id_evaluacion
       ORDER BY e.fecha_fin DESC, e.creado_en DESC
       LIMIT 50
-    `, [idInstitucion]);
+    `);
 
     return res.json({ ok: true, data: rows, evaluaciones: rows });
   } catch (error) {

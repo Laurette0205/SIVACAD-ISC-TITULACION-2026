@@ -1,14 +1,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import SectionCard from '../components/SectionCard';
+import OfflineBanner from '../components/OfflineBanner';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
+import { queueReinscripcion, syncPendingItems } from '../services/offlineQueue';
+import offlineDB from '../services/offlineDB';
 import {
   ClipboardList, CheckCircle2, Clock3, XCircle,
   RefreshCw, ArrowLeft, Loader2, Download, FileText,
   BadgeInfo, GraduationCap, Save, History,
   AlertTriangle, ShieldCheck, BookOpen, ExternalLink,
-  FileSpreadsheet, Image
+  FileSpreadsheet, Image, WifiOff
 } from 'lucide-react';
 
 function normalize(v) {
@@ -62,6 +66,7 @@ const TABS = [
 export default function AlumnoReinscripcionesPage() {
   const navigate = useNavigate();
   const { token, user, loading: authLoading } = useAuth();
+  const { isOnline, wasOffline, resetWasOffline } = useOnlineStatus();
   const [activeTab, setActiveTab] = React.useState('solicitud');
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState('');
@@ -72,22 +77,67 @@ export default function AlumnoReinscripcionesPage() {
   const [historialData, setHistorialData] = React.useState(null);
 
   const [observaciones, setObservaciones] = React.useState('');
+  const [pendingQueue, setPendingQueue] = React.useState([]);
+  const [syncMessage, setSyncMessage] = React.useState('');
+
+  const loadPendingQueue = React.useCallback(async () => {
+    try {
+      const queue = await offlineDB.getSyncQueuePending();
+      setPendingQueue(queue);
+    } catch (_) {
+      setPendingQueue([]);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadPendingQueue();
+  }, [loadPendingQueue]);
+
+  React.useEffect(() => {
+    const handleSync = async () => {
+      setSyncMessage('Sincronizando operaciones pendientes...');
+      try {
+        const result = await syncPendingItems();
+        if (result.synced > 0) {
+          setSyncMessage(`Sincronizadas ${result.synced} operación(es)`);
+          loadAll();
+        } else if (result.failed > 0) {
+          setSyncMessage(`${result.failed} operación(es) fallaron. Se reintentará.`);
+        } else {
+          setSyncMessage('');
+        }
+      } catch (_) {
+        setSyncMessage('Error durante la sincronización');
+      } finally {
+        loadPendingQueue();
+        setTimeout(() => setSyncMessage(''), 5000);
+      }
+    };
+
+    window.addEventListener('sivacad:sync-pending', handleSync);
+    return () => window.removeEventListener('sivacad:sync-pending', handleSync);
+  }, [loadPendingQueue]);
 
   const loadInfo = React.useCallback(async () => {
     try {
       setError('');
       const res = await api.alumnoReinscripcionesInfo(token);
-      setInfo(res?.data || null);
+      const data = res?.data || null;
+      setInfo(data);
+      if (data) await offlineDB.cacheData('reinscripciones_info', data, 600000);
     } catch (err) {
       console.error('Error info reinscripcion:', err);
+      if (isOnline) setError('Error al cargar información');
     }
-  }, [token]);
+  }, [token, isOnline]);
 
   const loadEstatus = React.useCallback(async () => {
     try {
       setError('');
       const res = await api.alumnoReinscripcionesEstatus(token);
-      setEstatusList(safeArray(res));
+      const data = safeArray(res);
+      setEstatusList(data);
+      await offlineDB.cacheData('reinscripciones_estatus', data, 600000);
     } catch (err) {
       console.error('Error estatus reinscripcion:', err);
     }
@@ -97,7 +147,9 @@ export default function AlumnoReinscripcionesPage() {
     try {
       setError('');
       const res = await api.alumnoReinscripcionesHistorial(token);
-      setHistorialData(res?.data || null);
+      const data = res?.data || null;
+      setHistorialData(data);
+      if (data) await offlineDB.cacheData('reinscripciones_hist', data, 600000);
     } catch (err) {
       console.error('Error historial reinscripcion:', err);
     }
@@ -107,13 +159,25 @@ export default function AlumnoReinscripcionesPage() {
     setLoading(true);
     setError('');
     try {
-      await Promise.all([loadInfo(), loadEstatus(), loadHistorial()]);
+      if (isOnline) {
+        await Promise.all([loadInfo(), loadEstatus(), loadHistorial()]);
+      } else {
+        const cachedInfo = await offlineDB.getCachedData('reinscripciones_info');
+        const cachedEstatus = await offlineDB.getCachedData('reinscripciones_estatus');
+        const cachedHist = await offlineDB.getCachedData('reinscripciones_hist');
+        if (cachedInfo) setInfo(cachedInfo);
+        if (cachedEstatus) setEstatusList(cachedEstatus);
+        if (cachedHist) setHistorialData(cachedHist);
+        if (!cachedInfo && !cachedEstatus) {
+          setError('Sin conexión. Los datos no están disponibles en caché.');
+        }
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [loadInfo, loadEstatus, loadHistorial]);
+  }, [isOnline, loadInfo, loadEstatus, loadHistorial]);
 
   React.useEffect(() => {
     if (authLoading) return;
@@ -125,6 +189,15 @@ export default function AlumnoReinscripcionesPage() {
     setError('');
     setMessage('');
     try {
+      if (!isOnline) {
+        await queueReinscripcion({
+          observaciones: observaciones.trim() || undefined
+        }, token);
+        setMessage('Solicitud guardada localmente. Se enviará al reconectar la conexión.');
+        setObservaciones('');
+        await loadPendingQueue();
+        return;
+      }
       const res = await api.alumnoSolicitarReinscripcion(token, {
         observaciones: observaciones.trim() || undefined
       });
@@ -615,6 +688,26 @@ export default function AlumnoReinscripcionesPage() {
 
   return (
     <div className="stack">
+      <OfflineBanner isOnline={isOnline} wasOffline={wasOffline} onDismiss={resetWasOffline} />
+
+      {!isOnline && (
+        <div className="offline-pending-badge" style={{ alignSelf: 'flex-start' }}>
+          <WifiOff size={12} /> Modo offline — Los datos se guardan localmente
+        </div>
+      )}
+
+      {pendingQueue.length > 0 && (
+        <div className="offline-pending-badge" style={{ alignSelf: 'flex-start' }}>
+          {pendingQueue.length} operación(es) pendiente(s) de sincronización
+        </div>
+      )}
+
+      {syncMessage && (
+        <div className={`alert ${syncMessage.includes('Error') || syncMessage.includes('fallaron') ? 'error' : 'success'}`}>
+          {syncMessage}
+        </div>
+      )}
+
       <section className="hero-banner">
         <div>
           <div className="badge light">
