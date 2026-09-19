@@ -56,9 +56,7 @@ export default function AsistenteAlumnoPage() {
   const [inscripciones, setInscripciones] = React.useState([]);
   const [evaluaciones, setEvaluaciones] = React.useState([]);
 
-  const [messages, setMessages] = React.useState([
-    { role: 'bot', text: 'Hola, soy tu asistente estudiantil. Puedo ayudarte con tu kardex, inscripciones, evaluaciones y orientación académica.' }
-  ]);
+  const [messages, setMessages] = React.useState([]);
   const [texto, setTexto] = React.useState('');
   const [chatLoading, setChatLoading] = React.useState(false);
   const [contexto, setContexto] = React.useState(null);
@@ -120,7 +118,12 @@ export default function AsistenteAlumnoPage() {
   React.useEffect(() => {
     let mounted = true;
     if (!token) return;
-    api.asistente.contexto(token).then(r => { if (mounted) setContexto(r?.data || null); }).catch(() => {});
+    api.asistente.contexto(token).then(r => {
+      if (!mounted) return;
+      setContexto(r?.data || null);
+      const saludo = r?.data?.perfil?.saludo || r?.data?.contexto?.saludo;
+      if (saludo) setMessages([{ role: 'bot', text: saludo }]);
+    }).catch(() => {});
     return () => { mounted = false; };
   }, [token]);
 

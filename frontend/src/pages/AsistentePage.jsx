@@ -17,12 +17,7 @@ import {
 export default function AsistentePage() {
   const { token, user } = useAuth();
 
-  const [messages, setMessages] = React.useState([
-    {
-      role: 'bot',
-      text: 'Hola, soy tu asistente académico institucional. Pregúntame por becas, kardex, acompañamiento o soporte.'
-    }
-  ]);
+  const [messages, setMessages] = React.useState([]);
   const [texto, setTexto] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [contexto, setContexto] = React.useState(null);
@@ -43,6 +38,8 @@ export default function AsistentePage() {
         const response = await api.asistente.contexto(token);
         if (mounted) {
           setContexto(response?.data || null);
+          const saludo = response?.data?.perfil?.saludo || response?.data?.contexto?.saludo;
+          if (saludo) setMessages([{ role: 'bot', text: saludo }]);
         }
       } catch (error) {
         console.error('No fue posible cargar el contexto del asistente:', error);

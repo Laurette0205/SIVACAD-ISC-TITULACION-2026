@@ -217,14 +217,25 @@ async function writeAudit(pool, user, intent, tool, pregunta, respuesta, permiti
   );
 }
 
-function isGreeting(message) {
-  const text = String(message || '').toLowerCase().trim();
-  return /^(hola|buen[oa]s?\s*(d[ií]a|tardes|noches)?|saludos|hey|qu[ée]\s+pasa|c[oó]mo\s+(est[aá]s|te\s+va)|bienvenido|adi[oó]s|gracias|ok)/.test(text);
+function capitalizeRole(roleName) {
+  const map = {
+    ADMINISTRADOR: 'Administrador',
+    COORDINADOR: 'Coordinador',
+    DOCENTE: 'Docente',
+    ALUMNO: 'Alumno',
+    SOPORTE: 'Soporte'
+  };
+  return map[normalizeRoleName(roleName)] || roleName;
+}
+
+function buildWelcomeMessage(rol) {
+  const display = capitalizeRole(rol);
+  return `Hola. Soy el Asistente Acad\u00e9mico de SIVACAD para ${display}. Puedo ayudarte con consultas acad\u00e9micas, becas, kardex, evaluaciones, a\u00f1adenimiento y soporte. \u00bfEn qu\u00e9 puedo orientarte?`;
 }
 
 function buildAnswer({ rol, intent, data, mensaje }) {
   if (intent === 'WELCOME') {
-    return `Hola, soy tu asistente institucional para el rol ${rol}. Puedo ayudarte con consultas académicas, becas, kardex, evaluaciones, acompañamiento y soporte. \u00bfEn qu\u00e9 puedo orientarte?`;
+    return buildWelcomeMessage(rol);
   }
 
   if (intent === 'STATS') {
@@ -414,10 +425,6 @@ function buildAnswer({ rol, intent, data, mensaje }) {
     const p = periodos.find(p => p.activo) || periodos[0];
     const periodoStr = p ? `Período activo: ${p.nombre_periodo}` : 'Sin período activo.';
     return `${periodoStr}. Carreras activas: ${carreras.length}.`;
-  }
-
-  if (isGreeting(mensaje)) {
-    return `Hola, soy tu asistente institucional para el rol ${rol}. Puedo ayudarte con consultas académicas, becas, kardex, evaluaciones, acompañamiento y soporte. \u00bfEn qu\u00e9 puedo orientarte?`;
   }
 
   return `No identifiqué una acci\u00f3n espec\u00edfica para tu consulta. Puedo ayudarte con evaluaciones, grupos, alumnos, kardex, becas, inscripciones, soporte t\u00e9cnico u orientaci\u00f3n. \u00bfQu\u00e9 necesitas?`;

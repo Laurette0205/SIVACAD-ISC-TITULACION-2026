@@ -58,9 +58,7 @@ export default function AsistenteAdminPage() {
   const [userSummary, setUserSummary] = React.useState(null);
   const [config, setConfig] = React.useState(null);
 
-  const [messages, setMessages] = React.useState([
-    { role: 'bot', text: 'Hola, soy tu asistente de administración. Puedo ayudarte con estadísticas, configuración, usuarios y auditoría del sistema.' }
-  ]);
+  const [messages, setMessages] = React.useState([]);
   const [texto, setTexto] = React.useState('');
   const [chatLoading, setChatLoading] = React.useState(false);
   const [contexto, setContexto] = React.useState(null);
@@ -135,7 +133,12 @@ export default function AsistenteAdminPage() {
   React.useEffect(() => {
     let mounted = true;
     if (!token) return;
-    api.asistente.contexto(token).then(r => { if (mounted) setContexto(r?.data || null); }).catch(() => {});
+    api.asistente.contexto(token).then(r => {
+      if (!mounted) return;
+      setContexto(r?.data || null);
+      const saludo = r?.data?.perfil?.saludo || r?.data?.contexto?.saludo;
+      if (saludo) setMessages([{ role: 'bot', text: saludo }]);
+    }).catch(() => {});
     return () => { mounted = false; };
   }, [token]);
 

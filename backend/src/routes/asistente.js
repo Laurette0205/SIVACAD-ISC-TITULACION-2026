@@ -75,7 +75,7 @@ function getAssistantProfile(user) {
           'acompañamiento'
         ],
         saludo:
-          'Hola, soy tu asistente académico institucional para ayudarte con temas escolares, becas, acompañamiento y seguimiento académico.'
+          'Hola. Soy el Asistente Académico de SIVACAD para Alumno. Puedo ayudarte con consultas académicas, becas, kardex, evaluaciones, acompañamiento y soporte.'
       };
 
     case 'DOCENTE':
@@ -92,7 +92,7 @@ function getAssistantProfile(user) {
           'faltas por alumno'
         ],
         saludo:
-          'Hola, soy tu asistente académico institucional para apoyo docente, seguimiento de grupos, evaluaciones e incidencias.'
+          'Hola. Soy el Asistente Académico de SIVACAD para Docente. Puedo ayudarte con consultas académicas, becas, kardex, evaluaciones, acompañamiento y soporte.'
       };
 
     case 'COORDINADOR':
@@ -109,7 +109,7 @@ function getAssistantProfile(user) {
           'comisiones'
         ],
         saludo:
-          'Hola, soy tu asistente académico institucional para coordinación, alertas, riesgo académico e indicadores de gestión.'
+          'Hola. Soy el Asistente Académico de SIVACAD para Coordinador. Puedo ayudarte con consultas académicas, becas, kardex, evaluaciones, acompañamiento y soporte.'
       };
 
     case 'ADMINISTRADOR':
@@ -126,7 +126,7 @@ function getAssistantProfile(user) {
           'control del sistema'
         ],
         saludo:
-          'Hola, soy tu asistente institucional para control administrativo, usuarios, periodos y validaciones del sistema.'
+          'Hola. Soy el Asistente Académico de SIVACAD para Administrador. Puedo ayudarte con consultas académicas, becas, kardex, evaluaciones, acompañamiento y soporte.'
       };
 
     case 'SOPORTE':
@@ -142,7 +142,7 @@ function getAssistantProfile(user) {
           'integridad del sistema'
         ],
         saludo:
-          'Hola, soy tu asistente institucional para diagnóstico técnico, trazas, mantenimiento y atención de incidencias.'
+          'Hola. Soy el Asistente Académico de SIVACAD para Soporte. Puedo ayudarte con consultas académicas, becas, kardex, evaluaciones, acompañamiento y soporte.'
       };
 
     default:
@@ -155,7 +155,7 @@ function getAssistantProfile(user) {
           'ayuda académica'
         ],
         saludo:
-          'Hola, soy el asistente académico institucional de SIVACAD.'
+          'Hola. Soy el Asistente Académico de SIVACAD. Puedo ayudarte con consultas académicas, becas, kardex, evaluaciones, acompañamiento y soporte.'
       };
   }
 }
