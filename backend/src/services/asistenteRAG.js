@@ -5,18 +5,39 @@ const { searchOfficialScholarships, buildScholarshipSummary } = require('./Becas
 
 const CONTENT_CATEGORY_MAP = {
   BECAS: ['BECAS'],
-  STATS: ['ESTADISTICAS', 'GENERAL'],
+  STATS: ['ESTADISTICAS'],
+  WELCOME: ['GENERAL', 'ROL'],
   ACADEMICO: ['ACADEMICO', 'ROL'],
   BIENESTAR: ['BIENESTAR'],
   SOPORTE: ['SOPORTE'],
-  DOCENTE: ['ROL'],
-  COORDINACION: ['ROL'],
+  DOC_GROUPS: ['ROL'],
+  DOC_STUDENTS: ['ROL'],
+  DOC_EVALS: ['ROL'],
+  DOC_KARDEX: ['ROL'],
+  ALUM_DASHBOARD: ['ACADEMICO', 'ROL'],
+  ALUM_KARDEX: ['ACADEMICO', 'ROL'],
+  ALUM_INSCRIPCIONES: ['ACADEMICO', 'ROL'],
+  ALUM_EVALUACIONES: ['ACADEMICO', 'ROL'],
+  SOP_DASHBOARD: ['SOPORTE'],
+  SOP_INCIDENCIAS: ['SOPORTE'],
+  SOP_BITACORA: ['SOPORTE'],
+  SOP_SESIONES: ['SOPORTE'],
+  SOP_RESETS: ['SOPORTE'],
+  COORD_DASHBOARD: ['ROL'],
+  COORD_TRACKING: ['ROL'],
+  COORD_ALERTS: ['ROL'],
+  COORD_REPORT: ['ROL'],
+  ADMIN_DASHBOARD: ['ROL'],
+  ADMIN_AUDIT: ['ROL'],
+  ADMIN_CONFIG: ['ROL'],
   GENERAL: ['GENERAL', 'ROL']
 };
 
 async function getAsistenteContenido(pool, intent, roleName) {
-  const categories = CONTENT_CATEGORY_MAP[intent] || ['GENERAL'];
+  const categories = CONTENT_CATEGORY_MAP[intent] || (intent === 'GENERAL' ? ['GENERAL'] : []);
   const role = normalizeRoleName(roleName);
+
+  if (!categories.length) return [];
 
   const [rows] = await pool.query(
     `
@@ -31,7 +52,12 @@ async function getAsistenteContenido(pool, intent, roleName) {
     [role, role, categories]
   );
 
-  return rows || [];
+  if (intent === 'WELCOME') return rows || [];
+
+  return (rows || []).filter(r => {
+    const title = String(r.titulo || '').toLowerCase();
+    return !title.includes('bienvenida') && !title.includes('ayuda para');
+  });
 }
 
 function normalizeRoleName(value) {

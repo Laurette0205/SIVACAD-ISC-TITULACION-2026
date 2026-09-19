@@ -351,7 +351,7 @@ export default function AdminReinscripcionesPage() {
                 {(catalogos?.grupos || []).map(g => <option key={g.id_grupo} value={g.id_grupo}>{g.nombre_grupo}</option>)}
               </select>
             </FormField>
-            <FormField label="Estado">
+            <FormField label="Estatus">
               <select value={filtros.estado} onChange={e => setFiltros(p => ({ ...p, estado: e.target.value }))} style={selectStyle}>
                 <option value="">Todos</option>
                 <option value="Pendiente">Pendiente</option>

@@ -48,48 +48,67 @@ function getUserId(user) {
   return Number(user?.id_usuario || user?.idUser || user?.usuario_id || user?.sub || 0);
 }
 
-function classifyIntent(message) {
+function classifyIntent(message, role) {
   const text = String(message || '').toLowerCase();
+  const rol = String(role || '').toUpperCase();
 
-  // System statistics / counts — check first to avoid overlap with ACADEMICO/ROL
-  const statsPattern = /(?:cu[áa]ntos?\s+(?:usuarios?|alumnos?|docentes?|maestros?|profesores?|materias?|personas?)|cu[áa]ntas?\s+(?:materias?|personas?)|total\s+de\s+(?:usuarios?|alumnos?|docentes?|maestros?|profesores?|materias?|personas?)|cantidad\s+de\s+(?:usuarios?|alumnos?|docentes?|maestros?|profesores?|materias?|personas?))/;
-  if (statsPattern.test(text)) return 'STATS';
+  // Greeting / help detection
+  if (/^(hola|buen[oa]s?\s*(d[ií]a|tardes|noches)?|saludos|hey|qu[ée]\s+pasa|c[oó]mo\s+(est[aá]s|te\s+va)|bienvenido|auxilio|ayuda|help|opciones?|qu[ée]\s+puedes|hazte\s+eco)/.test(text)) return 'WELCOME';
+
+  // Role declaration: "soy docente/alumno/etc"
+  if (/^soy\s+(docente|alumno|coordinador|administrador|soporte)/.test(text)) return 'ROL';
+
+  // System statistics
+  if (/(?:cu[áa]ntos?\s+(?:usuarios?|alumnos?|docentes?|maestros?|profesores?|materias?|personas?)|cu[áa]ntas?\s+(?:materias?|personas?)|total\s+de\s+(?:usuarios?|alumnos?|docentes?|maestros?|profesores?|materias?|personas?)|cantidad\s+de\s+(?:usuarios?|alumnos?|docentes?|maestros?|profesores?|materias?|personas?)|estad[ií]sticas?)/.test(text)) return 'STATS';
 
   if (/(beca|becas|convocatoria|gaceta|edomex|apoyo económico)/.test(text)) return 'BECAS';
-  if (/(promedio|kardex|materia|calificaci[oó]n|reinscripci[oó]n|inscripci[oó]n|horario|grupo|estado académico)/.test(text)) return 'ACADEMICO';
-  if (/(bienestar|acompañamiento|ansiedad|estr[eé]s|depresi[oó]n|emocional|ayuda|salud mental)/.test(text)) return 'BIENESTAR';
+  if (/(bienestar|acompañamiento|ansiedad|estr[eé]s|depresi[oó]n|emocional|salud mental)/.test(text)) return 'BIENESTAR';
   if (/(error|falla|ticket|traza|log|no funciona|mantenimiento|diagn[oó]stico)/.test(text)) return 'SOPORTE';
-  if (/(docente|alumno|coordinador|administrador|soporte)/.test(text)) return 'ROL';
+
+  // Soporte-specific intents
+  if (/(panel\s+t[ée]cnico|diagn[oó]stico|estado\s+del\s+sistema|c[oó]mo\s+(est[aá]\s+)?el\s+sistema|health|chequeo|salud\s+del?\s+sistema)/.test(text)) return 'SOP_DASHBOARD';
+  if (/(incidencia|bug|problema\s+t[ée]cnico)/.test(text)) return 'SOP_INCIDENCIAS';
+  if (/(bit[áa]cora|registro\s+actividad)/.test(text)) return 'SOP_BITACORA';
+  if (/(sesiones?\s+activas|sesiones?\s+asistente|validar\s+sesi[oó]n)/.test(text)) return 'SOP_SESIONES';
+  if (/(recuperar\s+acceso|restablecer|password|contraseña|credenciales|reset)/.test(text)) return 'SOP_RESETS';
 
   // Admin-specific intents
-  if (/(auditor|auditor[ií]a|bit[aá]cora|historial\s+asistente)/.test(text)) return 'ADMIN_AUDIT';
-  if (/(config|configuraci[oó]n|periodos|carreras|parametros)/.test(text)) return 'ADMIN_CONFIG';
+  if (/(auditor[ií]a|historial\s+asistente)/.test(text)) return 'ADMIN_AUDIT';
+  if (/(config|configuraci[oó]n|parametros)/.test(text)) return 'ADMIN_CONFIG';
   if (/(panel\s+principal|dashboard\s+admin|resumen\s+general)/.test(text)) return 'ADMIN_DASHBOARD';
 
   // Coordinator-specific intents
-  if (/(avance\s+grupos|grupos|panel\s+acad[ée]mico|dashboard\s+coordinador|resumen\s+acad[ée]mico)/.test(text)) return 'COORD_DASHBOARD';
-  if (/(seguimiento\s+alumno|alumnos?\s+(del\s+)?grupo|estado\s+acad[ée]mico\s+alumno|tracking)/.test(text)) return 'COORD_TRACKING';
+  if (/(avance\s+grupos|panel\s+acad[ée]mico|dashboard\s+coordinador|resumen\s+acad[ée]mico)/.test(text)) return 'COORD_DASHBOARD';
+  if (/(seguimiento\s+alumno|estado\s+acad[ée]mico\s+alumno|tracking)/.test(text)) return 'COORD_TRACKING';
   if (/(alerta|riesgo|deserci[oó]n|rezago|irregular)/.test(text)) return 'COORD_ALERTS';
   if (/(reporte\s+(grupo|acad[ée]mico)|exportar|pdf|excel|csv|descargar)/.test(text)) return 'COORD_REPORT';
 
-  // Docente-specific intents
-  if (/(mis?\s+grupos|grupos?\s+asignados|materias?\s+asignadas|cargas?\s+acad[ée]micas)/.test(text)) return 'DOC_GROUPS';
-  if (/(mis?\s+alumnos|alumnos?\s+del\s+grupo|lista\s+de\s+alumnos|alumnos?\s+asignados)/.test(text)) return 'DOC_STUDENTS';
-  if (/(mis?\s+evaluaciones|evaluaciones?\s+docente|resultados?\s+evaluaci[oó]n)/.test(text)) return 'DOC_EVALS';
-  if (/(kardex|historial\s+acad[ée]mico|calificaciones?\s+alumno|expediente)/.test(text)) return 'DOC_KARDEX';
+  // Role-specific intents: check in priority order within each role
+  if (rol === 'DOCENTE') {
+    if (/(?:mis?\s+)?evaluaciones?(?:\s+(?:activas?|del\s+grupo|que\s+tengo|asignadas?|docente|pendientes?))?|resultados?\s+evaluaci[oó]n|cu[áa]ntas?\s+evaluaciones|qu[ée]\s+evaluaciones/.test(text)) return 'DOC_EVALS';
+    if (/(?:mis?\s+)?alumnos?(?:\s+(?:del\s+grupo|asignados?|registrados?))?|lista\s+(?:de\s+)?alumnos|cu[áa]ntos?\s+alumnos/.test(text)) return 'DOC_STUDENTS';
+    if (/(?:mis?\s+)?grupos?(?:\s+(?:asignados?|activos?|que\s+tengo|que\s+imparto))?|materias?\s+asignadas?|cargas?\s+acad[ée]micas?|qu[ée]\s+grupos?\s+(?:tengo|imparto|doy)/.test(text)) return 'DOC_GROUPS';
+    if (/(?:mi?\s+)?kardex|historial\s+acad[ée]mico|calificaciones?\s+alumno|expediente/.test(text)) return 'DOC_KARDEX';
+  }
 
-  // Alumno-specific intents
-  if (/(mi?\s+panel|panel\s+personal|mi?\s+situaci[oó]n|mis?\s+datos|resumen\s+personal)/.test(text)) return 'ALUM_DASHBOARD';
-  if (/(mi?\s+kardex|mi?\s+historial|mis?\s+calificaciones|mis?\s+materias|promedio|kardex)/.test(text)) return 'ALUM_KARDEX';
-  if (/(mis?\s+inscripciones|inscripci[oó]n|mi?\s+inscripci[oó]n)/.test(text)) return 'ALUM_INSCRIPCIONES';
-  if (/(mis?\s+evaluaciones|evaluaciones?\s+alumno|mis?\s+resultados)/.test(text)) return 'ALUM_EVALUACIONES';
+  if (rol === 'ALUMNO') {
+    if (/(?:mi?\s+)?panel|situaci[oó]n\s+acad[ée]mica|(?:mis?\s+)?datos|resumen\s+personal/.test(text)) return 'ALUM_DASHBOARD';
+    if (/(?:mi?\s+)?kardex|mi?\s+historial|mis?\s+calificaciones|mis?\s+materias|promedio|cr[eé]ditos?/.test(text)) return 'ALUM_KARDEX';
+    if (/(?:mis?\s+)?inscripci[oó]n(?:es)?|inscripci[oó]n(?:es)?/.test(text)) return 'ALUM_INSCRIPCIONES';
+    if (/(?:mis?\s+)?evaluaciones?(?:\s+(?:activas?|que\s+tengo|del\s+alumno|pendientes?))?|evaluaciones?\s+alumno|mis?\s+resultados|cu[áa]ntas?\s+evaluaciones|qu[ée]\s+evaluaciones/.test(text)) return 'ALUM_EVALUACIONES';
+  }
 
-  // Soporte-specific intents
-  if (/(panel\s+t[ée]cnico|diagn[oó]stico|estado\s+del\s+sistema|health|chequeo|salud)/.test(text)) return 'SOP_DASHBOARD';
-  if (/(incidencia|falla|error|ticket|bug|problema\s+t[ée]cnico)/.test(text)) return 'SOP_INCIDENCIAS';
-  if (/(bit[áa]cora|auditor[ií]a|log|registro\s+actividad)/.test(text)) return 'SOP_BITACORA';
-  if (/(sesiones?\s+activas|sesiones?\s+asistente|validar\s+sesi[oó]n)/.test(text)) return 'SOP_SESIONES';
-  if (/(recuperar\s+acceso|restablecer|password|contraseña|credenciales|reset)/.test(text)) return 'SOP_RESETS';
+  // Generic role-agnostic fallback for academic terms (role-aware)
+  if (/(?:mis?\s+)?evaluaciones?(?:\s+(?:activas?|que\s+tengo|pendientes?))?|cu[áa]ntas?\s+evaluaciones|qu[ée]\s+evaluaciones/.test(text)) return rol === 'ALUMNO' ? 'ALUM_EVALUACIONES' : 'DOC_EVALS';
+  if (/(?:mis?\s+)?alumnos?(?:\s+(?:del\s+grupo|asignados?|registrados?))?|lista\s+(?:de\s+)?alumnos|cu[áa]ntos?\s+alumnos/.test(text)) return rol === 'ALUMNO' ? 'ALUM_DASHBOARD' : 'DOC_STUDENTS';
+  if (/(?:mis?\s+)?grupos?(?:\s+(?:asignados?|activos?|que\s+tengo|que\s+imparto))?|materias?\s+asignadas?|cargas?\s+acad[ée]micas?/.test(text)) return rol === 'ALUMNO' ? 'ALUM_INSCRIPCIONES' : 'DOC_GROUPS';
+  if (/(?:mi?\s+)?kardex|historial\s+acad[ée]mico|calificaciones?|expediente/.test(text)) return rol === 'ALUMNO' ? 'ALUM_KARDEX' : 'DOC_KARDEX';
+
+  // ACADEMICO (after all specific intents)
+  if (/(promedio|calificaci[oó]n|reinscripci[oó]n|horario|estado\s+acad|materia)/.test(text)) return 'ACADEMICO';
+
+  // Generic ROL (very last before GENERAL)
+  if (/(docente|alumno|coordinador|administrador|soporte)/.test(text)) return 'ROL';
 
   return 'GENERAL';
 }
@@ -198,7 +217,16 @@ async function writeAudit(pool, user, intent, tool, pregunta, respuesta, permiti
   );
 }
 
+function isGreeting(message) {
+  const text = String(message || '').toLowerCase().trim();
+  return /^(hola|buen[oa]s?\s*(d[ií]a|tardes|noches)?|saludos|hey|qu[ée]\s+pasa|c[oó]mo\s+(est[aá]s|te\s+va)|bienvenido|adi[oó]s|gracias|ok)/.test(text);
+}
+
 function buildAnswer({ rol, intent, data, mensaje }) {
+  if (intent === 'WELCOME') {
+    return `Hola, soy tu asistente institucional para el rol ${rol}. Puedo ayudarte con consultas académicas, becas, kardex, evaluaciones, acompañamiento y soporte. \u00bfEn qu\u00e9 puedo orientarte?`;
+  }
+
   if (intent === 'STATS') {
     const s = data?.stats;
     if (!s) return 'No pude obtener las estadísticas del sistema.';
@@ -388,13 +416,17 @@ function buildAnswer({ rol, intent, data, mensaje }) {
     return `${periodoStr}. Carreras activas: ${carreras.length}.`;
   }
 
-  return `Hola, soy tu asistente institucional para el rol ${rol}. Puedo ayudarte con consultas académicas, becas, acompañamiento y soporte.`;
+  if (isGreeting(mensaje)) {
+    return `Hola, soy tu asistente institucional para el rol ${rol}. Puedo ayudarte con consultas académicas, becas, kardex, evaluaciones, acompañamiento y soporte. \u00bfEn qu\u00e9 puedo orientarte?`;
+  }
+
+  return `No identifiqué una acci\u00f3n espec\u00edfica para tu consulta. Puedo ayudarte con evaluaciones, grupos, alumnos, kardex, becas, inscripciones, soporte t\u00e9cnico u orientaci\u00f3n. \u00bfQu\u00e9 necesitas?`;
 }
 
 async function handleAsistenteMessage(pool, user, mensaje) {
   const idUsuario = getUserId(user);
   const rol = getUserRoleName(user);
-  const intent = classifyIntent(mensaje);
+  const intent = classifyIntent(mensaje, rol);
   const session = await ensureSession(pool, user);
 
   await saveMessage(pool, session.id_sesion, 'user', mensaje, intent, null);
@@ -407,7 +439,10 @@ async function handleAsistenteMessage(pool, user, mensaje) {
     const ragRows = await getAsistenteContenido(pool, intent, rol);
     const ragContext = buildContenidoContext(ragRows, rol);
 
-    if (intent === 'BECAS') {
+    if (intent === 'WELCOME') {
+      data = { mensaje: `Bienvenido, ${rol}.`, rag: ragRows, ragContext };
+      tool = 'WELCOME';
+    } else if (intent === 'BECAS') {
       const scholarshipContext = await getScholarshipContext(pool, user);
       const rgRows = await searchScholarships(pool, mensaje);
       const ranked = rankScholarshipResults(rgRows.length ? rgRows : scholarshipContext.convocatorias || []);
@@ -551,9 +586,7 @@ async function handleAsistenteMessage(pool, user, mensaje) {
       tool = 'GENERAL';
     }
 
-    ragInfo = ragContext
-      ? `\n\n---\n${ragContext}`
-      : '';
+    ragInfo = '';
 
     const respuesta = buildAnswer({ rol, intent, data, mensaje }) + ragInfo;
 

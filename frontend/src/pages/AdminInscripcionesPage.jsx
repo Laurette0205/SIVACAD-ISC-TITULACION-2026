@@ -364,7 +364,7 @@ export default function AdminInscripcionesPage() {
               ))}
             </select>
           </FormField>
-          <FormField label="Estado">
+          <FormField label="Estatus">
             <select value={filters.estado} onChange={e => setFilters({ ...filters, estado: e.target.value })}>
               <option value="">Todos</option>
               <option value="Pendiente">Pendiente</option>
