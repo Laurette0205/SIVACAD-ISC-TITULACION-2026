@@ -494,7 +494,7 @@ async function getDocEvaluations(pool, user) {
       LEFT JOIN materias m ON m.id_materia = ca.id_materia
       LEFT JOIN evaluacion_resultados rr ON rr.id_evaluacion = e.id_evaluacion AND rr.tipo_evaluado = 'DOCENTE' AND rr.id_evaluado = ca.id_docente
       LEFT JOIN (SELECT id_evaluacion, COUNT(*) AS total_respuestas FROM respuestas_evaluacion GROUP BY id_evaluacion) rsp ON rsp.id_evaluacion = e.id_evaluacion
-      WHERE ca.id_docente = ? AND ca.estado = 'ACTIVA'
+      WHERE ca.id_docente = ? AND ca.estado = 'ACTIVA' AND e.estado = 'ACTIVA'
       ORDER BY e.fecha_inicio DESC
       LIMIT 50
     `, [idDocente]);

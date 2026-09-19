@@ -306,9 +306,20 @@ function buildAnswer({ rol, intent, data, mensaje }) {
   }
 
   if (intent === 'DOC_EVALS') {
-    const e = Array.isArray(data?.evaluations) ? data.evaluations : [];
-    if (!e.length) return 'No hay evaluaciones activas para tus grupos.';
-    return `Hay ${e.length} evaluacion(es) relacionada(s) con tus grupos.`;
+    const e = Array.isArray(data?.evaluations) ? data.evaluaciones || data.evaluations : [];
+    if (!e.length) return 'No tienes evaluaciones activas registradas actualmente.';
+    const count = e.length;
+    const lines = e.slice(0, 10).map((ev, i) => {
+      const parts = [];
+      if (ev.titulo) parts.push(ev.titulo);
+      if (ev.nombre_materia) parts.push(ev.nombre_materia);
+      if (ev.nombre_grupo) parts.push(ev.nombre_grupo);
+      if (ev.nombre_periodo) parts.push(ev.nombre_periodo);
+      if (ev.eval_estado) parts.push(`Estado: ${ev.eval_estado}`);
+      return `${i + 1}. ${parts.join(' | ')}`;
+    });
+    const extra = count > 10 ? `\n... y ${count - 10} m\u00e1s.` : '';
+    return `Tienes ${count} evaluaci\u00f3n(es) activa(s):\n${lines.join('\n')}${extra}`;
   }
 
   if (intent === 'DOC_KARDEX') {
