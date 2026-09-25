@@ -841,4 +841,67 @@ router.get('/indicadores', authRequired, requireAdmin, async (req, res) => {
   }
 });
 
+// ============================================================
+// DATOS ACADÉMICOS DEL ALUMNO (para admin)
+// ============================================================
+router.get('/alumno/:id_alumno/datos-academicos', authRequired, requireAdmin, async (req, res) => {
+  try {
+    const idAlumno = Number(req.params.id_alumno) || 0;
+    const idInstitucion = req.user.id_institucion || 1;
+
+    if (!idAlumno) {
+      return res.status(400).json({ ok: false, message: 'id_alumno es obligatorio.' });
+    }
+
+    const [rows] = await pool.query(`
+      SELECT
+        a.id_alumno,
+        a.matricula,
+        a.nombres,
+        a.apellido_paterno,
+        a.apellido_materno,
+        u.correo_institucional,
+        a.semestre_actual,
+        a.estatus_academico,
+        a.id_carrera,
+        c.nombre_carrera,
+        k.promedio_general,
+        k.creditos_acumulados,
+        k.estatus AS kardex_estatus
+      FROM alumnos a
+      LEFT JOIN usuarios u ON u.id_usuario = a.id_usuario
+      LEFT JOIN carreras c ON c.id_carrera = a.id_carrera
+      LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
+      WHERE a.id_alumno = ? AND a.id_institucion = ?
+      LIMIT 1
+    `, [idAlumno, idInstitucion]);
+
+    if (!rows?.length) {
+      return res.status(404).json({ ok: false, message: 'Alumno no encontrado.' });
+    }
+
+    const alumno = rows[0];
+    const nombreCompleto = `${alumno.nombres || ''} ${alumno.apellido_paterno || ''} ${alumno.apellido_materno || ''}`.replace(/\s+/g, ' ').trim();
+
+    return res.json({
+      ok: true,
+      data: {
+        id_alumno: alumno.id_alumno,
+        matricula: alumno.matricula,
+        nombre_completo: nombreCompleto,
+        correo_institucional: alumno.correo_institucional,
+        semestre_actual: Number(alumno.semestre_actual || 0),
+        estatus_academico: alumno.estatus_academico || 'Regular',
+        nombre_carrera: alumno.nombre_carrera || '',
+        promedio_general: Number(alumno.promedio_general || 0),
+        creditos_acumulados: Number(alumno.creditos_acumulados || 0),
+        kardex_estatus: alumno.kardex_estatus || 'Vigente'
+      }
+    });
+  } catch (error) {
+    console.error('[iaBecasAdmin] Error al obtener datos académicos del alumno:', error);
+    return res.status(500).json({ ok: false, message: error?.message || 'Error al cargar datos académicos.' });
+  }
+});
+
 module.exports = router;

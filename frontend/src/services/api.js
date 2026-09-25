@@ -1280,6 +1280,9 @@ const api = {
       body
     }),
 
+  iaBecasAdminAlumnoDatosAcademicos: (token, idAlumno) =>
+    request(`/ia/becas/admin/alumno/${idAlumno}/datos-academicos`, { token }),
+
   // === IA de Becas - COORDINADOR ===
   iaBecasCoordBandeja: (token, params = {}) =>
     request('/ia/becas/coordinador/bandeja', { token, params }),

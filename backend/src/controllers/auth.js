@@ -100,7 +100,8 @@ function generateToken(user) {
       correo: user.correo,
       rol: user.rol,
       rol_id: user.rol_id,
-      id_institucion: user.id_institucion || 1
+      id_institucion: user.id_institucion || 1,
+      id_alumno: user.id_alumno ?? null
     },
     process.env.JWT_SECRET,
     {
@@ -576,12 +577,24 @@ exports.login = async (req, res) => {
 
     const institucionId = userInstitucion || idInstitucion || 1;
 
+    let idAlumno = null;
+    if (String(user.nombre_rol).trim().toUpperCase() === 'ALUMNO') {
+      try {
+        const [ar] = await pool.execute(
+          'SELECT id_alumno FROM alumnos WHERE id_usuario = ? LIMIT 1',
+          [user.id_usuario]
+        );
+        idAlumno = ar[0]?.id_alumno || null;
+      } catch (_) {}
+    }
+
     const token = generateToken({
       id_usuario: user.id_usuario,
       correo: user.correo_institucional,
       rol: user.nombre_rol,
       rol_id: user.id_rol,
-      id_institucion: institucionId
+      id_institucion: institucionId,
+      id_alumno: idAlumno
     });
 
     const refreshToken = signRefreshToken({ id_usuario: user.id_usuario });
@@ -609,7 +622,8 @@ exports.login = async (req, res) => {
         rol: user.nombre_rol,
         rol_nombre: user.nombre_rol,
         rol_id: user.id_rol,
-        id_institucion: institucionId
+        id_institucion: institucionId,
+        id_alumno: idAlumno
       },
       device: deviceInfo.isNew ? { isNew: true, message: 'Dispositivo nuevo detectado' } : undefined
     });
@@ -694,12 +708,24 @@ exports.loginMFA = async (req, res) => {
       return res.status(403).json({ ok: false, message: 'Usuario inactivo' });
     }
 
+    let idAlumno = null;
+    if (String(user.nombre_rol).trim().toUpperCase() === 'ALUMNO') {
+      try {
+        const [ar] = await pool.execute(
+          'SELECT id_alumno FROM alumnos WHERE id_usuario = ? LIMIT 1',
+          [user.id_usuario]
+        );
+        idAlumno = ar[0]?.id_alumno || null;
+      } catch (_) {}
+    }
+
     const token = generateToken({
       id_usuario: user.id_usuario,
       correo: user.correo_institucional,
       rol: user.nombre_rol,
       rol_id: user.id_rol,
-      id_institucion: idInstitucion
+      id_institucion: idInstitucion,
+      id_alumno: idAlumno
     });
 
     const refreshToken = signRefreshToken({ id_usuario: user.id_usuario });
@@ -726,7 +752,8 @@ exports.loginMFA = async (req, res) => {
         rol: user.nombre_rol,
         rol_nombre: user.nombre_rol,
         rol_id: user.id_rol,
-        id_institucion: idInstitucion
+        id_institucion: idInstitucion,
+        id_alumno: idAlumno
       },
       device: deviceInfo.isNew ? { isNew: true, message: 'Dispositivo nuevo detectado' } : undefined
     });
@@ -754,9 +781,11 @@ exports.me = async (req, res) => {
           u.correo_institucional AS correo,
           u.id_rol AS rol_id,
           u.id_institucion,
-          r.nombre_rol AS rol
+          r.nombre_rol AS rol,
+          a.id_alumno
          FROM usuarios u
          INNER JOIN roles r ON u.id_rol = r.id_rol
+         LEFT JOIN alumnos a ON a.id_usuario = u.id_usuario
          WHERE u.id_usuario = ?
          LIMIT 1`,
         [req.user.id_usuario]
@@ -772,9 +801,11 @@ exports.me = async (req, res) => {
           u.apellido_materno,
           u.correo_institucional AS correo,
           u.id_rol AS rol_id,
-          r.nombre_rol AS rol
+          r.nombre_rol AS rol,
+          a.id_alumno
          FROM usuarios u
          INNER JOIN roles r ON u.id_rol = r.id_rol
+         LEFT JOIN alumnos a ON a.id_usuario = u.id_usuario
          WHERE u.id_usuario = ?
          LIMIT 1`,
         [req.user.id_usuario]
@@ -1087,12 +1118,24 @@ exports.refresh = async (req, res) => {
       });
     }
 
+    let idAlumno = null;
+    if (String(user.nombre_rol).trim().toUpperCase() === 'ALUMNO') {
+      try {
+        const [ar] = await pool.execute(
+          'SELECT id_alumno FROM alumnos WHERE id_usuario = ? LIMIT 1',
+          [user.id_usuario]
+        );
+        idAlumno = ar[0]?.id_alumno || null;
+      } catch (_) {}
+    }
+
     const newToken = generateToken({
       id_usuario: user.id_usuario,
       correo: null,
       rol: user.nombre_rol,
       rol_id: user.id_rol,
-      id_institucion: user.id_institucion || 1
+      id_institucion: user.id_institucion || 1,
+      id_alumno: idAlumno
     });
 
     const newRefreshToken = signRefreshToken({ id_usuario: user.id_usuario });

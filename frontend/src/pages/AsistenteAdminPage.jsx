@@ -62,6 +62,7 @@ export default function AsistenteAdminPage() {
   const [texto, setTexto] = React.useState('');
   const [chatLoading, setChatLoading] = React.useState(false);
   const [contexto, setContexto] = React.useState(null);
+  const [welcomeShown, setWelcomeShown] = React.useState(false);
   const endRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -137,10 +138,13 @@ export default function AsistenteAdminPage() {
       if (!mounted) return;
       setContexto(r?.data || null);
       const saludo = r?.data?.perfil?.saludo || r?.data?.contexto?.saludo;
-      if (saludo) setMessages([{ role: 'bot', text: saludo }]);
+      if (saludo && !welcomeShown) {
+        setMessages([{ role: 'bot', text: saludo }]);
+        setWelcomeShown(true);
+      }
     }).catch(() => {});
     return () => { mounted = false; };
-  }, [token]);
+  }, [token, welcomeShown]);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -151,7 +155,12 @@ export default function AsistenteAdminPage() {
     setChatLoading(true);
     try {
       const res = await api.asistente.mensaje(token, { mensaje: value });
-      setMessages(prev => [...prev, { role: 'bot', text: res?.respuesta || 'Respuesta generada.', data: res?.data || null, intent: res?.intent || null }]);
+      // Avoid duplicating welcome message if already shown
+      const isWelcome = res?.intent === 'WELCOME';
+      if (!isWelcome || !welcomeShown) {
+        setMessages(prev => [...prev, { role: 'bot', text: res?.respuesta || 'Respuesta generada.', data: res?.data || null, intent: res?.intent || null }]);
+        if (isWelcome) setWelcomeShown(true);
+      }
     } catch (err) {
       setMessages(prev => [...prev, { role: 'bot', text: err?.message || 'Error al contactar al asistente.', error: true }]);
     } finally {

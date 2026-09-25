@@ -177,30 +177,32 @@ CREATE TABLE IF NOT EXISTS ia_becas_exportaciones (
 -- ============================================================
 CREATE OR REPLACE VIEW ia_becas_metricas_view AS
 SELECT
-  (SELECT COUNT(*) FROM ia_becas_convocatorias WHERE activo = 1) AS total_convocatorias_activas,
-  (SELECT COUNT(*) FROM ia_becas_convocatorias) AS total_convocatorias,
-  (SELECT COUNT(*) FROM ia_becas_solicitudes) AS total_solicitudes,
-  (SELECT COUNT(*) FROM ia_becas_solicitudes WHERE estatus_solicitud = 'PENDIENTE') AS solicitudes_pendientes,
-  (SELECT COUNT(*) FROM ia_becas_solicitudes WHERE estatus_solicitud = 'EN_REVISION') AS solicitudes_en_revision,
-  (SELECT COUNT(*) FROM ia_becas_solicitudes WHERE estatus_solicitud = 'VALIDADA') AS solicitudes_validadas,
-  (SELECT COUNT(*) FROM ia_becas_solicitudes WHERE estatus_solicitud = 'APROBADA') AS solicitudes_aprobadas,
-  (SELECT COUNT(*) FROM ia_becas_solicitudes WHERE estatus_solicitud = 'RECHAZADA') AS solicitudes_rechazadas,
-  (SELECT COUNT(*) FROM ia_becas_solicitudes WHERE estatus_solicitud = 'CANCELADA') AS solicitudes_canceladas,
-  (SELECT COUNT(*) FROM ia_becas_dictamenes WHERE tipo_dictamen = 'APROBADA') AS dictamenes_aprobados,
-  (SELECT COUNT(*) FROM ia_becas_dictamenes WHERE tipo_dictamen = 'RECHAZADA') AS dictamenes_rechazados,
-  (SELECT COUNT(*) FROM ia_becas_dictamenes WHERE tipo_dictamen = 'CONDICIONADA') AS dictamenes_condicionados,
-  (SELECT COUNT(*) FROM ia_becas_dictamenes) AS total_dictamenes,
-  (SELECT COUNT(*) FROM ia_becas_auditoria) AS total_eventos_auditoria,
-  (SELECT COALESCE(SUM(monto_asignado), 0) FROM ia_becas_dictamenes WHERE tipo_dictamen = 'APROBADA') AS monto_total_asignado,
-  (SELECT COUNT(DISTINCT id_alumno) FROM ia_becas_solicitudes) AS alumnos_beneficiados,
-  (SELECT COUNT(DISTINCT id_carrera) FROM ia_becas_solicitudes) AS carreras_participantes,
-  (SELECT COUNT(*) FROM ia_becas_exportaciones) AS total_exportaciones;
+  1 AS id_institucion,
+  (SELECT COUNT(*) FROM ia_becas_convocatorias WHERE activo = 1 AND id_institucion = 1) AS total_convocatorias_activas,
+  (SELECT COUNT(*) FROM ia_becas_convocatorias WHERE id_institucion = 1) AS total_convocatorias,
+  (SELECT COUNT(*) FROM ia_becas_solicitudes WHERE id_institucion = 1) AS total_solicitudes,
+  (SELECT COUNT(*) FROM ia_becas_solicitudes WHERE estatus_solicitud = 'PENDIENTE' AND id_institucion = 1) AS solicitudes_pendientes,
+  (SELECT COUNT(*) FROM ia_becas_solicitudes WHERE estatus_solicitud = 'EN_REVISION' AND id_institucion = 1) AS solicitudes_en_revision,
+  (SELECT COUNT(*) FROM ia_becas_solicitudes WHERE estatus_solicitud = 'VALIDADA' AND id_institucion = 1) AS solicitudes_validadas,
+  (SELECT COUNT(*) FROM ia_becas_solicitudes WHERE estatus_solicitud = 'APROBADA' AND id_institucion = 1) AS solicitudes_aprobadas,
+  (SELECT COUNT(*) FROM ia_becas_solicitudes WHERE estatus_solicitud = 'RECHAZADA' AND id_institucion = 1) AS solicitudes_rechazadas,
+  (SELECT COUNT(*) FROM ia_becas_solicitudes WHERE estatus_solicitud = 'CANCELADA' AND id_institucion = 1) AS solicitudes_canceladas,
+  (SELECT COUNT(*) FROM ia_becas_dictamenes WHERE tipo_dictamen = 'APROBADA' AND id_institucion = 1) AS dictamenes_aprobados,
+  (SELECT COUNT(*) FROM ia_becas_dictamenes WHERE tipo_dictamen = 'RECHAZADA' AND id_institucion = 1) AS dictamenes_rechazados,
+  (SELECT COUNT(*) FROM ia_becas_dictamenes WHERE tipo_dictamen = 'CONDICIONADA' AND id_institucion = 1) AS dictamenes_condicionados,
+  (SELECT COUNT(*) FROM ia_becas_dictamenes WHERE id_institucion = 1) AS total_dictamenes,
+  (SELECT COUNT(*) FROM ia_becas_auditoria WHERE id_institucion = 1) AS total_eventos_auditoria,
+  (SELECT COALESCE(SUM(monto_asignado), 0) FROM ia_becas_dictamenes WHERE tipo_dictamen = 'APROBADA' AND id_institucion = 1) AS monto_total_asignado,
+  (SELECT COUNT(DISTINCT id_alumno) FROM ia_becas_solicitudes WHERE id_institucion = 1) AS alumnos_beneficiados,
+  (SELECT COUNT(DISTINCT id_carrera) FROM ia_becas_solicitudes WHERE id_institucion = 1) AS carreras_participantes,
+  (SELECT COUNT(*) FROM ia_becas_exportaciones WHERE id_institucion = 1) AS total_exportaciones;
 
 -- ============================================================
 -- VISTA: Historial de solicitudes con información de alumno y dictamen
 -- ============================================================
 CREATE OR REPLACE VIEW ia_becas_historial_view AS
 SELECT
+  s.id_institucion,
   s.id_solicitud,
   s.codigo_solicitud,
   s.id_alumno,
@@ -238,7 +240,8 @@ SELECT
   d.nombre_dictamina
 FROM ia_becas_solicitudes s
 LEFT JOIN ia_becas_convocatorias c ON c.id_convocatoria = s.id_convocatoria
-LEFT JOIN ia_becas_dictamenes d ON d.id_solicitud = s.id_solicitud;
+LEFT JOIN ia_becas_dictamenes d ON d.id_solicitud = s.id_solicitud
+WHERE s.id_institucion = 1;
 
 -- ============================================================
 -- INSERTAR CONVOCATORIAS INICIALES DESDE EL CATÁLOGO OFICIAL

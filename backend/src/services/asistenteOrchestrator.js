@@ -76,12 +76,21 @@ function classifyIntent(message, role) {
   if (/(auditor[ií]a|historial\s+asistente)/.test(text)) return 'ADMIN_AUDIT';
   if (/(config|configuraci[oó]n|parametros)/.test(text)) return 'ADMIN_CONFIG';
   if (/(panel\s+principal|dashboard\s+admin|resumen\s+general)/.test(text)) return 'ADMIN_DASHBOARD';
+  // Admin academic queries - handle accented chars: aá, eé, ií, oó, uú
+  if (/(consulta|consultas)\s+acad[eé]micas?/.test(text)) return 'ADMIN_ACADEMICO';
+  if (/(orientaci[oó]n|reporte|reportes|estad[ií]sticas?|seguimiento|panel)\s+acad[eé]micas?/.test(text)) return 'ADMIN_ACADEMICO';
 
   // Coordinator-specific intents
-  if (/(avance\s+grupos|panel\s+acad[ée]mico|dashboard\s+coordinador|resumen\s+acad[ée]mico)/.test(text)) return 'COORD_DASHBOARD';
-  if (/(seguimiento\s+alumno|estado\s+acad[ée]mico\s+alumno|tracking)/.test(text)) return 'COORD_TRACKING';
+  if (/(avance\s+grupos|panel\s+acad[eé]mico|dashboard\s+coordinador|resumen\s+acad[eé]mico)/.test(text)) return 'COORD_DASHBOARD';
+  if (/(seguimiento\s+alumno|estado\s+acad[eé]mico\s+alumno|tracking)/.test(text)) return 'COORD_TRACKING';
   if (/(alerta|riesgo|deserci[oó]n|rezago|irregular)/.test(text)) return 'COORD_ALERTS';
-  if (/(reporte\s+(grupo|acad[ée]mico)|exportar|pdf|excel|csv|descargar)/.test(text)) return 'COORD_REPORT';
+  if (/(reporte\s+(grupo|acad[eé]mico)|exportar|pdf|excel|csv|descargar)/.test(text)) return 'COORD_REPORT';
+
+  // Admin-specific academic fallbacks (role-aware)
+  if (rol === 'ADMINISTRADOR') {
+    if (/(?:consulta|consultas)\s+acad[eé]mica/.test(text) || /orientaci[oó]n/.test(text) || /reporte\s+acad[eé]mico/.test(text) || /seguimiento\s+acad[eé]mico/.test(text)) return 'ADMIN_ACADEMICO';
+    if (/(evaluaciones?|grupos?|alumnos?|kardex|inscripciones?|promedio|calificaci[oó]n|reinscripci[oó]n|horario|estado\s+acad|materia)/.test(text)) return 'ADMIN_ACADEMICO';
+  }
 
   // Role-specific intents: check in priority order within each role
   if (rol === 'DOCENTE') {
@@ -438,6 +447,37 @@ function buildAnswer({ rol, intent, data, mensaje }) {
     return `${periodoStr}. Carreras activas: ${carreras.length}.`;
   }
 
+  if (intent === 'ADMIN_ACADEMICO') {
+    const s = data?.stats;
+    const u = data?.users;
+    const cfg = data?.config;
+    const a = data?.audit;
+
+    const parts = [];
+    if (s?.usuarios !== undefined) parts.push(`Usuarios: ${s.usuarios}`);
+    if (s?.alumnos !== undefined) parts.push(`Alumnos: ${s.alumnos}`);
+    if (s?.docentes !== undefined) parts.push(`Docentes: ${s.docentes}`);
+    if (s?.materias !== undefined) parts.push(`Materias: ${s.materias}`);
+
+    const resumen = parts.length ? `Estadísticas del sistema: ${parts.join(', ')}.` : 'Sistema operativo.';
+
+    const periodoActivo = cfg?.periodos?.find(p => p.activo);
+    const periodoStr = periodoActivo ? `Período activo: ${periodoActivo.nombre_periodo} (${periodoActivo.ciclo_escolar}).` : 'Sin período activo configurado.';
+    const carrerasCount = Array.isArray(cfg?.carreras) ? cfg.carreras.length : 0;
+
+    const auditoriaReciente = Array.isArray(a) && a.length > 0
+      ? `Últimas consultas al asistente: ${a.length} registro(s). La más reciente: "${a[0]?.pregunta || 'N/D'}" por ${a[0]?.rol_usuario || 'N/D'}.`
+      : 'Sin auditoría reciente del asistente.';
+
+    return [
+      resumen,
+      periodoStr,
+      `Carreras activas: ${carrerasCount}.`,
+      auditoriaReciente,
+      'Puedo ayudarte con estadísticas, configuración, usuarios, auditoría, becas, evaluaciones, kardex y reportes académicos.'
+    ].filter(Boolean).join(' ');
+  }
+
   return `No identifiqué una acci\u00f3n espec\u00edfica para tu consulta. Puedo ayudarte con evaluaciones, grupos, alumnos, kardex, becas, inscripciones, soporte t\u00e9cnico u orientaci\u00f3n. \u00bfQu\u00e9 necesitas?`;
 }
 
@@ -595,6 +635,20 @@ async function handleAsistenteMessage(pool, user, mensaje) {
       const users = await getUserSummary(pool);
       data = { stats, users, rag: ragRows, ragContext };
       tool = 'ADMIN_DASHBOARD';
+    } else if (intent === 'ADMIN_ACADEMICO') {
+      const stats = await getSystemStats(pool);
+      const users = await getUserSummary(pool);
+      const config = await getSystemConfig(pool);
+      const audit = await getSystemAudit(pool, 10);
+      data = {
+        stats,
+        users,
+        config,
+        audit,
+        rag: ragRows,
+        ragContext
+      };
+      tool = 'ADMIN_ACADEMICO';
     } else {
       data = {
         mensaje: 'Asistente institucional listo.',

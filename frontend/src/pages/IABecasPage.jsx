@@ -13,7 +13,8 @@ import {
   Search,
   Sparkles,
   ShieldCheck,
-  Target
+  Target,
+  User
 } from 'lucide-react';
 import '../styles/global.css';
 
@@ -101,6 +102,13 @@ export default function IABecasPage() {
   const [loadingAsk, setLoadingAsk] = React.useState(false);
   const [loadingEligibility, setLoadingEligibility] = React.useState(false);
 
+  // Admin: selección de alumno para ver datos académicos
+  const [solicitudesAdmin, setSolicitudesAdmin] = React.useState([]);
+  const [loadingSolicitudesAdmin, setLoadingSolicitudesAdmin] = React.useState(false);
+  const [alumnoSeleccionado, setAlumnoSeleccionado] = React.useState(null);
+  const [datosAcademicosAlumno, setDatosAcademicosAlumno] = React.useState(null);
+  const [loadingDatosAcademicos, setLoadingDatosAcademicos] = React.useState(false);
+
   const fullName = React.useMemo(() => {
     return (
       `${user?.nombres || ''} ${user?.apellido_paterno || ''} ${user?.apellido_materno || ''}`
@@ -156,8 +164,56 @@ export default function IABecasPage() {
     if (!authLoading && token) {
       loadCatalogos();
       loadResumen();
+      // Admin: cargar solicitudes para selector de alumno
+      if (user?.rol_nombre === 'ADMINISTRADOR' || user?.rol_nombre === 'COORDINADOR') {
+        loadSolicitudesAdmin();
+      }
     }
-  }, [authLoading, token, loadCatalogos, loadResumen]);
+  }, [authLoading, token, loadCatalogos, loadResumen, user?.rol_nombre]);
+
+  const loadSolicitudesAdmin = React.useCallback(async () => {
+    if (!token) return;
+    try {
+      setLoadingSolicitudesAdmin(true);
+      const response = await api.iaBecasAdminSolicitudes(token, { limit: 100 });
+      const solicitudes = safeArray(response?.data?.solicitudes, ['data', 'solicitudes', 'items']);
+      setSolicitudesAdmin(solicitudes);
+    } catch (error) {
+      console.error('Error al cargar solicitudes para selector:', error);
+      setSolicitudesAdmin([]);
+    } finally {
+      setLoadingSolicitudesAdmin(false);
+    }
+  }, [token]);
+
+  const loadDatosAcademicosAlumno = React.useCallback(async (idAlumno) => {
+    if (!token || !idAlumno) return;
+    try {
+      setLoadingDatosAcademicos(true);
+      const response = await api.iaBecasAdminAlumnoDatosAcademicos(token, idAlumno);
+      if (response?.ok && response?.data) {
+        setDatosAcademicosAlumno(response.data);
+      } else {
+        setDatosAcademicosAlumno(null);
+      }
+    } catch (error) {
+      console.error('Error al cargar datos académicos del alumno:', error);
+      setDatosAcademicosAlumno(null);
+    } finally {
+      setLoadingDatosAcademicos(false);
+    }
+  }, [token]);
+
+  const handleAlumnoChange = (e) => {
+    const idAlumno = e.target.value ? Number(e.target.value) : null;
+    const solicitud = solicitudesAdmin.find(s => s.id_alumno === idAlumno) || null;
+    setAlumnoSeleccionado(solicitud);
+    if (idAlumno) {
+      loadDatosAcademicosAlumno(idAlumno);
+    } else {
+      setDatosAcademicosAlumno(null);
+    }
+  };
 
   const handleAsk = async (e) => {
     e.preventDefault();
@@ -554,32 +610,86 @@ export default function IABecasPage() {
           title="Estado académico resumido"
           subtitle="Función interna sobre MySQL"
         >
+          {(user?.rol_nombre === 'ADMINISTRADOR' || user?.rol_nombre === 'COORDINADOR') && (
+            <div className="form-field" style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                Seleccionar alumno
+              </label>
+              <select
+                value={alumnoSeleccionado?.id_alumno ? String(alumnoSeleccionado.id_alumno) : ''}
+                onChange={handleAlumnoChange}
+                disabled={loadingSolicitudesAdmin}
+                style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: 'var(--radius, 8px)', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--fg)', fontSize: '0.95rem' }}
+              >
+                <option value="">-- Seleccionar alumno --</option>
+                {solicitudesAdmin.map((s) => (
+                  <option key={s.id_solicitud} value={s.id_alumno}>
+                    {s.nombre_alumno} (Matrícula: {s.matricula || 'N/A'}) — {s.estatus_solicitud}
+                  </option>
+                ))}
+              </select>
+              {loadingSolicitudesAdmin && <small style={{ color: 'var(--muted)' }}>Cargando solicitudes...</small>}
+            </div>
+          )}
+
           <div className="list">
             <div className="list-item">
               <strong>Alumno</strong>
-              <span>{fullName}</span>
-              <small>{user?.correo || user?.correo_institucional || 'Sin correo'}</small>
+              <span>
+                {(user?.rol_nombre === 'ADMINISTRADOR' || user?.rol_nombre === 'COORDINADOR')
+                  ? (alumnoSeleccionado?.nombre_alumno || datosAcademicosAlumno?.nombre_completo || 'Seleccione un alumno')
+                  : fullName}
+              </span>
+              <small>
+                {(user?.rol_nombre === 'ADMINISTRADOR' || user?.rol_nombre === 'COORDINADOR')
+                  ? (alumnoSeleccionado?.matricula ? `Matrícula: ${alumnoSeleccionado.matricula}` : (datosAcademicosAlumno?.matricula || 'Sin matrícula'))
+                  : (user?.correo || user?.correo_institucional || 'Sin correo')}
+              </small>
             </div>
 
             <div className="list-item">
               <strong>Promedio actual</strong>
-              <span>{promedio?.promedio_general ?? 'No consultado'}</span>
-              <small>Créditos acumulados: {promedio?.creditos_acumulados ?? '—'}</small>
+              <span>
+                {(user?.rol_nombre === 'ADMINISTRADOR' || user?.rol_nombre === 'COORDINADOR')
+                  ? (datosAcademicosAlumno?.promedio_general !== undefined && datosAcademicosAlumno?.promedio_general !== null
+                    ? Number(datosAcademicosAlumno.promedio_general).toFixed(2)
+                    : 'No consultado')
+                  : (promedio?.promedio_general ?? 'No consultado')}
+              </span>
+              <small>
+                Créditos acumulados: {(user?.rol_nombre === 'ADMINISTRADOR' || user?.rol_nombre === 'COORDINADOR')
+                  ? (datosAcademicosAlumno?.creditos_acumulados ?? '—')
+                  : (promedio?.creditos_acumulados ?? '—')}
+              </small>
             </div>
 
             <div className="list-item">
               <strong>Estatus académico</strong>
               <span>
-                {promedio?.estatus_academico || elegibilidad?.alumno?.estatus_academico || 'No disponible'}
+                {(user?.rol_nombre === 'ADMINISTRADOR' || user?.rol_nombre === 'COORDINADOR')
+                  ? (datosAcademicosAlumno?.estatus_academico || 'No disponible')
+                  : (promedio?.estatus_academico || elegibilidad?.alumno?.estatus_academico || 'No disponible')}
               </span>
               <small>
-                Semestre actual: {promedio?.semestre_actual ?? elegibilidad?.alumno?.semestre_actual ?? '—'}
+                Semestre actual: {(user?.rol_nombre === 'ADMINISTRADOR' || user?.rol_nombre === 'COORDINADOR')
+                  ? (datosAcademicosAlumno?.semestre_actual ?? '—')
+                  : (promedio?.semestre_actual ?? elegibilidad?.alumno?.semestre_actual ?? '—')}
               </small>
             </div>
+
+            {(user?.rol_nombre === 'ADMINISTRADOR' || user?.rol_nombre === 'COORDINADOR') && datosAcademicosAlumno && (
+              <div className="list-item">
+                <strong>Carrera</strong>
+                <span>{datosAcademicosAlumno.nombre_carrera || '—'}</span>
+                <small>Kardex: {datosAcademicosAlumno.kardex_estatus || '—'}</small>
+              </div>
+            )}
           </div>
 
           <div className="note" style={{ marginTop: '1rem' }}>
-            El orquestador de becas decide automáticamente entre búsqueda semántica y consulta privada, para evitar exponer datos sensibles sin autenticación.
+            {(user?.rol_nombre === 'ADMINISTRADOR' || user?.rol_nombre === 'COORDINADOR')
+              ? 'Seleccione un alumno de la lista para ver su estado académico y evaluar su elegibilidad para becas.'
+              : 'El orquestador de becas decide automáticamente entre búsqueda semántica y consulta privada, para evitar exponer datos sensibles sin autenticación.'}
           </div>
         </SectionCard>
       </div>
