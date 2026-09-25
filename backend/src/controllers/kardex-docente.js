@@ -364,13 +364,14 @@ async function getHistorialEvaluacion(req, res) {
         p.nombre_periodo, p.fecha_inicio, p.fecha_fin,
         m.clave_materia, m.nombre_materia, m.semestre_sugerido, m.creditos AS creditos_materia,
         g.nombre_grupo,
-        CONCAT(d.apellido_paterno, ' ', d.apellido_materno, ' ', d.nombres) AS docente_materia
+        CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS docente_materia
       FROM kardex_historial_academico h
       LEFT JOIN periodos p ON p.id_periodo = h.id_periodo
       LEFT JOIN materias m ON m.id_materia = h.id_materia
       LEFT JOIN grupos g ON g.id_grupo = h.id_grupo
       LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
       LEFT JOIN docentes d ON d.id_docente = ca.id_docente
+      LEFT JOIN usuarios du ON du.id_usuario = d.id_usuario
       WHERE h.id_alumno = ? AND h.id_institucion = ?
       ORDER BY p.fecha_inicio DESC, m.semestre_sugerido
     `, [idAlumno, idInstitucion]);

@@ -42,6 +42,8 @@ router.get('/periodo/:idPeriodo',
 // GET /api/academic-export/preboleta/:idAlumno/:idPeriodo
 router.get('/preboleta/:idAlumno/:idPeriodo',
   auth,
+  verifyRoleAgainstDB,
+  role('ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'ALUMNO'),
   ctrl.exportPreboletaIndividual
 );
 
@@ -49,6 +51,8 @@ router.get('/preboleta/:idAlumno/:idPeriodo',
 // GET /api/academic-export/boleta/:idAlumno/:idPeriodo
 router.get('/boleta/:idAlumno/:idPeriodo',
   auth,
+  verifyRoleAgainstDB,
+  role('ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'ALUMNO'),
   ctrl.exportBoletaIndividual
 );
 
@@ -56,6 +60,8 @@ router.get('/boleta/:idAlumno/:idPeriodo',
 // GET /api/academic-export/historial/:idAlumno
 router.get('/historial/:idAlumno',
   auth,
+  verifyRoleAgainstDB,
+  role('ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'ALUMNO'),
   ctrl.exportHistorialAcademico
 );
 

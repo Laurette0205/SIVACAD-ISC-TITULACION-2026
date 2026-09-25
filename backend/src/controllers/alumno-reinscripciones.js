@@ -378,7 +378,8 @@ function formatFecha(f) {
 
 async function generarPDF(res, data) {
   const PDFDocument = require('pdfkit');
-  const doc = new PDFDocument({ size: 'letter', margin: 50 });
+  const { pdfKitOptions } = require('../helpers/exportStandards');
+  const doc = new PDFDocument(pdfKitOptions({ size: 'LETTER' }));
 
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename=comprobante_reinscripcion_${data.folio}.pdf`);

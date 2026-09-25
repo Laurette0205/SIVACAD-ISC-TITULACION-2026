@@ -25,7 +25,7 @@ function publicUrl(req, relativePath) {
 function toPublicKardexAlumno(req, row) {
   if (!row) return null;
 
-  const nombreCompleto = `${row.nombres || ''} ${row.apellido_paterno || ''} ${row.apellido_materno || ''}`
+  const nombreCompleto = `${row.apellido_paterno || ''} ${row.apellido_materno || ''} ${row.nombres || ''}`
     .replace(/\s+/g, ' ')
     .trim();
 

@@ -2,6 +2,7 @@
 
 const pool = require('../config/db');
 const { registrarAuditoria } = require('../middleware/auditoria');
+const { denegarSiNoEsAlumnoPropio } = require('../helpers/ownership');
 
 // ==============================
 // SERVICIO ÚNICO DE CALIFICACIONES
@@ -412,10 +413,8 @@ async function getBoletaAlumno(req, res) {
     const { idPeriodo } = req.query;
     const idInstitucion = req.user?.id_institucion || 1;
 
-    const esAlumno = String(req.user.rol).trim().toUpperCase() === 'ALUMNO';
-    if (esAlumno && req.user.id_alumno !== Number(idAlumno)) {
-      return res.status(403).json({ ok: false, message: 'No puedes ver la boleta de otro alumno' });
-    }
+    const denegado = await denegarSiNoEsAlumnoPropio(req, idAlumno, 'No puedes ver la boleta de otro alumno');
+    if (denegado) return res.status(denegado.status).json({ ok: false, message: denegado.message });
 
     let where = 'h.id_alumno = ? AND h.estado_calificacion = \'PUBLICADA\'';
     const params = [idAlumno];
@@ -441,13 +440,14 @@ async function getBoletaAlumno(req, res) {
     const [materias] = await pool.execute(
       `SELECT h.*, m.nombre_materia, m.clave_materia, m.creditos,
               g.nombre_grupo, p.nombre_periodo,
-              CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+              CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
        FROM kardex_historial_academico h
        INNER JOIN materias m ON m.id_materia = h.id_materia
        INNER JOIN grupos g ON g.id_grupo = h.id_grupo
        INNER JOIN periodos p ON p.id_periodo = h.id_periodo
        LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
        LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+       LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
        WHERE ${where}
        ORDER BY p.nombre_periodo, m.semestre_sugerido, m.nombre_materia`,
       params

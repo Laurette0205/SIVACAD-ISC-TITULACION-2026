@@ -447,8 +447,8 @@ function getDesercionTemplate(array $d): string
     // ══════════════════════════════════════════════
     return '<!DOCTYPE html>'
     . '<html lang="es-MX"><head><meta charset="UTF-8"><style>'
-    . '@page { margin: 0.5cm 0.7cm 1.5cm 0.7cm; size: letter; }'
-    . '* { margin: 0; padding: 0; box-sizing: border-box; }'
+    . '@page { margin: 2.54cm; size: letter; }'
+    . 'body, body * { margin: 0; padding: 0; box-sizing: border-box; }'
     . 'body { font-family: Helvetica, Arial, sans-serif; font-size: 9pt; color: #0f172a; line-height: 1.35; }'
     . '.watermark { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; opacity: 0.06; z-index: -1; pointer-events: none; ' . $wmStyle . ' }'
     . '.st { font-size: 10pt; font-weight: 700; color: #0f172a; border-bottom: 2px solid #4f46e5; padding-bottom: 2px; margin: 10px 0 6px 0; text-transform: uppercase; letter-spacing: 0.3px; }'

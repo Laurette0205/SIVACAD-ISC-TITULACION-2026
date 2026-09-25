@@ -985,10 +985,11 @@ router.get('/:id/exportar', authFromHeader, async (req, res) => {
     const [respuestas] = await conn.execute(`
       SELECT r.id_respuesta, r.id_pregunta, r.id_alumno, r.id_docente, r.valor_numero, r.valor_texto, r.creado_en,
         CONCAT(COALESCE(a.nombres, ''), ' ', COALESCE(a.apellido_paterno, '')) AS alumno_nombre,
-        CONCAT(COALESCE(d.nombres, ''), ' ', COALESCE(d.apellido_paterno, '')) AS docente_nombre
+        CONCAT(COALESCE(du.nombres, ''), ' ', COALESCE(du.apellido_paterno, '')) AS docente_nombre
       FROM respuestas_evaluacion r
       LEFT JOIN alumnos a ON a.id_alumno = r.id_alumno
       LEFT JOIN docentes d ON d.id_docente = r.id_docente
+      LEFT JOIN usuarios du ON du.id_usuario = d.id_usuario
       WHERE r.id_evaluacion = ? AND r.id_institucion = ?
       ORDER BY r.creado_en DESC`, [idEvaluacion, idInstitucion]);
     await logAuditoria(conn, idEvaluacion, Number(req.user?.id_usuario || 0), 'EXPORTAR', `Evaluaci\u00f3n "${detail.titulo}" exportada en JSON`, null, req.ip);

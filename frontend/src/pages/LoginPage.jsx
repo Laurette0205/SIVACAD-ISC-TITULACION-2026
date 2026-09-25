@@ -129,7 +129,7 @@ export default function LoginPage() {
 
         <div>
           <h1>
-            Sistema de Valoración y Calificación para el Desempeño de Docentes y Alumnos
+            Sistema de Valoración y Calificación Del Desempeño de Docentes y Alumnos
           </h1>
 
           <p>

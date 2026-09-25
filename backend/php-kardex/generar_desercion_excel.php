@@ -62,6 +62,23 @@ function formatFechaMX(?string $date = null): string
 
 function colLetter(int $c): string { return chr(64 + $c); }
 
+function applySheetPageStandards(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $ws, string $orientation = 'landscape'): void
+{
+    $setup = $ws->getPageSetup();
+    $setup->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_LETTER);
+    $setup->setOrientation(
+        $orientation === 'portrait'
+            ? \PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_PORTRAIT
+            : \PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE
+    );
+    $setup->setFitToPage(true);
+    $setup->setFitToWidth(1);
+    $setup->setFitToHeight(0);
+    $margins = $ws->getPageMargins();
+    $margins->setTop(1.0)->setBottom(1.0)->setLeft(1.0)->setRight(1.0);
+    $margins->setHeader(0.5)->setFooter(0.5);
+}
+
 // ===== QUERIES (reutilizadas de generar_desercion.php) =====
 
 function obtenerResumenEjecutivo(): array
@@ -320,6 +337,10 @@ try {
             try { $ws->getColumnDimension($col)->setAutoSize(true); } catch (Exception $e) { break; }
         }
     }
+
+    applySheetPageStandards($ws1, 'portrait');
+    applySheetPageStandards($ws2, 'landscape');
+    applySheetPageStandards($ws3, 'landscape');
 
     $writer = new Xlsx($spreadsheet);
     ob_clean();

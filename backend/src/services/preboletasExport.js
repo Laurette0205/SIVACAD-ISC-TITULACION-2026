@@ -2,14 +2,18 @@
 
 const ExcelJS = require('exceljs');
 const pool = require('../config/db');
+const { applyAPAMargins } = require('../helpers/excelHelpers');
 
 // ==============================
 // SERVICIO ÚNICO DE CALIFICACIONES
 // ==============================
-const {
-  roundGrade,
-  PASSING_GRADE
-} = require('./academicGradeService');
+  const {
+    roundGrade,
+    calculateAverage,
+    formatGrade,
+    PASSING_GRADE,
+    calcularEstadoAcademico
+  } = require('./academicGradeService');
 
 function formatFechaMX(date) {
   return new Date(date).toLocaleString('es-MX', {
@@ -48,13 +52,14 @@ async function exportPreboletaAlumno(idAlumno, idPeriodo) {
   const [materias] = await pool.execute(
     `SELECT h.*, m.nombre_materia, m.clave_materia, m.creditos, m.semestre_sugerido,
             g.nombre_grupo, g.turno, p.nombre_periodo,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM kardex_historial_academico h
      INNER JOIN materias m ON m.id_materia = h.id_materia
      INNER JOIN grupos g ON g.id_grupo = h.id_grupo
      INNER JOIN periodos p ON p.id_periodo = h.id_periodo
      LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE h.id_alumno = ? AND h.id_periodo = ?
      ORDER BY m.semestre_sugerido, m.nombre_materia`,
     [idAlumno, idPeriodo]
@@ -77,7 +82,7 @@ async function exportPreboletaAlumno(idAlumno, idPeriodo) {
     }
   });
 
-  ws1.pageSetup.margins = { top: 1.5, bottom: 1.5, left: 1.5, right: 1.5, header: 0, footer: 0 };
+  applyAPAMargins(ws1, { orientation: 'landscape' });
   ws1.views = [{ showGridLines: false }];
 
   const colW = [3, 35, 10, 10, 10, 12, 12, 14];
@@ -124,8 +129,9 @@ async function exportPreboletaAlumno(idAlumno, idPeriodo) {
 
   // Hoja 2: Calificaciones
   const ws2 = workbook.addWorksheet('Calificaciones');
+  applyAPAMargins(ws2, { orientation: 'landscape' });
 
-  const headers = ['#', 'ASIGNATURA', 'Clave', 'P1', 'P2', 'P3', 'Promedio', 'Estado'];
+  const headers = ['#', 'Materia', 'Docente', 'P1', 'P2', 'P3', 'Promedio', 'Estado'];
   const headerRow = ws2.addRow(headers);
   headerRow.eachCell((cell) => {
     cell.font = { bold: true, size: 10, color: { argb: 'FFFFFFFF' }, name: 'Arial' };
@@ -134,30 +140,30 @@ async function exportPreboletaAlumno(idAlumno, idPeriodo) {
   });
   headerRow.height = 22;
 
-  const colW2 = [5, 38, 12, 10, 10, 10, 12, 14];
+  const colW2 = [5, 38, 25, 10, 10, 10, 12, 14];
   colW2.forEach((w, i) => { ws2.getColumn(i + 1).width = w; });
 
   for (let i = 0; i < materias.length; i++) {
     const m = materias[i];
-    const promedio = m.parcial_1 != null || m.parcial_2 != null || m.parcial_3 != null
-      ? roundGrade(((m.parcial_1 || 0) + (m.parcial_2 || 0) + (m.parcial_3 || 0)) /
-          [m.parcial_1, m.parcial_2, m.parcial_3].filter(g => g != null).length)
-      : null;
+    // Parcial_1..3 llegan como texto de MySQL: sumarlos sin Number() concatena
+    const promedio = calculateAverage(m.parcial_1, m.parcial_2, m.parcial_3);
 
+    const estado = calcularEstadoAcademico(m);
     const dataRow = ws2.addRow([
-      i + 1, m.nombre_materia, m.clave_materia,
+      i + 1, m.nombre_materia, m.nombre_docente || '—',
       m.parcial_1 != null ? roundGrade(m.parcial_1) : '-',
       m.parcial_2 != null ? roundGrade(m.parcial_2) : '-',
       m.parcial_3 != null ? roundGrade(m.parcial_3) : '-',
       promedio != null ? promedio : '-',
-      m.estado_calificacion || 'BORRADOR'
+      estado
     ]);
 
     const estadoColors = {
-      PUBLICADA: 'FFD1FAE5', BORRADOR: 'FFFEF3C7',
-      VALIDADA: 'FFDBEAFE', CERRADA: 'FFF3F4F6'
+      Acreditada: 'FFD1FAE5', 'No Acreditada': 'FFFEE2E2',
+      Pendiente: 'FFFEF3C7', Borrador: 'FFFEF3C7',
+      Validada: 'FFDBEAFE', 'Sin Calificación': 'FFF1F5F9'
     };
-    const bgColor = estadoColors[m.estado_calificacion] || 'FFFFFFFF';
+    const bgColor = estadoColors[estado] || 'FFFFFFFF';
 
     dataRow.eachCell((cell, colNumber) => {
       cell.font = { size: 10, name: 'Arial' };
@@ -186,13 +192,14 @@ async function exportPreboletaAlumno(idAlumno, idPeriodo) {
 // 2. EXPORTAR PREBOLETA GRUPO (Excel Concentrado)
 // ==============================
 async function exportPreboletaGrupo(idGrupo, idPeriodo) {
+  // El periodo del título/encabezado es el de la ruta (no el "casa" del grupo)
   const [grupoInfo] = await pool.execute(
     `SELECT g.nombre_grupo, g.turno, p.nombre_periodo, c.nombre_carrera
      FROM grupos g
-     INNER JOIN periodos p ON p.id_periodo = g.id_periodo
+     INNER JOIN periodos p ON p.id_periodo = ?
      INNER JOIN carreras c ON c.id_carrera = g.id_carrera
      WHERE g.id_grupo = ? LIMIT 1`,
-    [idGrupo]
+    [idPeriodo, idGrupo]
   );
 
   if (!grupoInfo.length) throw new Error('Grupo no encontrado');
@@ -236,6 +243,7 @@ async function exportPreboletaGrupo(idGrupo, idPeriodo) {
   workbook.title = `PREBOLETA — ${info.nombre_grupo}`;
 
   const ws = workbook.addWorksheet('Concentrado');
+  applyAPAMargins(ws, { orientation: 'landscape' });
 
   // Encabezado
   ws.mergeCells('A1:N1');
@@ -284,7 +292,8 @@ async function exportPreboletaGrupo(idGrupo, idPeriodo) {
     const fins = [];
     for (const m of materias) {
       const cal = calMap[`${al.id_alumno}_${m.id_materia}`];
-      const val = cal ? (cal.parcial_1 != null ? roundGrade(cal.parcial_1) : '-') : '-';
+      // Columna por materia = calificación final (misma base que el Promedio)
+      const val = cal ? (cal.calificacion_final != null ? roundGrade(cal.calificacion_final) : '-') : '-';
       row.push(val);
       if (cal && cal.calificacion_final != null) fins.push(parseFloat(cal.calificacion_final));
     }
@@ -324,7 +333,7 @@ async function exportBoletaAlumno(idAlumno, idPeriodo) {
     }
   });
 
-  ws1.pageSetup.margins = { top: 1.5, bottom: 1.5, left: 1.5, right: 1.5, header: 0, footer: 0 };
+  applyAPAMargins(ws1, { orientation: 'landscape' });
   ws1.views = [{ showGridLines: false }];
 
   const colW = [3, 35, 10, 10, 10, 12, 12, 14];
@@ -350,7 +359,8 @@ async function exportBoletaAlumno(idAlumno, idPeriodo) {
     ['Carrera:', data.alumno.nombre_carrera, 'Plan:', `${data.alumno.nombre_plan || '—'} ${data.alumno.version_plan || ''}`],
     ['Semestre:', data.alumno.semestre_actual || '—', 'Grupo:', data.grupo?.nombre_grupo || '—'],
     ['Turno:', data.grupo?.turno || '—', 'Periodo:', data.periodo || '—'],
-    ['Promedio General:', data.alumno.promedio_general != null ? Number(data.alumno.promedio_general).toFixed(2) : '—',
+    // Promedio del período (mismas boletas oficial/académica: promedio de finales)
+    ['Promedio General:', data.resumen.promedio_general != null ? Number(data.resumen.promedio_general).toFixed(2) : '—',
      'Créditos:', data.alumno.creditos_acumulados || 0],
     ['Estatus:', data.alumno.estatus_academico || 'Regular', '', '']
   ];
@@ -374,8 +384,9 @@ async function exportBoletaAlumno(idAlumno, idPeriodo) {
 
   // Hoja 2: Calificaciones por periodo
   const ws2 = workbook.addWorksheet('Calificaciones');
+  applyAPAMargins(ws2, { orientation: 'landscape' });
 
-  const headers = ['#', 'MATERIA', 'DOCENTE', 'P1', 'P2', 'P3', 'FINAL', 'ESTADO'];
+  const headers = ['#', 'Materia', 'Clave', 'P1', 'P2', 'P3', 'Promedio', 'Final', 'Estado'];
   const headerRow = ws2.addRow(headers);
   headerRow.eachCell((cell) => {
     cell.font = { bold: true, size: 10, color: { argb: 'FFFFFFFF' }, name: 'Arial' };
@@ -384,39 +395,45 @@ async function exportBoletaAlumno(idAlumno, idPeriodo) {
   });
   headerRow.height = 22;
 
-  const colW2 = [5, 38, 25, 10, 10, 10, 12, 14];
+  const colW2 = [5, 38, 12, 10, 10, 10, 12, 12, 14];
   colW2.forEach((w, i) => { ws2.getColumn(i + 1).width = w; });
 
   let numMateria = 0;
   for (const per of data.periodos) {
     ws2.addRow([]);
-    const periodHeader = ws2.addRow([`PERIODO: ${per.nombre_periodo} — Promedio: ${per.promedio_periodo != null ? Number(per.promedio_periodo).toFixed(1) : '—'} — Aprobadas: ${per.aprobadas} — No Acreditadas: ${per.no_acreditadas}`]);
-    ws2.mergeCells(periodHeader.number, 1, periodHeader.number, 8);
+    const periodHeader = ws2.addRow([`PERIODO: ${per.nombre_periodo} — Promedio: ${per.promedio_periodo != null ? Number(per.promedio_periodo).toFixed(2) : '—'} — Aprobadas: ${per.aprobadas} — No Acreditadas: ${per.no_acreditadas}`]);
+    ws2.mergeCells(periodHeader.number, 1, periodHeader.number, 9);
     periodHeader.getCell(1).font = { bold: true, size: 10, color: { argb: 'FF1E40AF' }, name: 'Arial' };
     periodHeader.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDBEAFE' } };
 
     for (const m of per.materias) {
       numMateria++;
+      const promedio = formatGrade(m.promedio_parciales != null ? m.promedio_parciales
+        : calculateAverage(m.parcial_1, m.parcial_2, m.parcial_3));
+      const estado = calcularEstadoAcademico(m);
       const dataRow = ws2.addRow([
         numMateria,
         m.nombre_materia,
-        m.nombre_docente,
-        m.parcial_1 != null ? Number(m.parcial_1).toFixed(1) : '—',
-        m.parcial_2 != null ? Number(m.parcial_2).toFixed(1) : '—',
-        m.parcial_3 != null ? Number(m.parcial_3).toFixed(1) : '—',
-        m.calificacion_final != null ? Number(m.calificacion_final).toFixed(1) : '—',
-        m.estado
+        m.clave_materia || '—',
+        m.parcial_1 != null ? Number(m.parcial_1).toFixed(2) : '—',
+        m.parcial_2 != null ? Number(m.parcial_2).toFixed(2) : '—',
+        m.parcial_3 != null ? Number(m.parcial_3).toFixed(2) : '—',
+        promedio,
+        m.calificacion_final != null ? Number(m.calificacion_final).toFixed(2) : '—',
+        estado
       ]);
 
       const estadoColors = {
-        'Acreditada': 'FFD1FAE5', 'No Acreditada': 'FFFEE2E2'
+        'Acreditada': 'FFD1FAE5', 'No Acreditada': 'FFFEE2E2',
+        Pendiente: 'FFFEF3C7', Borrador: 'FFFEF3C7',
+        Validada: 'FFDBEAFE', 'Sin Calificación': 'FFF1F5F9'
       };
-      const bgColor = estadoColors[m.estado] || 'FFFFFFFF';
+      const bgColor = estadoColors[estado] || 'FFFFFFFF';
 
       dataRow.eachCell((cell, colNumber) => {
         cell.font = { size: 9, name: 'Arial' };
         cell.alignment = { horizontal: colNumber <= 3 ? 'left' : 'center', vertical: 'middle' };
-        if (colNumber === 8) {
+        if (colNumber === 9) {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
           cell.font = { bold: true, size: 9, name: 'Arial' };
         }
@@ -428,7 +445,7 @@ async function exportBoletaAlumno(idAlumno, idPeriodo) {
   // Resumen
   ws2.addRow([]);
   const resumenRow = ws2.addRow([
-    `Promedio General: ${data.resumen.promedio_general != null ? Number(data.resumen.promedio_general).toFixed(1) : '—'}`,
+    `Promedio General: ${data.resumen.promedio_general != null ? Number(data.resumen.promedio_general).toFixed(2) : '—'}`,
     `Aprobadas: ${data.resumen.materias_aprobadas}`,
     `No Acreditadas: ${data.resumen.materias_no_acreditadas}`,
     `Faltas: ${data.resumen.faltas_totales}`,

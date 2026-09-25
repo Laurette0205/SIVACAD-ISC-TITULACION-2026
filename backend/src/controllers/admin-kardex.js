@@ -206,7 +206,7 @@ exports.getKardexIndividual = async (req, res) => {
         folio_kardex: k.folio_kardex,
         numero_control: k.numero_control,
         matricula: k.matricula,
-        nombre_completo: `${k.nombres || ''} ${k.apellido_paterno || ''} ${k.apellido_materno || ''}`.replace(/\s+/g, ' ').trim(),
+        nombre_completo: `${k.apellido_paterno || ''} ${k.apellido_materno || ''} ${k.nombres || ''}`.replace(/\s+/g, ' ').trim(),
         nombres: k.nombres,
         apellido_paterno: k.apellido_paterno,
         apellido_materno: k.apellido_materno,
@@ -453,7 +453,7 @@ exports.getHistorialAcademico = async (req, res) => {
        LEFT JOIN grupos g ON g.id_grupo = kh.id_grupo
        LEFT JOIN usuarios u ON u.id_usuario = kh.registrado_por
        WHERE kh.id_alumno = ? AND kh.id_institucion = ?
-       ORDER BY p.fecha_inicio DESC, kh.creado_en DESC`,
+       ORDER BY p.fecha_inicio DESC, kh.creado_en DESC, kh.id_historial ASC`,
       [id, idInstitucion]
     );
     } catch (e) {
@@ -688,14 +688,15 @@ exports.exportPDF = async (req, res) => {
     );
 
     const PDFDocument = require('pdfkit');
-    doc = new PDFDocument({ size: 'letter', margin: 40, info: { Title: `Kardex ${folio}`, Author: 'SIVACAD' } });
+    const { pdfKitOptions, APA } = require('../helpers/exportStandards');
+    doc = new PDFDocument(pdfKitOptions({ size: 'LETTER', info: { Title: `Kardex ${folio}`, Author: 'SIVACAD' } }));
 
     const chunks = [];
     doc.on('data', chunk => chunks.push(chunk));
     doc.on('end', () => {
       const pdfBuffer = Buffer.concat(chunks);
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename=kardex_${folio}.pdf`);
+      res.setHeader('Content-Disposition', `attachment; filename="kardex_${folio}.pdf"`);
       res.setHeader('Content-Length', pdfBuffer.length);
       res.end(pdfBuffer);
     });
@@ -708,7 +709,7 @@ exports.exportPDF = async (req, res) => {
       }
     });
 
-    const M = 40;
+    const M = APA.MARGIN_PT;
     const PW = doc.page.width;
     const CW = PW - M * 2;
 
@@ -839,7 +840,8 @@ exports.exportPDF = async (req, res) => {
     );
 
     // ===== SELLOS =====
-    const sellosY = sigaaY + 55;
+    const sellosY = Math.max(doc.y + 15, sigaaY + 55);
+    let sellosBottom = sellosY;
     if (sellos.length > 0) {
       const selloW = Math.min(160, (PW - 2 * M) / Math.min(sellos.length, 3));
       const totalSelloW = Math.min(sellos.length, 3) * selloW;
@@ -847,12 +849,15 @@ exports.exportPDF = async (req, res) => {
       sellos.slice(0, 3).forEach((s, i) => {
         const sx = startX + i * selloW;
         doc.fontSize(7).font('Helvetica-Bold').fillColor('#0f172a').text(s.titulo, sx, sellosY, { width: selloW, align: 'center' });
-        doc.fontSize(5.5).fillColor('#64748b').font('Helvetica').text(s.descripcion || '', sx, sellosY + 12, { width: selloW, align: 'center' });
+        // Descripción debajo de la altura real del título (puede ocupar 2 líneas)
+        const descY = doc.y + 3;
+        doc.fontSize(5.5).fillColor('#64748b').font('Helvetica').text(s.descripcion || '', sx, descY, { width: selloW, align: 'center' });
+        sellosBottom = Math.max(sellosBottom, doc.y);
       });
     }
 
     // ===== PIE DE PÁGINA =====
-    const footerY = sellosY + 55;
+    const footerY = Math.max(sellosBottom + 15, sellosY + 55);
     doc.strokeColor('#cbd5e1').lineWidth(0.5).moveTo(M, footerY).lineTo(PW - M, footerY).stroke();
     doc.fontSize(6).fillColor('#94a3b8').text(
       `Documento generado electrónicamente el ${formatFechaMX(new Date())}  |  Folio: ${folio}  |  Zona horaria: ${getTzInfo().zona_horaria}  |  SIVACAD`,
@@ -918,19 +923,15 @@ exports.exportExcel = async (req, res) => {
     ws.headerFooter.oddHeader = '&C&"Helvetica"&8 SIVACAD - Kardex del Alumno';
     ws.headerFooter.oddFooter = `&L${formatFechaMX(new Date())}&CFolio: ${folio}&R${getTzInfo().zona_horaria}`;
 
+    const { applyAPAMargins } = require('../helpers/excelHelpers');
+    applyAPAMargins(ws, { orientation: 'portrait' });
+    ws.views = [{ showGridLines: false }];
+
     // Logos
-    if (fs.existsSync(LOGO_TECNM)) {
-      const lid = wb.addImage(LOGO_TECNM);
-      ws.addImage(lid, { tl: { col: 0, row: 0 }, ext: { width: 80, height: 40 } });
-    }
-    if (fs.existsSync(LOGO_SIVACAD)) {
-      const lid = wb.addImage(LOGO_SIVACAD);
-      ws.addImage(lid, { tl: { col: 3, row: 0 }, ext: { width: 70, height: 40 } });
-    }
-    if (fs.existsSync(LOGO_TESI)) {
-      const lid = wb.addImage(LOGO_TESI);
-      ws.addImage(lid, { tl: { col: 6, row: 0 }, ext: { width: 80, height: 40 } });
-    }
+    const { tryInsertExcelLogo } = require('../services/files');
+    tryInsertExcelLogo(wb, ws, LOGO_TECNM, { tl: { col: 0, row: 0 }, ext: { width: 80, height: 40 } });
+    tryInsertExcelLogo(wb, ws, LOGO_SIVACAD, { tl: { col: 3, row: 0 }, ext: { width: 70, height: 40 } });
+    tryInsertExcelLogo(wb, ws, LOGO_TESI, { tl: { col: 6, row: 0 }, ext: { width: 80, height: 40 } });
 
     // Título
     ws.mergeCells(3, 1, 3, 8);
@@ -1010,9 +1011,22 @@ exports.exportExcel = async (req, res) => {
     for (let i = 3; i <= 8; i++) ws.getColumn(i).width = 15;
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=kardex_${folio}.xlsx`);
+    res.setHeader('Content-Disposition', `attachment; filename="kardex_${folio}.xlsx"`);
+    res.setHeader('X-Export-Folio', folio);
     await wb.xlsx.write(res);
     res.end();
+
+    try {
+      const { registrarExportAudit } = require('../helpers/excelHelpers');
+      await registrarExportAudit(
+        req.user.id_usuario,
+        'KARDEX_EXCEL',
+        `Kardex Excel exportado — Alumno: ${k.id_alumno} — Folio: ${folio}`,
+        req
+      );
+    } catch (auditError) {
+      console.error('[KARDEX-AUDIT] Error registrando export Excel:', auditError.message);
+    }
   } catch (error) {
     console.error('exportExcel:', error);
     if (!res.headersSent) return res.status(500).json({ ok: false, message: 'Error al exportar Excel' });

@@ -239,7 +239,7 @@ async function getCalificacionesGrupo(idGrupo, idPeriodo) {
             CONCAT(a.apellido_paterno, ' ', a.apellido_materno, ' ', a.nombres) AS nombre_alumno,
             a.matricula, a.id_alumno,
             p.nombre_periodo,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM kardex_historial_academico h
      INNER JOIN materias m ON m.id_materia = h.id_materia
      INNER JOIN grupos g ON g.id_grupo = h.id_grupo
@@ -247,6 +247,7 @@ async function getCalificacionesGrupo(idGrupo, idPeriodo) {
      INNER JOIN periodos p ON p.id_periodo = h.id_periodo
      LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE h.id_grupo = ? AND h.id_periodo = ?
      ORDER BY a.apellido_paterno, a.apellido_materno, a.nombres, m.nombre_materia`,
     [idGrupo, idPeriodo]
@@ -278,13 +279,14 @@ async function getCalificacionesAlumno(idAlumno, idPeriodo, soloPublicadas = fal
   const [rows] = await pool.execute(
     `SELECT h.*, m.nombre_materia, m.clave_materia, m.creditos, m.semestre_sugerido,
             g.nombre_grupo, g.turno, p.nombre_periodo,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM kardex_historial_academico h
      INNER JOIN materias m ON m.id_materia = h.id_materia
      INNER JOIN grupos g ON g.id_grupo = h.id_grupo
      INNER JOIN periodos p ON p.id_periodo = h.id_periodo
      LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE ${where}
      ORDER BY p.nombre_periodo, m.semestre_sugerido, m.nombre_materia`,
     params

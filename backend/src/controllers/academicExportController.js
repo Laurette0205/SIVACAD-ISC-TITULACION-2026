@@ -2,6 +2,7 @@
 
 const academicExportService = require('../services/academicExportService');
 const { registrarExportAudit } = require('../helpers/excelHelpers');
+const { denegarSiNoEsAlumnoPropio } = require('../helpers/ownership');
 
 // ==============================
 // 1. CONCENTRADO GENERAL (CON)
@@ -102,11 +103,9 @@ async function exportConcentradoPeriodo(req, res) {
 async function exportPreboletaIndividual(req, res) {
   try {
     const { idAlumno, idPeriodo } = req.params;
-    const esAlumno = String(req.user.rol).trim().toUpperCase() === 'ALUMNO';
 
-    if (esAlumno && req.user.id_alumno !== Number(idAlumno)) {
-      return res.status(403).json({ ok: false, message: 'No puedes exportar la preboleta de otro alumno' });
-    }
+    const denegado = await denegarSiNoEsAlumnoPropio(req, idAlumno, 'No puedes exportar la preboleta de otro alumno');
+    if (denegado) return res.status(denegado.status).json({ ok: false, message: denegado.message });
 
     const { workbook, folio, totalMaterias } = await academicExportService.exportPreboletaIndividual(
       Number(idAlumno), Number(idPeriodo)
@@ -138,11 +137,9 @@ async function exportPreboletaIndividual(req, res) {
 async function exportBoletaIndividual(req, res) {
   try {
     const { idAlumno, idPeriodo } = req.params;
-    const esAlumno = String(req.user.rol).trim().toUpperCase() === 'ALUMNO';
 
-    if (esAlumno && req.user.id_alumno !== Number(idAlumno)) {
-      return res.status(403).json({ ok: false, message: 'No puedes exportar la boleta de otro alumno' });
-    }
+    const denegado = await denegarSiNoEsAlumnoPropio(req, idAlumno, 'No puedes exportar la boleta de otro alumno');
+    if (denegado) return res.status(denegado.status).json({ ok: false, message: denegado.message });
 
     const { workbook, folio, totalMaterias } = await academicExportService.exportBoletaIndividual(
       Number(idAlumno), Number(idPeriodo)
@@ -174,11 +171,9 @@ async function exportBoletaIndividual(req, res) {
 async function exportHistorialAcademico(req, res) {
   try {
     const { idAlumno } = req.params;
-    const esAlumno = String(req.user.rol).trim().toUpperCase() === 'ALUMNO';
 
-    if (esAlumno && req.user.id_alumno !== Number(idAlumno)) {
-      return res.status(403).json({ ok: false, message: 'No puedes exportar el historial de otro alumno' });
-    }
+    const denegado = await denegarSiNoEsAlumnoPropio(req, idAlumno, 'No puedes exportar el historial de otro alumno');
+    if (denegado) return res.status(denegado.status).json({ ok: false, message: denegado.message });
 
     const { workbook, folio, totalMaterias } = await academicExportService.exportHistorialAcademico(Number(idAlumno));
 

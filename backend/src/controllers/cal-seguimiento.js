@@ -3,6 +3,10 @@
 const pool = require('../config/db');
 const { registrarAuditoria } = require('../middleware/auditoria');
 
+// SUM()/COUNT() de MySQL llegan como texto: sin coerción numérica la suma
+// concatena ("222") y rompe porcentajes/estados (misma regla que Excel/PDF).
+function n(v) { return Number(v || 0); }
+
 // ==============================
 // 1. DASHBOARD DE SEGUIMIENTO POR PERÍODO
 // ==============================
@@ -13,13 +17,14 @@ async function getDashboard(req, res) {
     const [materias] = await pool.execute(
       `SELECT ca.id_grupo, ca.id_materia, ca.id_docente,
               g.nombre_grupo, m.nombre_materia, m.clave_materia,
-              CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente,
+              CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente,
               p.nombre_periodo
        FROM cargas_academicas ca
        INNER JOIN grupos g ON g.id_grupo = ca.id_grupo
        INNER JOIN materias m ON m.id_materia = ca.id_materia
        INNER JOIN periodos p ON p.id_periodo = ca.id_periodo
        LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+       LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
        WHERE ca.id_periodo = ? AND ca.estado = 'ACTIVA'
        ORDER BY g.nombre_grupo, m.nombre_materia`,
       [idPeriodo]
@@ -63,11 +68,13 @@ async function getDashboard(req, res) {
       );
 
       const c = captura[0] || {};
-      const parcialesCapturados = (c.p1_capturados || 0) + (c.p2_capturados || 0) + (c.p3_capturados || 0);
+      const parcialesCapturados = n(c.p1_capturados) + n(c.p2_capturados) + n(c.p3_capturados);
+      const totalRegistros = n(c.total_registros);
       const porcentajeCaptura = totalEsperado > 0 ? Math.round((parcialesCapturados / totalEsperado) * 100) : 0;
-      const totalPublicadas = (c.publicadas || 0) + (c.cerradas || 0);
-      const porcentajeValidacion = (c.total_registros || 0) > 0 ? Math.round(((c.validadas || 0) + (c.publicadas || 0) + (c.cerradas || 0)) / c.total_registros * 100) : 0;
-      const porcentajePublicacion = (c.total_registros || 0) > 0 ? Math.round((totalPublicadas / c.total_registros) * 100) : 0;
+      const totalPublicadas = n(c.publicadas) + n(c.cerradas);
+      const porcentajeValidacion = totalRegistros > 0
+        ? Math.round((n(c.validadas) + n(c.publicadas) + n(c.cerradas)) / totalRegistros * 100) : 0;
+      const porcentajePublicacion = totalRegistros > 0 ? Math.round(totalPublicadas / totalRegistros * 100) : 0;
 
       resultado.push({
         id_grupo: mat.id_grupo,
@@ -84,13 +91,13 @@ async function getDashboard(req, res) {
         porcentaje_captura: porcentajeCaptura,
         porcentaje_validacion: porcentajeValidacion,
         porcentaje_publicacion: porcentajePublicacion,
-        borradores: c.borradores || 0,
-        validadas: c.validadas || 0,
-        publicadas: c.publicadas || 0,
-        cerradas: c.cerradas || 0,
-        promedio_grupal: c.promedio_grupal || null,
-        alumnos_aprobados: c.aprobados || 0,
-        alumnos_no_acreditados: c.no_acreditados || 0
+        borradores: n(c.borradores),
+        validadas: n(c.validadas),
+        publicadas: n(c.publicadas),
+        cerradas: n(c.cerradas),
+        promedio_grupal: c.promedio_grupal != null ? Number(c.promedio_grupal) : null,
+        alumnos_aprobados: n(c.aprobados),
+        alumnos_no_acreditados: n(c.no_acreditados)
       });
     }
 
@@ -122,10 +129,11 @@ async function getDetalleGrupo(req, res) {
     const [materias] = await pool.execute(
       `SELECT ca.id_materia, ca.id_docente,
               m.nombre_materia, m.clave_materia,
-              CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+              CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
        FROM cargas_academicas ca
        INNER JOIN materias m ON m.id_materia = ca.id_materia
        LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+       LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
        WHERE ca.id_grupo = ? AND ca.id_periodo = ? AND ca.estado = 'ACTIVA'
        ORDER BY m.nombre_materia`,
       [idGrupo, idPeriodo]
@@ -239,7 +247,8 @@ async function recalcular(req, res) {
 
       const s = stats[0] || {};
       const totalEsperado = totalAlumnos * 3;
-      const parcialesCapturados = (s.p1 || 0) + (s.p2 || 0) + (s.p3 || 0);
+      const parcialesCapturados = n(s.p1) + n(s.p2) + n(s.p3);
+      const totalRegistros = n(s.total_registros);
 
       await pool.execute(
         `INSERT INTO calificaciones_seguimiento_coord
@@ -263,10 +272,10 @@ async function recalcular(req, res) {
         [idGrupo, mat.id_materia, idPeriodo, mat.id_docente, totalAlumnos,
          parcialesCapturados, totalEsperado - parcialesCapturados, totalEsperado,
          totalEsperado > 0 ? Math.round(parcialesCapturados / totalEsperado * 100) : 0,
-         (s.total_registros || 0) > 0 ? Math.round(((s.validadas || 0) + (s.publicadas || 0)) / s.total_registros * 100) : 0,
-         (s.total_registros || 0) > 0 ? Math.round((s.publicadas || 0) / s.total_registros * 100) : 0,
-         totalAlumnos - (s.aprobados || 0) - (s.no_acred || 0),
-         s.aprobados || 0, s.no_acred || 0, s.promedio || 0]
+         totalRegistros > 0 ? Math.round((n(s.validadas) + n(s.publicadas)) / totalRegistros * 100) : 0,
+         totalRegistros > 0 ? Math.round(n(s.publicadas) / totalRegistros * 100) : 0,
+         totalAlumnos - n(s.aprobados) - n(s.no_acred),
+         n(s.aprobados), n(s.no_acred), s.promedio != null ? Number(s.promedio) : 0]
       );
     }
 
@@ -294,11 +303,12 @@ async function getIncidencias(req, res) {
 
     const [incidencias] = await pool.execute(
       `SELECT s.*, g.nombre_grupo, m.nombre_materia, m.clave_materia,
-              CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+              CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
        FROM calificaciones_seguimiento_coord s
        INNER JOIN grupos g ON g.id_grupo = s.id_grupo
        INNER JOIN materias m ON m.id_materia = s.id_materia
        LEFT JOIN docentes dn ON dn.id_docente = s.id_docente
+       LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
        WHERE s.id_periodo = ?
          AND (s.porcentaje_captura < 50 OR s.alumnos_no_acreditados > s.total_alumnos * 0.3
               OR s.total_alumnos = 0)
@@ -354,11 +364,12 @@ async function getTablero(req, res) {
       `SELECT ca.id_grupo, ca.id_materia, ca.id_docente,
               g.nombre_grupo, g.semestre, g.turno,
               m.nombre_materia, m.clave_materia,
-              CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+              CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
        FROM cargas_academicas ca
        INNER JOIN grupos g ON g.id_grupo = ca.id_grupo
        INNER JOIN materias m ON m.id_materia = ca.id_materia
        LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+       LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
        WHERE ${whereCarga}
        ORDER BY g.nombre_grupo, m.nombre_materia`,
       paramsCarga
@@ -406,7 +417,7 @@ async function getTablero(req, res) {
       );
 
       const s = captura[0] || {};
-      const totalReg = s.total_registros || 0;
+      const totalReg = n(s.total_registros);
       const sinCalificacion = totalAlumnos - totalReg;
 
       // Calificaciones modificadas (cambios registrados)
@@ -425,10 +436,10 @@ async function getTablero(req, res) {
       // Estado de calificacion (predominante)
       let estadoPredominante = 'SIN_DATOS';
       if (totalReg > 0) {
-        if ((s.cerradas || 0) === totalReg) estadoPredominante = 'CERRADA';
-        else if ((s.publicadas || 0) + (s.cerradas || 0) === totalReg) estadoPredominante = 'PUBLICADA';
-        else if ((s.validadas || 0) + (s.publicadas || 0) + (s.cerradas || 0) === totalReg) estadoPredominante = 'VALIDADA';
-        else if ((s.borradores || 0) === totalReg) estadoPredominante = 'BORRADOR';
+        if (n(s.cerradas) === totalReg) estadoPredominante = 'CERRADA';
+        else if (n(s.publicadas) + n(s.cerradas) === totalReg) estadoPredominante = 'PUBLICADA';
+        else if (n(s.validadas) + n(s.publicadas) + n(s.cerradas) === totalReg) estadoPredominante = 'VALIDADA';
+        else if (n(s.borradores) === totalReg) estadoPredominante = 'BORRADOR';
         else estadoPredominante = 'EN_PROCESO';
       }
 
@@ -447,26 +458,26 @@ async function getTablero(req, res) {
         nombre_docente: c.nombre_docente,
         total_alumnos: totalAlumnos,
         // Parciales
-        p1_capturados: s.p1_capturados || 0,
-        p1_pendientes: totalAlumnos - (s.p1_capturados || 0),
-        p2_capturados: s.p2_capturados || 0,
-        p2_pendientes: totalAlumnos - (s.p2_capturados || 0),
-        p3_capturados: s.p3_capturados || 0,
-        p3_pendientes: totalAlumnos - (s.p3_capturados || 0),
+        p1_capturados: n(s.p1_capturados),
+        p1_pendientes: totalAlumnos - n(s.p1_capturados),
+        p2_capturados: n(s.p2_capturados),
+        p2_pendientes: totalAlumnos - n(s.p2_capturados),
+        p3_capturados: n(s.p3_capturados),
+        p3_pendientes: totalAlumnos - n(s.p3_capturados),
         // Promedio
-        promedio_grupal: s.promedio_grupal || null,
+        promedio_grupal: s.promedio_grupal != null ? Number(s.promedio_grupal) : null,
         // Estados
-        borradores: s.borradores || 0,
-        validadas: s.validadas || 0,
-        publicadas: s.publicadas || 0,
-        cerradas: s.cerradas || 0,
+        borradores: n(s.borradores),
+        validadas: n(s.validadas),
+        publicadas: n(s.publicadas),
+        cerradas: n(s.cerradas),
         estado_predominante: estadoPredominante,
         // Pendientes y modificaciones
         calificaciones_pendientes: sinCalificacion > 0 ? sinCalificacion : 0,
         modificaciones: modificaciones,
         // Aprobacion
-        alumnos_aprobados: s.aprobados || 0,
-        alumnos_no_acreditados: s.no_acreditados || 0
+        alumnos_aprobados: n(s.aprobados),
+        alumnos_no_acreditados: n(s.no_acreditados)
       });
     }
 

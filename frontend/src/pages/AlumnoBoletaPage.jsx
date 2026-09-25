@@ -165,7 +165,7 @@ export default function AlumnoBoletaPage() {
     try {
       setExporting(true);
       const idAlumno = user?.id_alumno;
-      const idPeriodo = preboleta?.periodo_id || preboleta?.materias?.[0]?.id_periodo;
+      const idPeriodo = preboleta?.materias?.[0]?.id_periodo;
       if (!idAlumno || !idPeriodo) return;
       const response = await api.request(`/preboletas/export/excel/alumno/${idAlumno}?idPeriodo=${idPeriodo}`, { token, responseType: 'blob' });
       const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -178,7 +178,7 @@ export default function AlumnoBoletaPage() {
     try {
       setExporting(true);
       const idAlumno = user?.id_alumno;
-      const idPeriodo = preboleta?.periodo_id || preboleta?.materias?.[0]?.id_periodo;
+      const idPeriodo = preboleta?.materias?.[0]?.id_periodo;
       if (!idAlumno || !idPeriodo) return;
       const response = await api.request(`/preboletas/export/pdf/alumno/${idAlumno}?idPeriodo=${idPeriodo}`, { token, responseType: 'blob' });
       const blob = new Blob([response], { type: 'application/pdf' });
@@ -192,7 +192,7 @@ export default function AlumnoBoletaPage() {
       setExporting(true);
       const idAlumno = user?.id_alumno;
       if (!idAlumno) return;
-      const qs = selectedPeriodo ? `?idPeriodo=${selectedPeriodo}` : '';
+      const qs = selectedPeriodo?.id ? `?idPeriodo=${selectedPeriodo.id}` : '';
       const response = await api.request(`/preboletas/export/boleta/excel/${idAlumno}${qs}`, { token, responseType: 'blob' });
       const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       downloadBlob(blob, `boleta_${boleta?.alumno?.matricula || idAlumno}.xlsx`);
@@ -205,7 +205,7 @@ export default function AlumnoBoletaPage() {
       setExporting(true);
       const idAlumno = user?.id_alumno;
       if (!idAlumno) return;
-      const qs = selectedPeriodo ? `?idPeriodo=${selectedPeriodo}` : '';
+      const qs = selectedPeriodo?.id ? `?idPeriodo=${selectedPeriodo.id}` : '';
       const response = await api.request(`/preboletas/export/boleta/pdf/${idAlumno}${qs}`, { token, responseType: 'blob' });
       const blob = new Blob([response], { type: 'application/pdf' });
       downloadBlob(blob, `boleta_${boleta?.alumno?.matricula || idAlumno}.pdf`);
@@ -231,8 +231,10 @@ export default function AlumnoBoletaPage() {
 
   const alumno = boleta?.alumno || preboleta?.alumno || {};
   const periodosBoleta = boleta?.periodos || [];
+  const periodoNombre = (p) => p.periodo || p.nombre_periodo;
+  const periodoId = (p) => p.materias?.[0]?.id_periodo;
   const displayPeriodos = selectedPeriodo
-    ? periodosBoleta.filter(p => p.nombre_periodo === selectedPeriodo)
+    ? periodosBoleta.filter(p => periodoId(p) === selectedPeriodo.id)
     : periodosBoleta;
 
   return (
@@ -303,33 +305,45 @@ export default function AlumnoBoletaPage() {
               >
                 Todos
               </button>
-              {periodosBoleta.map(p => (
-                <button
-                  key={p.nombre_periodo}
-                  className={`btn ${selectedPeriodo === p.nombre_periodo ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setSelectedPeriodo(p.nombre_periodo)}
-                  style={{ fontSize: '0.8rem' }}
-                >
-                  {p.nombre_periodo}
-                </button>
-              ))}
+              {periodosBoleta.map(p => {
+                const id = periodoId(p);
+                const nombre = periodoNombre(p);
+                const activo = selectedPeriodo?.id === id;
+                return (
+                  <button
+                    key={id ?? nombre}
+                    className={`btn ${activo ? 'btn-primary' : 'btn-secondary'}`}
+                    onClick={() => setSelectedPeriodo(id != null ? { id, nombre } : null)}
+                    style={{ fontSize: '0.8rem' }}
+                  >
+                    {nombre}
+                  </button>
+                );
+              })}
             </div>
           )}
 
           {/* Calificaciones por período */}
-          {displayPeriodos.map(p => (
-            <div key={p.nombre_periodo} className="section-card" style={{ marginBottom: '1.5rem' }}>
+          {displayPeriodos.map(p => {
+            const materiasP = p.materias || [];
+            const conFinal = materiasP.filter(m => m.calificacion_final != null);
+            const aprobadas = conFinal.filter(m => Number(m.calificacion_final) >= 6).length;
+            const noAcreditadas = conFinal.filter(m => Number(m.calificacion_final) < 6).length;
+            const promedioPeriodo = p.promedio ?? p.promedio_periodo;
+            return (
+            <div key={periodoId(p) ?? periodoNombre(p)} className="section-card" style={{ marginBottom: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <h3 style={{ margin: 0, fontSize: '1rem' }}>Periodo: {p.nombre_periodo}</h3>
+                <h3 style={{ margin: 0, fontSize: '1rem' }}>Periodo: {periodoNombre(p)}</h3>
                 <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
-                  <span style={{ color: '#059669', fontWeight: 600 }}>{p.aprobadas} aprobadas</span>
-                  <span style={{ color: '#dc2626', fontWeight: 600 }}>{p.no_acreditadas} no acreditadas</span>
-                  <span style={{ fontWeight: 700 }}>Promedio: {p.promedio_periodo != null ? Number(p.promedio_periodo).toFixed(1) : '—'}</span>
+                  <span style={{ color: '#059669', fontWeight: 600 }}>{aprobadas} aprobadas</span>
+                  <span style={{ color: '#dc2626', fontWeight: 600 }}>{noAcreditadas} no acreditadas</span>
+                  <span style={{ fontWeight: 700 }}>Promedio: {promedioPeriodo != null ? Number(promedioPeriodo).toFixed(1) : '—'}</span>
                 </div>
               </div>
-              <GradesTable materias={p.materias} />
+              <GradesTable materias={materiasP} />
             </div>
-          ))}
+            );
+          })}
 
           {periodosBoleta.length === 0 && (
             <div className="section-card" style={{ textAlign: 'center', padding: '2rem' }}>

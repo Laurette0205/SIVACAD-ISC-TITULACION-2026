@@ -125,7 +125,7 @@ exports.getKardexExportInfo = async (req, res) => {
     const k = rows[0];
     const folio = k.folio_kardex || null;
 
-    const nombreCompleto = `${k.nombres || ''} ${k.apellido_paterno || ''} ${k.apellido_materno || ''}`.replace(/\s+/g, ' ').trim();
+    const nombreCompleto = `${k.apellido_paterno || ''} ${k.apellido_materno || ''} ${k.nombres || ''}`.replace(/\s+/g, ' ').trim();
     const fotografiaUrl = k.foto_institucional || k.foto_alumno || k.fotografia;
 
     return res.json({

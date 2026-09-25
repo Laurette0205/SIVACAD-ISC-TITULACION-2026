@@ -30,7 +30,9 @@ function buildQueryString(filters) {
 }
 
 export default function ReportesPage() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  const rolActual = String(user?.rol || '').trim().toUpperCase();
+  const canSecurityReports = rolActual === 'ADMINISTRADOR' || rolActual === 'SOPORTE';
 
   const [filters, setFilters] = React.useState({
     tipo: 'general',
@@ -209,24 +211,24 @@ export default function ReportesPage() {
 
             <div className="grid-two">
               <label className="field">
-                <span>Alumno ID</span>
+                <span>Alumno ID {filters.tipo === 'alumno' && <em style={{ color: '#dc2626', fontStyle: 'normal' }}>*</em>}</span>
                 <input
                   value={filters.alumnoId}
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, alumnoId: e.target.value }))
                   }
-                  placeholder="Opcional"
+                  placeholder={filters.tipo === 'alumno' ? 'Requerido' : 'Opcional'}
                 />
               </label>
 
               <label className="field">
-                <span>Grupo ID</span>
+                <span>Grupo ID {filters.tipo === 'grupo' && <em style={{ color: '#dc2626', fontStyle: 'normal' }}>*</em>}</span>
                 <input
                   value={filters.grupoId}
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, grupoId: e.target.value }))
                   }
-                  placeholder="Opcional"
+                  placeholder={filters.tipo === 'grupo' ? 'Requerido' : 'Opcional'}
                 />
               </label>
             </div>
@@ -326,10 +328,11 @@ export default function ReportesPage() {
         </div>
       </SectionCard>
 
-      <SectionCard
-        title="Reportes de Seguridad"
-        subtitle="Eventos MFA, actividad sospechosa y dispositivos conocidos"
-      >
+      {canSecurityReports && (
+        <SectionCard
+          title="Reportes de Seguridad"
+          subtitle="Eventos MFA, actividad sospechosa y dispositivos conocidos"
+        >
         <div className="form-stack">
           <label className="field">
             <span>Tipo de reporte de seguridad</span>
@@ -410,7 +413,8 @@ export default function ReportesPage() {
             </div>
           )}
         </div>
-      </SectionCard>
+        </SectionCard>
+      )}
 
       <button
         type="button"

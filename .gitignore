@@ -64,3 +64,8 @@ nul
 # Backend kardex QR codes
 backend/uploads/kardex/*
 !backend/uploads/kardex/.gitkeep
+
+# Fase E — fixtures/screenshots generados por las suites de export
+# (se regeneran con: node backend/tests/phase-e-exports.js)
+backend/tests/_phase_e_out/
+backend/tests/_phase_e_img/

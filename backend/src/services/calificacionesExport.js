@@ -9,6 +9,7 @@
 
 const ExcelJS = require('exceljs');
 const pool = require('../config/db');
+const { applyAPAMargins } = require('../helpers/excelHelpers');
 
 // ==============================
 // SERVICIO ÚNICO DE CALIFICACIONES
@@ -16,7 +17,8 @@ const pool = require('../config/db');
 const {
   roundGrade,
   calculateAverage,
-  PASSING_GRADE
+  PASSING_GRADE,
+  calcularEstadoAcademico
 } = require('./academicGradeService');
 
 function formatFechaMX(date) {
@@ -64,12 +66,13 @@ async function exportBoletaAlumno(idAlumno, idPeriodo, idUsuarioSolicitante) {
   const [materias] = await pool.execute(
     `SELECT h.*, m.nombre_materia, m.clave_materia, m.creditos,
             p.nombre_periodo,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM kardex_historial_academico h
      INNER JOIN materias m ON m.id_materia = h.id_materia
      INNER JOIN periodos p ON p.id_periodo = h.id_periodo
      LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE ${where}
      ORDER BY p.nombre_periodo, m.semestre_sugerido, m.nombre_materia`,
     params
@@ -93,7 +96,7 @@ async function exportBoletaAlumno(idAlumno, idPeriodo, idUsuarioSolicitante) {
     }
   });
 
-  ws1.pageSetup.margins = { top: 1.5, bottom: 1.5, left: 1.5, right: 1.5, header: 0, footer: 0 };
+  applyAPAMargins(ws1, { orientation: 'landscape' });
   ws1.views = [{ showGridLines: false }];
 
   const colWidths = [3, 18, 40, 12, 12, 12, 14, 14, 14];
@@ -128,18 +131,22 @@ async function exportBoletaAlumno(idAlumno, idPeriodo, idUsuarioSolicitante) {
   ws1.getCell('F5').value = alumno.nombre_carrera;
   ws1.getCell('F5').font = { size: 10, name: 'Arial' };
 
-  ws1.getCell('E6').value = 'Promedio:';
+  ws1.getCell('E6').value = 'Promedio General:';
   ws1.getCell('E6').font = { bold: true, size: 10, name: 'Arial' };
-  ws1.getCell('F6').value = alumno.promedio_general != null ? Number(alumno.promedio_general).toFixed(2) : 'N/A';
+  const bolFins = materias.filter(m => m.calificacion_final != null).map(m => parseFloat(m.calificacion_final));
+  const bolProm = bolFins.length > 0 ? roundGrade(bolFins.reduce((s, v) => s + v, 0) / bolFins.length) : null;
+  ws1.getCell('F6').value = bolProm != null ? bolProm.toFixed(2) : 'N/A';
   ws1.getCell('F6').font = { size: 10, name: 'Arial' };
 
   ws1.mergeCells('A8:I8');
   const folioCell = ws1.getCell('A8');
-  folioCell.value = `Folio: ${folio}  |  Emitido: ${formatFechaMX(new Date())}  |  Periodo: ${idPeriodo || 'TODOS'}`;
+  const nombrePeriodo = materias[0]?.nombre_periodo || (idPeriodo || 'TODOS');
+  folioCell.value = `Folio: ${folio}  |  Emitido: ${formatFechaMX(new Date())}  |  Periodo: ${nombrePeriodo}`;
   folioCell.font = { size: 8, color: { argb: 'FF475569' }, name: 'Arial' };
 
   // Hoja 2: Calificaciones por período
   const ws2 = workbook.addWorksheet('Calificaciones');
+  applyAPAMargins(ws2, { orientation: 'landscape' });
   ws2.headerFooter = {
     oddHeader: '&C&"Arial"&8 Calificaciones por Período',
     oddFooter: `&L${formatFechaMX(new Date())}&CFolio: ${folio}&RHoja 2`
@@ -173,22 +180,25 @@ async function exportBoletaAlumno(idAlumno, idPeriodo, idUsuarioSolicitante) {
     }
 
     idx++;
-    const p1 = m.calificacion_parcial_1 != null ? roundGrade(m.calificacion_parcial_1) : '-';
-    const p2 = m.calificacion_parcial_2 != null ? roundGrade(m.calificacion_parcial_2) : '-';
-    const p3 = m.calificacion_parcial_3 != null ? roundGrade(m.calificacion_parcial_3) : '-';
-    const promedio = m.promedio_calculado != null ? roundGrade(m.promedio_calculado) : '-';
+    const p1 = m.parcial_1 != null ? roundGrade(m.parcial_1) : '-';
+    const p2 = m.parcial_2 != null ? roundGrade(m.parcial_2) : '-';
+    const p3 = m.parcial_3 != null ? roundGrade(m.parcial_3) : '-';
+    const promedio = m.promedio_parciales != null ? roundGrade(m.promedio_parciales)
+      : (calculateAverage(m.parcial_1, m.parcial_2, m.parcial_3) ?? '-');
     const final_ = m.calificacion_final != null ? roundGrade(m.calificacion_final) : '-';
-    const estado = m.estado_calificacion || '-';
+    const estado = calcularEstadoAcademico(m);
 
     const dataRow = ws2.addRow([idx, m.nombre_materia, m.clave_materia, p1, p2, p3, promedio, final_, estado]);
     const rowIdx = dataRow.number;
 
-    // Colores por estado
+    // Colores por estado académico
     const estadoColors = {
-      PUBLICADA: 'FFD1FAE5',
-      BORRADOR: 'FFFEF3C7',
-      VALIDADA: 'FFDBEAFE',
-      CERRADA: 'FFF3F4F6'
+      Acreditada: 'FFD1FAE5',
+      'No Acreditada': 'FFFEE2E2',
+      Pendiente: 'FFFEF3C7',
+      Borrador: 'FFFEF3C7',
+      Validada: 'FFDBEAFE',
+      'Sin Calificación': 'FFF1F5F9'
     };
     const bgColor = estadoColors[estado] || 'FFFFFFFF';
     dataRow.eachCell((cell, colNumber) => {
@@ -201,6 +211,13 @@ async function exportBoletaAlumno(idAlumno, idPeriodo, idUsuarioSolicitante) {
 
     dataRow.height = 18;
   }
+
+  // Resumen del período (paridad con el PDF: Promedio / Aprobadas / No Acreditadas)
+  const bolApr = bolFins.filter(v => v >= PASSING_GRADE).length;
+  const bolNoA = bolFins.filter(v => v < PASSING_GRADE).length;
+
+  ws2.addRow([]);
+  ws2.addRow([`Promedio: ${bolProm != null ? bolProm.toFixed(2) : '-'}  |  Aprobadas: ${bolApr}  |  No Acreditadas: ${bolNoA}`]);
 
   // Pie de página
   const footerRow = ws2.addRow([]);
@@ -272,7 +289,7 @@ async function exportGrupoCalificaciones(idGrupo, idPeriodo, idUsuarioSolicitant
     oddFooter: `&L${formatFechaMX(new Date())}&CFolio: ${folio}&RSIVACAD-ISC`
   };
 
-  ws1.pageSetup.margins = { top: 1.5, bottom: 1.5, left: 1.2, right: 1.2, header: 0, footer: 0 };
+  applyAPAMargins(ws1, { orientation: 'landscape' });
 
   // Título
   ws1.mergeCells('A1:K1');
@@ -312,22 +329,27 @@ async function exportGrupoCalificaciones(idGrupo, idPeriodo, idUsuarioSolicitant
       idx++;
     }
 
-    const p1 = r.calificacion_parcial_1 != null ? roundGrade(r.calificacion_parcial_1) : '-';
-    const p2 = r.calificacion_parcial_2 != null ? roundGrade(r.calificacion_parcial_2) : '-';
-    const p3 = r.calificacion_parcial_3 != null ? roundGrade(r.calificacion_parcial_3) : '-';
-    const promedio = r.promedio_calculado != null ? roundGrade(r.promedio_calculado) : '-';
+    const p1 = r.parcial_1 != null ? roundGrade(r.parcial_1) : '-';
+    const p2 = r.parcial_2 != null ? roundGrade(r.parcial_2) : '-';
+    const p3 = r.parcial_3 != null ? roundGrade(r.parcial_3) : '-';
+    const promedio = r.promedio_parciales != null ? roundGrade(r.promedio_parciales)
+      : (calculateAverage(r.parcial_1, r.parcial_2, r.parcial_3) ?? '-');
     const final_ = r.calificacion_final != null ? roundGrade(r.calificacion_final) : '-';
-    const estado = r.estado_calificacion || '-';
+    const estado = calcularEstadoAcademico(r);
 
     const dataRow = ws1.addRow([
       idx, r.matricula, r.nombre_alumno, r.nombre_materia,
       r.clave_materia, r.creditos, p1, p2, p3, promedio, final_, estado
     ]);
 
-    // Colores por estado
+    // Colores por estado académico
     const estadoColors = {
-      PUBLICADA: 'FFD1FAE5', BORRADOR: 'FFFEF3C7',
-      VALIDADA: 'FFDBEAFE', CERRADA: 'FFF3F4F6'
+      Acreditada: 'FFD1FAE5',
+      'No Acreditada': 'FFFEE2E2',
+      Pendiente: 'FFFEF3C7',
+      Borrador: 'FFFEF3C7',
+      Validada: 'FFDBEAFE',
+      'Sin Calificación': 'FFF1F5F9'
     };
     const bgColor = estadoColors[estado] || 'FFFFFFFF';
 
@@ -423,6 +445,7 @@ async function exportResumenCalificaciones(idPeriodo, idUsuarioSolicitante, rolS
 
   // Hoja 1: Resumen ejecutivo
   const ws1 = workbook.addWorksheet('Resumen Ejecutivo');
+  applyAPAMargins(ws1, { orientation: 'landscape' });
   ws1.headerFooter = {
     oddHeader: `&C&"Arial"&8 Resumen de Calificaciones — ${nombre_periodo}`,
     oddFooter: `&L${formatFechaMX(new Date())}&CFolio: ${folio}&RSIVACAD-ISC`
@@ -454,6 +477,7 @@ async function exportResumenCalificaciones(idPeriodo, idUsuarioSolicitante, rolS
   let totalGeneralMaterias = 0;
   let totalGeneralAprobados = 0;
   let totalGeneralReprobados = 0;
+  let sumaPonderadaPromedio = 0;
 
   for (const grupo of grupos) {
     const [stats] = await pool.execute(
@@ -469,10 +493,11 @@ async function exportResumenCalificaciones(idPeriodo, idUsuarioSolicitante, rolS
     );
 
     const s = stats[0];
-    const totalAl = s.total_alumnos || 0;
-    const totalMat = s.total_materias || 0;
-    const aprobados = s.aprobados || 0;
-    const reprobados = s.reprobados || 0;
+    // SUM() de MySQL devuelve texto: sin Number() la suma acumulada concatena ("02")
+    const totalAl = Number(s.total_alumnos || 0);
+    const totalMat = Number(s.total_materias || 0);
+    const aprobados = Number(s.aprobados || 0);
+    const reprobados = Number(s.reprobados || 0);
     const promedio = s.promedio != null ? Number(s.promedio).toFixed(2) : '-';
     const pctAprob = totalMat > 0 ? `${Math.round((aprobados / totalMat) * 100)}%` : '-';
 
@@ -480,6 +505,9 @@ async function exportResumenCalificaciones(idPeriodo, idUsuarioSolicitante, rolS
     totalGeneralMaterias += totalMat;
     totalGeneralAprobados += aprobados;
     totalGeneralReprobados += reprobados;
+    if (s.promedio != null && totalMat > 0) {
+      sumaPonderadaPromedio += Number(s.promedio) * totalMat;
+    }
 
     const dataRow = ws1.addRow([grupo.nombre_grupo, totalAl, totalMat, promedio, aprobados, reprobados, pctAprob]);
     dataRow.eachCell((cell, colNumber) => {
@@ -490,11 +518,14 @@ async function exportResumenCalificaciones(idPeriodo, idUsuarioSolicitante, rolS
 
   // Fila de totales
   ws1.addRow([]);
+  const promedioTotal = totalGeneralMaterias > 0
+    ? (Math.round((sumaPonderadaPromedio / totalGeneralMaterias) * 100) / 100).toFixed(2)
+    : '-';
   const totalRow = ws1.addRow([
     'TOTAL',
     totalGeneralAlumnos,
     totalGeneralMaterias,
-    '-',
+    promedioTotal,
     totalGeneralAprobados,
     totalGeneralReprobados,
     totalGeneralMaterias > 0 ? `${Math.round((totalGeneralAprobados / totalGeneralMaterias) * 100)}%` : '-'
@@ -509,6 +540,7 @@ async function exportResumenCalificaciones(idPeriodo, idUsuarioSolicitante, rolS
   for (const grupo of grupos) {
     const safeName = grupo.nombre_grupo.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 28);
     const ws2 = workbook.addWorksheet(safeName);
+    applyAPAMargins(ws2, { orientation: 'landscape' });
 
     const [rows] = await pool.execute(
       `SELECT h.*, m.nombre_materia, m.clave_materia, m.creditos,
@@ -543,12 +575,13 @@ async function exportResumenCalificaciones(idPeriodo, idUsuarioSolicitante, rolS
 
       ws2.addRow([
         idx2, r.matricula, r.nombre_alumno, r.nombre_materia,
-        r.calificacion_parcial_1 != null ? roundGrade(r.calificacion_parcial_1) : '-',
-        r.calificacion_parcial_2 != null ? roundGrade(r.calificacion_parcial_2) : '-',
-        r.calificacion_parcial_3 != null ? roundGrade(r.calificacion_parcial_3) : '-',
-        r.promedio_calculado != null ? roundGrade(r.promedio_calculado) : '-',
+        r.parcial_1 != null ? roundGrade(r.parcial_1) : '-',
+        r.parcial_2 != null ? roundGrade(r.parcial_2) : '-',
+        r.parcial_3 != null ? roundGrade(r.parcial_3) : '-',
+        r.promedio_parciales != null ? roundGrade(r.promedio_parciales)
+          : (calculateAverage(r.parcial_1, r.parcial_2, r.parcial_3) ?? '-'),
         r.calificacion_final != null ? roundGrade(r.calificacion_final) : '-',
-        r.estado_calificacion || '-'
+        calcularEstadoAcademico(r)
       ]);
     }
   }

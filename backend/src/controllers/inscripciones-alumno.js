@@ -454,15 +454,15 @@ exports.descargarComprobante = async (req, res) => {
     const ins = rows[0];
 
     const PDFDocument = require('pdfkit');
-    const PDFDoc = new PDFDocument({
-      size: 'letter',
-      margin: 50,
+    const { pdfKitOptions } = require('../helpers/exportStandards');
+    const PDFDoc = new PDFDocument(pdfKitOptions({
+      size: 'LETTER',
       info: {
         Title: `Comprobante de Inscripcion #${ins.id_inscripcion}`,
         Author: 'SIVACAD',
         Subject: 'Comprobante de Inscripcion'
       }
-    });
+    }));
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=comprobante_${ins.id_inscripcion}.pdf`);

@@ -75,13 +75,13 @@ class DesercionPdfTemplate {
       await page.setContent(html, { waitUntil: 'networkidle0' });
       const pdfBuffer = await page.pdf({
         format: 'Letter',
-        margin: { top: '2.54cm', right: '2.54cm', bottom: '3.0cm', left: '3.0cm' },
+        margin: { top: '2.54cm', right: '2.54cm', bottom: '2.54cm', left: '2.54cm' },
         printBackground: true,
         displayHeaderFooter: true,
         headerTemplate: '<div style="font-size:8pt;text-align:right;padding-right:2.54cm;font-family:Arial;color:#475569;width:100%;"><span class="pageNumber"></span></div>',
         footerTemplate: `
           <div style="width:100%;font-size:6.5px;font-family:Arial,sans-serif;color:#94a3b8;
-               text-align:center;padding:4px 3.0cm 0 3.0cm;border-top:1px solid #e2e8f0;">
+               text-align:center;padding:4px 2.54cm 0 2.54cm;border-top:1px solid #e2e8f0;">
             Documento generado por SIVACAD-ISC &copy; 2026 B&aacute;rcenas Gonz&aacute;lez Laura Casandra &amp; Morales Ibarra Sandivel &mdash;
             TESI &mdash; Ingenier&iacute;a en Sistemas Computacionales &mdash; Proyecto de Titulaci&oacute;n &mdash;
             P&aacute;gina <span class="pageNumber"></span> de <span class="totalPages"></span>
@@ -116,10 +116,10 @@ class DesercionPdfTemplate {
     return '<!DOCTYPE html>\n<html lang="es">\n<head>\n<meta charset="UTF-8">\n<style>\n'
       + '*{box-sizing:border-box;margin:0;padding:0}'
       + 'body{font-family:Arial,Helvetica,sans-serif;color:#1e293b;font-size:9px;line-height:1.55;background:#fff}'
-      + '@page{margin:0;size:A4}'
-      + '.page{position:relative;width:210mm;min-height:297mm;padding:25mm 18mm 22mm;page-break-after:always}'
+      + '@page{margin:0;size:letter}'
+      + '.page{position:relative;width:215.9mm;min-height:279.4mm;padding:25mm 18mm 22mm;page-break-after:always}'
       + '.page:last-child{page-break-after:auto}'
-      + '.watermark{position:fixed;top:0;left:0;width:210mm;height:297mm;pointer-events:none;z-index:-1;' + wmBg + '}'
+      + '.watermark{position:fixed;top:0;left:0;width:215.9mm;height:279.4mm;pointer-events:none;z-index:-1;' + wmBg + '}'
       + '.content{position:relative;z-index:1}'
       + '.header{display:flex;align-items:center;justify-content:space-between;padding-bottom:6mm;margin-bottom:5mm;border-bottom:2.5px solid #4f46e5}'
       + '.header-logo{height:38px;object-fit:contain}'

@@ -1,6 +1,7 @@
 'use strict';
 
 const ExcelJS = require('exceljs');
+const { excelPageSetup } = require('../../helpers/exportStandards');
 
 function toNum(value, fallback = 0) {
   const n = Number(value);
@@ -43,7 +44,8 @@ class DesercionExcel {
     };
 
     // SHEET 1: Resumen Ejecutivo
-    const ws1 = workbook.addWorksheet('Resumen Ejecutivo', { pageSetup: { orientation: 'portrait', paperSize: 9, fitToPage: true } });
+    const ws1 = workbook.addWorksheet('Resumen Ejecutivo');
+    excelPageSetup(ws1, { orientation: 'portrait' });
 
     ws1.mergeCells('A1:D1');
     ws1.getCell('A1').value = 'SIVACAD - Reporte Estrategico de Riesgo de Desercion';
@@ -79,9 +81,8 @@ class DesercionExcel {
     ['A', 'B', 'C', 'D'].forEach(function(col) { ws1.getColumn(col).width = 28; });
 
     // SHEET 2: Datos Tabulados
-    var ws2 = workbook.addWorksheet('Datos por Parciales y Ciclos', {
-      pageSetup: { orientation: 'landscape', paperSize: 9, fitToPage: true }
-    });
+    var ws2 = workbook.addWorksheet('Datos por Parciales y Ciclos');
+    excelPageSetup(ws2, { orientation: 'landscape' });
 
     ws2.mergeCells('A1:H1');
     ws2.getCell('A1').value = 'SIVACAD - Datos Tabulados de Desercion';
@@ -122,9 +123,8 @@ class DesercionExcel {
     });
 
     // SHEET 3: Alertas Recientes
-    var ws3 = workbook.addWorksheet('Alertas Recientes', {
-      pageSetup: { orientation: 'landscape', paperSize: 9, fitToPage: true }
-    });
+    var ws3 = workbook.addWorksheet('Alertas Recientes');
+    excelPageSetup(ws3, { orientation: 'landscape' });
 
     ws3.mergeCells('A1:G1');
     ws3.getCell('A1').value = 'SIVACAD - Alertas Recientes de Desercion';

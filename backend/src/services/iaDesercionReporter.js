@@ -5,6 +5,7 @@ const path = require('path');
 const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
 const pool = require('../config/db');
+const { APA, excelPageSetup } = require('../helpers/exportStandards');
 
 const REPORT_DIR = path.join(__dirname, '..', '..', 'uploads', 'reportes');
 const LOGO_TECNM = path.join(__dirname, '..', '..', 'uploads', 'Logo-TecNM.png');
@@ -234,12 +235,13 @@ async function gatherReportData(filters = {}) {
 // PDF GENERATION — Executive Dashboard Layout
 // ============================================================
 
-const PAGE_W = 595.28;
-const PAGE_H = 841.89;
-const ML = 45;
-const MR = 45;
+// Letter: 612 x 792 pt; APA margins: 72 pt (1 in) on all sides
+const PAGE_W = 612;
+const PAGE_H = 792;
+const ML = 72;
+const MR = 72;
 const MT = 102;
-const MB = 62;
+const MB = 72;
 const CW = PAGE_W - ML - MR;
 const BOTTOM = PAGE_H - MB;
 
@@ -248,7 +250,7 @@ async function generatePdf(data, filters, user) {
   const filePath = path.resolve(REPORT_DIR, fileName);
   let pageCount = 1;
   const doc = new PDFDocument({
-    size: 'A4', margin: 45,
+    size: APA.PAGE_SIZE, margin: APA.MARGIN_PT,
     info: { Title: 'Reporte Estratégico de Deserción - SIVACAD', Author: user?.nombres || 'SIVACAD', Subject: 'Análisis de riesgo académico institucional' }
   });
   const stream = fs.createWriteStream(filePath);
@@ -732,6 +734,7 @@ async function generateExcel(data, filters, user) {
 
   // SHEET 1: Portada (executive summary)
   var p = workbook.addWorksheet('Portada');
+  excelPageSetup(p, { orientation: 'portrait' });
   p.views = [{ showGridLines: false }];
   p.columns = Array(8).fill().map(function() { return { width: 16 }; });
   p.mergeCells('A1:H1');
@@ -784,6 +787,7 @@ async function generateExcel(data, filters, user) {
 
   // SHEET 2: Datos por parcial (no merged cells in data)
   var d2 = workbook.addWorksheet('Parciales');
+  excelPageSetup(d2, { orientation: 'landscape' });
   var parHeaders = ['Parcial', 'Promedio Gral.', 'Riesgos', 'Reprobadas', 'Alumnos Afect.', 'Activos', 'Desertores', 'Total Alumnos', 'Tasa Desercion', 'Nivel'];
   var parData = data.parciales.map(function(p) {
     return ['Parcial ' + p.numero_parcial, p.promedio_general, p.total_riesgos, p.total_reprobadas, p.alumnos_afectados, p.total_activos, p.total_desertores, p.total_alumnos, p.tasa_desercion + '%', getNivel(p.tasa_desercion)];
@@ -802,6 +806,7 @@ async function generateExcel(data, filters, user) {
 
   // SHEET 3: Datos por ciclo (no merged cells)
   var d3 = workbook.addWorksheet('Ciclos');
+  excelPageSetup(d3, { orientation: 'landscape' });
   var cicHeaders = ['Ciclo', 'Alertas', 'Alto/Critico', 'Riesgo Prom.', 'Total Alumnos', 'Tasa Desercion', 'Nivel'];
   var cicData = data.ciclos.map(function(c) {
     return [c.ciclo, c.alertas, c.alto_riesgo, c.riesgo_promedio, c.total_alumnos, c.tasa_desercion + '%', getNivel(c.tasa_desercion)];
@@ -820,6 +825,7 @@ async function generateExcel(data, filters, user) {
 
   // SHEET 4: Distribucion riesgo
   var d4 = workbook.addWorksheet('Distribucion riesgo');
+  excelPageSetup(d4, { orientation: 'landscape' });
   var distHeaders = ['Nivel de Riesgo', 'Alertas', 'Porcentaje', 'Semaforo'];
   var distData = data.distribucion_riesgo.map(function(d) {
     return [d.nivel, d.total, pctOf(d.total, data.resumen.alertas_total).toFixed(1) + '%', d.nivel];
@@ -835,6 +841,7 @@ async function generateExcel(data, filters, user) {
 
   // SHEET 5: Alertas recientes
   var d5 = workbook.addWorksheet('Alertas recientes');
+  excelPageSetup(d5, { orientation: 'landscape' });
   var alHeaders = ['#', 'Matricula', 'Alumno', 'Riesgo', 'Puntaje', 'Estado', 'Periodo'];
   var alData = data.alertas_recientes.map(function(a) {
     return [a.id_alerta, a.matricula, a.nombres + ' ' + a.apellido_paterno + ' ' + a.apellido_materno, a.nivel_riesgo, a.puntaje_riesgo, a.atendida ? 'Atendida' : 'Pendiente', a.nombre_periodo || ''];
@@ -854,6 +861,7 @@ async function generateExcel(data, filters, user) {
 
   // SHEET 6: Insights (full wrapped text)
   var d6 = workbook.addWorksheet('Insights estrategicos');
+  excelPageSetup(d6, { orientation: 'portrait' });
   d6.columns = [{ width: 100 }];
   d6.mergeCells('A1:A1');
   sc(d6.getCell('A1'), { size: 14, bold: true, color: SEM.dark });
@@ -872,6 +880,7 @@ async function generateExcel(data, filters, user) {
   // SHEET 7: Datos crudos alumnos (no merged cells)
   if (data.detalle_alumnos.length > 0) {
     var d7 = workbook.addWorksheet('Datos crudos alumnos');
+    excelPageSetup(d7, { orientation: 'landscape' });
     var dalHeaders = ['Matricula', 'Alumno', 'Carrera', 'Periodo', 'Nivel Riesgo', 'Puntaje', 'Atendida', 'Seguimiento'];
     var dalData = data.detalle_alumnos.map(function(d) {
       return [d.matricula, d.alumno, d.nombre_carrera, d.nombre_periodo, d.nivel_riesgo, d.puntaje_riesgo, d.atendida ? 'Si' : 'No', d.estado_seguimiento];
@@ -894,6 +903,7 @@ async function generateExcel(data, filters, user) {
   // SHEET 8: Datos crudos parciales (no merged cells)
   if (data.detalle_parciales.length > 0) {
     var d8 = workbook.addWorksheet('Datos crudos parciales');
+    excelPageSetup(d8, { orientation: 'landscape' });
     var dpHeaders = ['Matricula', 'Alumno', 'Parcial', 'Promedio', 'Riesgos', 'Reprobadas', 'Tendencia', 'Activos', 'Desertores'];
     var dpData = data.detalle_parciales.map(function(d) {
       return [d.matricula, d.alumno, 'Parcial ' + d.numero_parcial, d.calificacion_promedio, d.riesgos_detectados, d.materias_reprobadas, d.tendencia, d.alumnos_activos, d.alumnos_desertores];

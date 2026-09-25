@@ -29,7 +29,7 @@ function generarPreboletaHTML(data) {
 
   return `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><style>
-  @page { size: letter landscape; margin: 15mm 12mm; }
+  @page { size: letter landscape; margin: 2.54cm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: Arial, Helvetica, sans-serif; color: #1f2937; font-size: 11px; }
   .header { text-align: center; border-bottom: 3px solid #1e40af; padding-bottom: 8px; margin-bottom: 10px; }

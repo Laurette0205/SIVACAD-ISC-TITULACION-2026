@@ -9,6 +9,7 @@ const QRCode = require('qrcode');
 const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
 const crypto = require('crypto');
+const { APA, pdfKitOptions, excelPageSetup } = require('../helpers/exportStandards');
 
 // ==============================
 // 📁 RUTAS BASE DEL SISTEMA
@@ -205,13 +206,15 @@ function drawLogoBox(doc, x, y, w, h, label, imagePath = '') {
 
 function drawFooter(doc, pageNumber, totalPages) {
   const footerY = doc.page.height - 45;
+  const ml = doc.page.margins.left;
+  const mr = doc.page.margins.right;
 
   doc
     .save()
     .strokeColor('#E2E8F0')
     .lineWidth(1)
-    .moveTo(50, footerY)
-    .lineTo(doc.page.width - 50, footerY)
+    .moveTo(ml, footerY)
+    .lineTo(doc.page.width - mr, footerY)
     .stroke()
     .restore();
 
@@ -221,32 +224,37 @@ function drawFooter(doc, pageNumber, totalPages) {
     .fontSize(8.3)
     .text(
       `SIVACAD • Documento institucional • Página ${pageNumber}${totalPages ? ` de ${totalPages}` : ''}`,
-      50,
+      ml,
       footerY + 8,
       {
-        width: doc.page.width - 100,
-        align: 'center'
+        width: doc.page.width - ml - mr,
+        align: 'center',
+        // height evita el salto de página de PDFKit (y fuera del margen inferior)
+        height: doc.page.height - (footerY + 8)
       }
     );
 }
 
 function drawSectionTitle(doc, title, y) {
+  const ml = doc.page.margins.left;
+  const contentW = doc.page.width - doc.page.margins.left - doc.page.margins.right;
   doc
     .fillColor('#0F172A')
     .font('Helvetica-Bold')
     .fontSize(12.8)
-    .text(String(title || ''), 50, y, { width: 495 });
+    .text(String(title || ''), ml, y, { width: contentW });
 
   return doc.y + 6;
 }
 
 function drawParagraph(doc, text, opts = {}) {
+  const contentW = doc.page.width - doc.page.margins.left - doc.page.margins.right;
   doc
     .fillColor('#334155')
     .font('Helvetica')
     .fontSize(10.5)
     .text(String(text || ''), {
-      width: opts.width || 495,
+      width: opts.width || contentW,
       align: opts.align || 'justify',
       lineGap: 2
     });
@@ -263,7 +271,7 @@ function drawMetricCards(doc, metrics = [], startY = doc.y + 10) {
     const col = index % cols;
     const row = Math.floor(index / cols);
 
-    const cx = 50 + col * (cardW + gap);
+    const cx = doc.page.margins.left + col * (cardW + gap);
     const cy = startY + row * (cardH + gap);
 
     doc
@@ -292,9 +300,9 @@ function drawMetricCards(doc, metrics = [], startY = doc.y + 10) {
 }
 
 function drawBarChart(doc, title, items = [], startY = doc.y + 12) {
-  const chartX = 50;
+  const chartX = doc.page.margins.left;
   const chartY = startY;
-  const chartW = 495;
+  const chartW = doc.page.width - doc.page.margins.left - doc.page.margins.right;
   const barH = 18;
   const gap = 10;
   const labelW = 120;
@@ -463,6 +471,8 @@ function tryInsertExcelLogo(workbook, sheet, imagePath, position) {
   }
 }
 
+exports.tryInsertExcelLogo = tryInsertExcelLogo;
+
 // ==============================
 // 📄 GENERAR PDF
 // ==============================
@@ -478,11 +488,7 @@ exports.createPdf = async (fileName, title, lines = [], options = {}) => {
 
   const filePath = path.resolve(REPORT_DIR, safeFileName);
 
-  const doc = new PDFDocument({
-    size: 'A4',
-    margin: 50,
-    bufferPages: true
-  });
+  const doc = new PDFDocument(pdfKitOptions({ size: APA.PAGE_SIZE, margin: APA.MARGIN_PT }));
 
   const stream = fs.createWriteStream(filePath);
   doc.pipe(stream);
@@ -518,16 +524,22 @@ exports.createPdf = async (fileName, title, lines = [], options = {}) => {
 
   const renderHeader = () => {
     const topY = 34;
+    const ml = doc.page.margins.left;
+    const mr = doc.page.margins.right;
+    const contentW = doc.page.width - ml - mr;
+    const logoW = 62;
+    const titleX = ml + logoW + 10;
+    const titleW = doc.page.width - ml - mr - (logoW + 10) * 2;
 
-    drawLogoBox(doc, 50, topY, 62, 42, leftLabel, logoLeftPath);
-    drawLogoBox(doc, doc.page.width - 112, topY, 62, 42, rightLabel, logoRightPath);
+    drawLogoBox(doc, ml, topY, logoW, 42, leftLabel, logoLeftPath);
+    drawLogoBox(doc, doc.page.width - mr - logoW, topY, logoW, 42, rightLabel, logoRightPath);
 
     doc
       .fillColor('#0F172A')
       .font('Helvetica-Bold')
       .fontSize(17)
-      .text(String(title || ''), 122, 38, {
-        width: doc.page.width - 244,
+      .text(String(title || ''), titleX, 38, {
+        width: titleW,
         align: 'center'
       });
 
@@ -535,8 +547,8 @@ exports.createPdf = async (fileName, title, lines = [], options = {}) => {
       .fillColor('#64748B')
       .font('Helvetica')
       .fontSize(9.5)
-      .text(subtitle, 122, 60, {
-        width: doc.page.width - 244,
+      .text(subtitle, titleX, 60, {
+        width: titleW,
         align: 'center'
       });
 
@@ -544,7 +556,7 @@ exports.createPdf = async (fileName, title, lines = [], options = {}) => {
       .fillColor('#334155')
       .font('Helvetica')
       .fontSize(8.8)
-      .text(`Generado por: ${generatedBy}`, 50, 86, {
+      .text(`Generado por: ${generatedBy}`, ml, 86, {
         width: 230,
         align: 'left'
       });
@@ -553,7 +565,7 @@ exports.createPdf = async (fileName, title, lines = [], options = {}) => {
       .fillColor('#334155')
       .font('Helvetica')
       .fontSize(8.8)
-      .text(`Fecha y hora: ${formatDateTime(generatedAt)}`, 50, 98, {
+      .text(`Fecha y hora: ${formatDateTime(generatedAt)}`, ml, 98, {
         width: 280,
         align: 'left'
       });
@@ -567,8 +579,8 @@ exports.createPdf = async (fileName, title, lines = [], options = {}) => {
         .fillColor('#475569')
         .font('Helvetica')
         .fontSize(8.4)
-        .text(metaText, 50, 112, {
-          width: doc.page.width - 100,
+        .text(metaText, ml, 112, {
+          width: contentW,
           align: 'center'
         });
     }
@@ -577,8 +589,8 @@ exports.createPdf = async (fileName, title, lines = [], options = {}) => {
       .save()
       .strokeColor('#CBD5E1')
       .lineWidth(1)
-      .moveTo(50, 128)
-      .lineTo(doc.page.width - 50, 128)
+      .moveTo(ml, 128)
+      .lineTo(doc.page.width - mr, 128)
       .stroke()
       .restore();
 
@@ -591,12 +603,12 @@ exports.createPdf = async (fileName, title, lines = [], options = {}) => {
         .fillColor('#0F172A')
         .font('Helvetica-Bold')
         .fontSize(13)
-        .text('Resumen textual', 50, doc.y, { width: 495 });
+        .text('Resumen textual', doc.page.margins.left, doc.y, { width: doc.page.width - doc.page.margins.left - doc.page.margins.right });
 
       doc.moveDown(0.4);
 
       lines.forEach((line) => {
-        if (doc.y > 710) {
+        if (doc.y > 700) {
           doc.addPage();
           renderHeader();
         }
@@ -609,7 +621,7 @@ exports.createPdf = async (fileName, title, lines = [], options = {}) => {
     }
 
     sections.forEach((section) => {
-      if (doc.y > 680) {
+      if (doc.y > 670) {
         doc.addPage();
         renderHeader();
       }
@@ -618,7 +630,7 @@ exports.createPdf = async (fileName, title, lines = [], options = {}) => {
 
       if (Array.isArray(section.lines) && section.lines.length) {
         section.lines.forEach((line) => {
-          if (doc.y > 720) {
+          if (doc.y > 700) {
             doc.addPage();
             renderHeader();
           }
@@ -636,7 +648,7 @@ exports.createPdf = async (fileName, title, lines = [], options = {}) => {
     });
 
     charts.forEach((chart) => {
-      if (doc.y > 650) {
+      if (doc.y > 640) {
         doc.addPage();
         renderHeader();
       }
@@ -729,6 +741,7 @@ exports.createExcel = async (fileName, rows = [], options = {}) => {
   // =========================
   const portada = workbook.addWorksheet('Portada');
   portada.views = [{ showGridLines: false }];
+  excelPageSetup(portada, { orientation: 'portrait' });
   portada.columns = [
     { width: 4 },
     { width: 24 },
@@ -821,6 +834,7 @@ exports.createExcel = async (fileName, rows = [], options = {}) => {
   const resumen = workbook.addWorksheet('Resumen visual', {
     views: [{ state: 'frozen', ySplit: 8 }]
   });
+  excelPageSetup(resumen, { orientation: 'landscape' });
 
   resumen.columns = [
     { width: 32 },
@@ -991,6 +1005,7 @@ exports.createExcel = async (fileName, rows = [], options = {}) => {
   const analisis = workbook.addWorksheet('Analisis visual', {
     views: [{ state: 'frozen', ySplit: 1 }]
   });
+  excelPageSetup(analisis, { orientation: 'landscape' });
 
   analisis.columns = [
     { width: 28 },
@@ -1057,6 +1072,7 @@ exports.createExcel = async (fileName, rows = [], options = {}) => {
   const detailSheet = workbook.addWorksheet(options.detailSheetName || 'Datos', {
     views: [{ state: 'frozen', ySplit: 1 }]
   });
+  excelPageSetup(detailSheet, { orientation: 'landscape' });
 
   detailSheet.columns = [
     { header: 'Campo', key: 'campo', width: 32 },

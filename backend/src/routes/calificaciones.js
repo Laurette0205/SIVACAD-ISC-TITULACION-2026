@@ -58,6 +58,8 @@ router.get('/historial/:idHistorial',
 // 7. Boleta del alumno
 router.get('/boleta/:idAlumno',
   auth,
+  verifyRoleAgainstDB,
+  role('ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'ALUMNO'),
   calificaciones.getBoletaAlumno
 );
 
@@ -76,16 +78,16 @@ router.get('/resumen',
 // 9. Exportar boleta del alumno (solo sus propias calificaciones)
 router.get('/export/boleta/:idAlumno',
   auth,
+  verifyRoleAgainstDB,
+  role('ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'ALUMNO'),
   async (req, res) => {
     try {
       const { idAlumno } = req.params;
       const { idPeriodo } = req.query;
-      const esAlumno = String(req.user.rol).trim().toUpperCase() === 'ALUMNO';
 
-      // Un alumno solo puede exportar su propia boleta
-      if (esAlumno && req.user.id_alumno !== Number(idAlumno)) {
-        return res.status(403).json({ ok: false, message: 'No puedes exportar la boleta de otro alumno' });
-      }
+      const { denegarSiNoEsAlumnoPropio } = require('../helpers/ownership');
+      const denegado = await denegarSiNoEsAlumnoPropio(req, idAlumno, 'No puedes exportar la boleta de otro alumno');
+      if (denegado) return res.status(denegado.status).json({ ok: false, message: denegado.message });
 
       const { workbook, folio, totalMaterias } = await calExport.exportBoletaAlumno(
         idAlumno, idPeriodo, req.user.id_usuario

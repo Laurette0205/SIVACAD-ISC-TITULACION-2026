@@ -17,6 +17,7 @@ const pool = require('../config/db');
 //        el mismo resultado en WEB, EXCEL, PDF y KARDEX.
 const {
   roundGrade,
+  calculateAverage,
   formatGrade: _formatGradeBase,
   calcularEstadoAcademico,
   calcularEstadoSimple,
@@ -46,6 +47,11 @@ if (!fs.existsSync(REPORT_DIR)) fs.mkdirSync(REPORT_DIR, { recursive: true });
 // ==============================
 // CONSTANTES INSTITUCIONALES
 // ==============================
+// ==============================
+// CONSTANTES APA — Fuente única: exportStandards
+// ==============================
+const { APA } = require('../helpers/exportStandards');
+
 const INST = {
   nombre: 'TECNOLÓGICO DE ESTUDIOS SUPERIORES DE IXTAPALUCA (TESI)',
   carrera: 'Ingeniería en Sistemas Computacionales',
@@ -204,7 +210,9 @@ function drawFooter(doc, folio, pageNumber, totalPages) {
     .text(
       `${INST.version} • Folio: ${folio} • ${formatDateTimeMX(new Date())} • Página ${pageNumber}${totalPages ? ` de ${totalPages}` : ''}`,
       margin, footerY + 6,
-      { width: pageW - margin * 2, align: 'center' }
+      // height evita que PDFKit salte de página: y cae fuera del área
+      // imprimible (debajo del margen inferior APA de 72pt).
+      { width: pageW - margin * 2, align: 'center', height: doc.page.height - footerY }
     );
 }
 
@@ -212,34 +220,70 @@ function drawInfoGrid(doc, items, startY) {
   const margin = doc.page.margins.left;
   const contentW = doc.page.width - margin * 2;
   const colW = contentW / 4;
-  let x = margin;
-  let y = startY;
+  const cols = 4;
+  const rows = Math.ceil(items.length / cols);
+  const cellPad = 14;
+
+  doc.font('Helvetica').fontSize(8);
+  const lineH = doc.currentLineHeight();
+
+  // Medir la altura necesaria de cada fila (los valores largos como
+  // "Carrera" se ajustan a 2 líneas y desbordaban la fila fija de 18pt).
+  const rowHeights = [];
+  for (let r = 0; r < rows; r++) {
+    let maxLines = 1;
+    for (let c = 0; c < cols; c++) {
+      const item = items[r * cols + c];
+      if (!item) continue;
+      const label = item.label + ': ';
+      const valW = Math.max(colW - doc.widthOfString(label) - cellPad, 20);
+      const h = doc.heightOfString(String(item.value || '—'), { width: valW });
+      maxLines = Math.max(maxLines, Math.ceil(h / lineH));
+    }
+    rowHeights.push(maxLines * lineH + 4);
+  }
+  const totalH = rowHeights.reduce((s, h) => s + h, 0);
+  const y = startY;
 
   // Fondo
   doc.save()
-    .roundedRect(margin, y - 4, contentW, Math.ceil(items.length / 4) * 18 + 8, 4)
+    .roundedRect(margin, y - 4, contentW, totalH + 8, 4)
     .fill(INST.grisFondo)
     .restore();
 
-  for (let i = 0; i < items.length; i++) {
-    const col = i % 4;
-    const row = Math.floor(i / 4);
-    const cx = margin + col * colW + 8;
-    const cy = y + row * 18;
+  let cy = y;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const idx = r * cols + c;
+      if (idx >= items.length) break;
+      const cx = margin + c * colW + 8;
+      const label = items[idx].label + ':';
 
-    doc.fillColor(INST.azul).font('Helvetica-Bold').fontSize(8)
-      .text(items[i].label + ':', cx, cy, { width: colW - 10, continued: false });
-    doc.fillColor(INST.negro).font('Helvetica').fontSize(8)
-      .text(items[i].value || '—', cx + doc.widthOfString(items[i].label + ': ') + 2, cy, { width: colW - doc.widthOfString(items[i].label + ': ') - 12 });
+      doc.fillColor(INST.azul).font('Helvetica-Bold').fontSize(8)
+        .text(label, cx, cy, { width: colW - 10, continued: false });
+      const labelW = doc.widthOfString(label + ' ');
+      doc.fillColor(INST.negro).font('Helvetica').fontSize(8)
+        .text(items[idx].value || '—', cx + labelW + 2, cy, {
+          width: Math.max(colW - labelW - cellPad, 20)
+        });
+    }
+    cy += rowHeights[r];
   }
 
-  doc.y = y + Math.ceil(items.length / 4) * 18 + 10;
+  doc.y = y + totalH + 10;
 }
 
 function drawTable(doc, headers, rows, startY, opts = {}) {
   const margin = doc.page.margins.left;
   const contentW = doc.page.width - margin * 2;
-  const colWidths = opts.colWidths || headers.map(() => contentW / headers.length);
+  let colWidths = opts.colWidths || headers.map(() => contentW / headers.length);
+  // Normalizar anchos al ancho disponible (márgenes APA) para que ninguna
+  // columna (p.ej. "Estado") quede fuera de la tabla / fuera de márgenes.
+  const widthsSum = colWidths.reduce((s, w) => s + w, 0);
+  if (widthsSum > 0 && Math.abs(widthsSum - contentW) > 0.5) {
+    const k = contentW / widthsSum;
+    colWidths = colWidths.map(w => w * k);
+  }
   const headerH = opts.headerHeight || 20;
   const rowH = opts.rowHeight || 16;
   const fontSize = opts.fontSize || 8;
@@ -262,7 +306,7 @@ function drawTable(doc, headers, rows, startY, opts = {}) {
 
   // Rows
   for (let r = 0; r < rows.length; r++) {
-    if (y + rowH > doc.page.height - 50) {
+    if (y + rowH > doc.page.height - doc.page.margins.bottom) {
       doc.addPage();
       y = doc.page.margins.top;
       // Re-draw header on new page
@@ -379,13 +423,14 @@ async function generarPreboletaPDF(idAlumno, idPeriodo) {
   const [materias] = await pool.execute(
     `SELECT h.*, m.nombre_materia, m.clave_materia, m.creditos,
             g.nombre_grupo, g.turno, p.nombre_periodo,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM kardex_historial_academico h
      INNER JOIN materias m ON m.id_materia = h.id_materia
      INNER JOIN grupos g ON g.id_grupo = h.id_grupo
      INNER JOIN periodos p ON p.id_periodo = h.id_periodo
      LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE h.id_alumno = ? AND h.id_periodo = ?
      ORDER BY m.semestre_sugerido, m.nombre_materia`, [idAlumno, idPeriodo]
   );
@@ -397,7 +442,7 @@ async function generarPreboletaPDF(idAlumno, idPeriodo) {
   const fileName = `preboleta_${idAlumno}_${folio}.pdf`;
   const filePath = path.join(REPORT_DIR, fileName);
 
-  const doc = new PDFDocument({ size: 'LETTER', orientation: 'landscape', margin: 40, bufferPages: true });
+  const doc = new PDFDocument({ size: 'LETTER', orientation: 'landscape', margin: APA.MARGIN_PT, bufferPages: true });
   const stream = fs.createWriteStream(filePath);
   doc.pipe(stream);
 
@@ -429,7 +474,7 @@ async function generarPreboletaPDF(idAlumno, idPeriodo) {
       formatGrade(m.parcial_1),
       formatGrade(m.parcial_2),
       formatGrade(m.parcial_3),
-      formatGrade(m.promedio_parciales),
+      formatGrade(calculateAverage(m.parcial_1, m.parcial_2, m.parcial_3)),
       { text: estado, color: ec.text, bold: true }
     ];
   });
@@ -488,13 +533,14 @@ async function generarBoletaPDF(idAlumno, idPeriodo) {
   const [materias] = await pool.execute(
     `SELECT h.*, m.nombre_materia, m.clave_materia, m.creditos, m.semestre_sugerido,
             g.nombre_grupo, g.turno, p.nombre_periodo,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM kardex_historial_academico h
      INNER JOIN materias m ON m.id_materia = h.id_materia
      INNER JOIN grupos g ON g.id_grupo = h.id_grupo
      INNER JOIN periodos p ON p.id_periodo = h.id_periodo
      LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE ${where}
      ORDER BY p.nombre_periodo, m.semestre_sugerido, m.nombre_materia`, params
   );
@@ -505,13 +551,17 @@ async function generarBoletaPDF(idAlumno, idPeriodo) {
   const fileName = `boleta_${idAlumno}_${folio}.pdf`;
   const filePath = path.join(REPORT_DIR, fileName);
 
-  const doc = new PDFDocument({ size: 'LETTER', margin: 50, bufferPages: true });
+  const doc = new PDFDocument({ size: 'LETTER', margin: APA.MARGIN_PT, bufferPages: true });
   const stream = fs.createWriteStream(filePath);
   doc.pipe(stream);
 
   drawInstitutionalHeader(doc, 'BOLETA DE CALIFICACIONES', 'Documento Oficial de Calificaciones');
 
-  // Datos del alumno
+  // Datos del alumno (calculados desde las materias: fuente de verdad)
+  const bolCreditos = materias.reduce((s, m) => s + (m.creditos || 0), 0);
+  const bolFins = materias.filter(m => m.calificacion_final != null).map(m => parseFloat(m.calificacion_final));
+  const bolProm = bolFins.length > 0 ? roundGrade(bolFins.reduce((s, v) => s + v, 0) / bolFins.length) : null;
+
   drawSectionTitle(doc, 'Datos del Alumno', doc.y);
   drawInfoGrid(doc, [
     { label: 'Nombre', value: nombreCompleto },
@@ -519,8 +569,8 @@ async function generarBoletaPDF(idAlumno, idPeriodo) {
     { label: 'Carrera', value: al.nombre_carrera },
     { label: 'Plan', value: `${al.nombre_plan || '—'} ${al.version_plan || ''}` },
     { label: 'Semestre', value: al.semestre_actual || '—' },
-    { label: 'Créditos', value: String(al.creditos_acumulados || 0) },
-    { label: 'Promedio General', value: al.promedio_general != null ? Number(al.promedio_general).toFixed(2) : '—' },
+    { label: 'Créditos', value: String(bolCreditos) },
+    { label: 'Promedio General', value: bolProm != null ? bolProm.toFixed(2) : '—' },
     { label: 'Estatus', value: al.estatus_academico || 'Regular' }
   ], doc.y);
 
@@ -547,10 +597,11 @@ async function generarBoletaPDF(idAlumno, idPeriodo) {
         String(i + 1),
         m.nombre_materia,
         m.clave_materia || '—',
-        formatGrade(m.calificacion_parcial_1),
-        formatGrade(m.calificacion_parcial_2),
-        formatGrade(m.calificacion_parcial_3),
-        formatGrade(m.promedio_calculado),
+        formatGrade(m.parcial_1),
+        formatGrade(m.parcial_2),
+        formatGrade(m.parcial_3),
+        formatGrade(m.promedio_parciales != null ? m.promedio_parciales
+          : calculateAverage(m.parcial_1, m.parcial_2, m.parcial_3)),
         formatGrade(m.calificacion_final),
         { text: estado, color: ec.text, bold: true }
       ];
@@ -646,7 +697,7 @@ async function generarCalificacionesParcialPDF(idGrupo, idPeriodo, parcial) {
   const fileName = `calificaciones_P${parcial}_${idGrupo}_${folio}.pdf`;
   const filePath = path.join(REPORT_DIR, fileName);
 
-  const doc = new PDFDocument({ size: 'LETTER', margin: 50, bufferPages: true });
+  const doc = new PDFDocument({ size: 'LETTER', margin: APA.MARGIN_PT, bufferPages: true });
   const stream = fs.createWriteStream(filePath);
   doc.pipe(stream);
 
@@ -664,9 +715,10 @@ async function generarCalificacionesParcialPDF(idGrupo, idPeriodo, parcial) {
 
     // Docente
     const [docenteRows] = await pool.execute(
-      `SELECT CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+      `SELECT CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
        FROM cargas_academicas ca
        INNER JOIN docentes dn ON dn.id_docente = ca.id_docente
+       LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
        WHERE ca.id_grupo = ? AND ca.id_periodo = ? AND ca.id_materia = ? LIMIT 1`,
       [idGrupo, idPeriodo, mat.id_materia]
     );
@@ -777,7 +829,7 @@ async function generarCalificacionesPeriodoPDF(idGrupo, idPeriodo) {
   const fileName = `calificaciones_periodo_${idGrupo}_${folio}.pdf`;
   const filePath = path.join(REPORT_DIR, fileName);
 
-  const doc = new PDFDocument({ size: 'LETTER', orientation: 'landscape', margin: 40, bufferPages: true });
+  const doc = new PDFDocument({ size: 'LETTER', orientation: 'landscape', margin: APA.MARGIN_PT, bufferPages: true });
   const stream = fs.createWriteStream(filePath);
   doc.pipe(stream);
 
@@ -878,13 +930,17 @@ async function generarHistorialPDF(idAlumno) {
   const fileName = `historial_${idAlumno}_${folio}.pdf`;
   const filePath = path.join(REPORT_DIR, fileName);
 
-  const doc = new PDFDocument({ size: 'LETTER', margin: 50, bufferPages: true });
+  const doc = new PDFDocument({ size: 'LETTER', margin: APA.MARGIN_PT, bufferPages: true });
   const stream = fs.createWriteStream(filePath);
   doc.pipe(stream);
 
   drawInstitutionalHeader(doc, 'HISTORIAL ACADÉMICO', `${nombreCompleto} — Matrícula: ${al.matricula}`);
 
-  // Datos del alumno
+  // Datos del alumno (calculados desde las materias: fuente de verdad)
+  const hisCreditos = materias.reduce((s, m) => s + (m.creditos || 0), 0);
+  const hisFins = materias.filter(m => m.calificacion_final != null).map(m => parseFloat(m.calificacion_final));
+  const hisProm = hisFins.length > 0 ? roundGrade(hisFins.reduce((s, v) => s + v, 0) / hisFins.length) : null;
+
   drawSectionTitle(doc, 'Datos del Alumno', doc.y);
   drawInfoGrid(doc, [
     { label: 'Nombre', value: nombreCompleto },
@@ -892,8 +948,8 @@ async function generarHistorialPDF(idAlumno) {
     { label: 'Carrera', value: al.nombre_carrera },
     { label: 'Plan', value: `${al.nombre_plan || '—'} ${al.version_plan || ''}` },
     { label: 'Semestre Actual', value: al.semestre_actual || '—' },
-    { label: 'Créditos', value: String(al.creditos_acumulados || 0) },
-    { label: 'Promedio General', value: al.promedio_general != null ? Number(al.promedio_general).toFixed(2) : '—' },
+    { label: 'Créditos', value: String(hisCreditos) },
+    { label: 'Promedio General', value: hisProm != null ? hisProm.toFixed(2) : '—' },
     { label: 'Estatus', value: al.estatus_academico || 'Regular' }
   ], doc.y);
 
@@ -995,10 +1051,11 @@ async function generarReporteGrupoPDF(idGrupo, idPeriodo) {
 
   const [materias] = await pool.execute(
     `SELECT ca.id_materia, m.nombre_materia, m.clave_materia,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM cargas_academicas ca
      INNER JOIN materias m ON m.id_materia = ca.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE ca.id_grupo = ? AND ca.id_periodo = ? AND ca.estado = 'ACTIVA'
      ORDER BY m.nombre_materia`,
     [idGrupo, idPeriodo]
@@ -1009,7 +1066,7 @@ async function generarReporteGrupoPDF(idGrupo, idPeriodo) {
   const fileName = `reporte_grupo_${idGrupo}_${folio}.pdf`;
   const filePath = path.join(REPORT_DIR, fileName);
 
-  const doc = new PDFDocument({ size: 'LETTER', margin: 50, bufferPages: true });
+  const doc = new PDFDocument({ size: 'LETTER', margin: APA.MARGIN_PT, bufferPages: true });
   const stream = fs.createWriteStream(filePath);
   doc.pipe(stream);
 
@@ -1116,7 +1173,7 @@ async function generarReporteSeguimientoPDF(idPeriodo) {
   const fileName = `seguimiento_${idPeriodo}_${folio}.pdf`;
   const filePath = path.join(REPORT_DIR, fileName);
 
-  const doc = new PDFDocument({ size: 'LETTER', margin: 50, bufferPages: true });
+  const doc = new PDFDocument({ size: 'LETTER', margin: APA.MARGIN_PT, bufferPages: true });
   const stream = fs.createWriteStream(filePath);
   doc.pipe(stream);
 
@@ -1130,6 +1187,7 @@ async function generarReporteSeguimientoPDF(idPeriodo) {
   let totalAlumnosGral = 0;
   let totalCapturadosGral = 0;
   let totalPendientesGral = 0;
+  let totalEsperadosGral = 0;
 
   const statHeaders = ['Grupo', 'Semestre', 'Turno', 'Alumnos', 'Capturados', 'Pendientes', '% Captura'];
   const statColWidths = [90, 55, 50, 60, 70, 70, 70];
@@ -1141,7 +1199,14 @@ async function generarReporteSeguimientoPDF(idPeriodo) {
        WHERE id_grupo = ? AND id_periodo = ? AND estado = 'ACTIVO'`,
       [g.id_grupo, idPeriodo]
     );
-    const totalAlumnos = alumnosCount[0]?.total || 0;
+    const totalAlumnos = Number(alumnosCount[0]?.total || 0);
+
+    const [materiasCount] = await pool.execute(
+      `SELECT COUNT(*) AS total FROM cargas_academicas
+       WHERE id_grupo = ? AND id_periodo = ? AND estado = 'ACTIVA'`,
+      [g.id_grupo, idPeriodo]
+    );
+    const totalMaterias = Number(materiasCount[0]?.total || 0);
 
     const [stats] = await pool.execute(
       `SELECT
@@ -1154,14 +1219,16 @@ async function generarReporteSeguimientoPDF(idPeriodo) {
     );
 
     const s = stats[0] || {};
-    const capturados = (s.p1 || 0) + (s.p2 || 0) + (s.p3 || 0);
-    const esperados = totalAlumnos * 3;
+    // SUM() de MySQL devuelve texto: sin Number() la suma concatena ("555")
+    const capturados = Number(s.p1 || 0) + Number(s.p2 || 0) + Number(s.p3 || 0);
+    const esperados = totalAlumnos * totalMaterias * 3;
     const pendientes = esperados - capturados;
     const pct = esperados > 0 ? `${Math.round((capturados / esperados) * 100)}%` : '—';
 
     totalAlumnosGral += totalAlumnos;
     totalCapturadosGral += capturados;
     totalPendientesGral += pendientes;
+    totalEsperadosGral += esperados;
 
     statRows.push([g.nombre_grupo, String(g.semestre || '—'), g.turno || '—', String(totalAlumnos), String(capturados), String(pendientes), pct]);
   }
@@ -1170,7 +1237,7 @@ async function generarReporteSeguimientoPDF(idPeriodo) {
   drawTable(doc, statHeaders, statRows, doc.y, { colWidths: statColWidths, fontSize: 8, rowHeight: 16 });
 
   // Totales
-  const pctGeneral = (totalAlumnosGral * 3) > 0 ? `${Math.round((totalCapturadosGral / (totalAlumnosGral * 3)) * 100)}%` : '—';
+  const pctGeneral = totalEsperadosGral > 0 ? `${Math.round((totalCapturadosGral / totalEsperadosGral) * 100)}%` : '—';
   doc.fillColor(INST.azul).font('Helvetica-Bold').fontSize(9)
     .text(`TOTAL: ${totalAlumnosGral} alumnos  |  Capturados: ${totalCapturadosGral}  |  Pendientes: ${totalPendientesGral}  |  % General: ${pctGeneral}`, doc.page.margins.left, doc.y);
   doc.moveDown(1);
@@ -1183,10 +1250,11 @@ async function generarReporteSeguimientoPDF(idPeriodo) {
 
     const [materias] = await pool.execute(
       `SELECT ca.id_materia, m.nombre_materia, m.clave_materia,
-              CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+              CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
        FROM cargas_academicas ca
        INNER JOIN materias m ON m.id_materia = ca.id_materia
        LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+       LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
        WHERE ca.id_grupo = ? AND ca.id_periodo = ? AND ca.estado = 'ACTIVA'`,
       [g.id_grupo, idPeriodo]
     );

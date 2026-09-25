@@ -15,6 +15,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 
 $DB_HOST = 'localhost';
 $DB_USER = 'root';
@@ -60,6 +61,27 @@ function formatFechaMX(?string $date = null): string
     return $d . ', ' . $dt->format('j') . ' de ' . $m . ' de ' . $dt->format('Y') . ', ' . $dt->format('H:i:s') . ' hrs.';
 }
 
+/**
+ * Estándar SIVACAD de impresión Excel: papel Letter, márgenes APA 1",
+ * fitToWidth=1 (sin forzar fitToHeight), header/footer 0.5".
+ */
+function applySheetPageStandards(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $ws, string $orientation = 'landscape'): void
+{
+    $setup = $ws->getPageSetup();
+    $setup->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_LETTER);
+    $setup->setOrientation(
+        $orientation === 'portrait'
+            ? \PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_PORTRAIT
+            : \PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE
+    );
+    $setup->setFitToPage(true);
+    $setup->setFitToWidth(1);
+    $setup->setFitToHeight(0);
+    $margins = $ws->getPageMargins();
+    $margins->setTop(1.0)->setBottom(1.0)->setLeft(1.0)->setRight(1.0);
+    $margins->setHeader(0.5)->setFooter(0.5);
+}
+
 function obtenerDatosAlumno(int $idAlumno): ?array
 {
     $pdo = dbConnect();
@@ -88,13 +110,13 @@ function obtenerHistorial(int $idAlumno): array
     $pdo = dbConnect();
     $stmt = $pdo->prepare("
         SELECT
-            kh.calificacion, kh.creditos, kh.estado,
+            COALESCE(kh.calificacion_final, kh.calificacion) AS calificacion, kh.creditos, kh.estado,
             p.nombre_periodo, m.nombre_materia, m.clave_materia, m.creditos AS creditos_materia
         FROM kardex_historial_academico kh
         LEFT JOIN periodos p ON p.id_periodo = kh.id_periodo
         LEFT JOIN materias m ON m.id_materia = kh.id_materia
         WHERE kh.id_alumno = ?
-        ORDER BY p.fecha_inicio DESC, kh.creado_en DESC
+        ORDER BY p.fecha_inicio DESC, kh.creado_en DESC, kh.id_historial ASC
     ");
     $stmt->execute([$idAlumno]);
     return $stmt->fetchAll();
@@ -157,7 +179,7 @@ function generateKardexExcel(int $idAlumno): array
         $upd->execute([$folio, $idAlumno]);
     }
 
-    $nombres = trim("{$alumnoRow['nombres']} {$alumnoRow['apellido_paterno']} {$alumnoRow['apellido_materno']}");
+    $nombres = trim("{$alumnoRow['apellido_paterno']} {$alumnoRow['apellido_materno']} {$alumnoRow['nombres']}");
     $fechaEmision = formatFechaMX();
     $zonaHoraria = 'America/Mexico_City';
     $creditosCubiertos = (float)($alumnoRow['creditos_acumulados'] ?? 0);
@@ -326,7 +348,8 @@ function generateKardexExcel(int $idAlumno): array
             'alignment' => ['vertical' => 'center'],
         ]);
 
-        $ws->setCellValue("C{$r}", $value);
+        // Texto explicito: PhpSpreadsheet convierte "0.00"/"8.0" a numero y pierde el formato
+        $ws->setCellValueExplicit("C{$r}", (string)$value, DataType::TYPE_STRING);
         $styleValue = ['font' => ['size' => 10, 'color' => ['argb' => 'FF334155'], 'name' => 'Arial']];
 
         if ($label === 'Estatus:') {
@@ -419,7 +442,7 @@ function generateKardexExcel(int $idAlumno): array
             $vals = ['', $periodo, $clave, $materia, $calif, $cred, $estado];
             foreach ($vals as $ci => $val) {
                 $cell = $colLetters[$ci] . $dr;
-                $ws->setCellValue($cell, $val);
+                $ws->setCellValueExplicit($cell, (string)$val, DataType::TYPE_STRING);
                 $fontColor = ($ci === 6) ? $estadoColor : 'FF334155';
                 $isBold = ($ci === 6 && strtolower($estado) === 'acreditada');
                 $ws->getStyle($cell)->applyFromArray([
@@ -581,7 +604,7 @@ function generateKardexExcel(int $idAlumno): array
 
             foreach ($vals as $ci => $val) {
                 $cell = $hColLetters[$ci] . $dr2;
-                $ws2->setCellValue($cell, $val);
+                $ws2->setCellValueExplicit($cell, (string)$val, DataType::TYPE_STRING);
                 $fontColor = ($ci === 6) ? $estadoColor : 'FF334155';
                 $isBold = ($ci === 6 && strtolower($estado) === 'acreditada');
                 $ws2->getStyle($cell)->applyFromArray([
@@ -596,8 +619,9 @@ function generateKardexExcel(int $idAlumno): array
         }
     }
 
-    // Page setup Sheet 2
-    $ws2->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE);
+    // Page setup Letter + APA
+    applySheetPageStandards($ws, 'landscape');
+    applySheetPageStandards($ws2, 'landscape');
 
     return ['spreadsheet' => $spreadsheet, 'folio' => $folio];
 }

@@ -2,6 +2,7 @@
 
 const academicPDFService = require('../services/academicPDFService');
 const { registrarExportAudit } = require('../helpers/excelHelpers');
+const { denegarSiNoEsAlumnoPropio } = require('../helpers/ownership');
 
 // Helper para enviar PDF como stream
 function sendPDF(res, filePath, fileName) {
@@ -17,11 +18,9 @@ function sendPDF(res, filePath, fileName) {
 async function preboletaPDF(req, res) {
   try {
     const { idAlumno, idPeriodo } = req.params;
-    const esAlumno = String(req.user.rol).trim().toUpperCase() === 'ALUMNO';
 
-    if (esAlumno && req.user.id_alumno !== Number(idAlumno)) {
-      return res.status(403).json({ ok: false, message: 'No puedes generar la preboleta de otro alumno' });
-    }
+    const denegado = await denegarSiNoEsAlumnoPropio(req, idAlumno, 'No puedes generar la preboleta de otro alumno');
+    if (denegado) return res.status(denegado.status).json({ ok: false, message: denegado.message });
 
     const { filePath, fileName, folio, totalMaterias } = await academicPDFService.generarPreboletaPDF(
       Number(idAlumno), Number(idPeriodo)
@@ -44,11 +43,9 @@ async function preboletaPDF(req, res) {
 async function boletaPDF(req, res) {
   try {
     const { idAlumno, idPeriodo } = req.params;
-    const esAlumno = String(req.user.rol).trim().toUpperCase() === 'ALUMNO';
 
-    if (esAlumno && req.user.id_alumno !== Number(idAlumno)) {
-      return res.status(403).json({ ok: false, message: 'No puedes generar la boleta de otro alumno' });
-    }
+    const denegado = await denegarSiNoEsAlumnoPropio(req, idAlumno, 'No puedes generar la boleta de otro alumno');
+    if (denegado) return res.status(denegado.status).json({ ok: false, message: denegado.message });
 
     const { filePath, fileName, folio, totalMaterias } = await academicPDFService.generarBoletaPDF(
       Number(idAlumno), Number(idPeriodo)
@@ -116,11 +113,9 @@ async function calificacionesPeriodoPDF(req, res) {
 async function historialPDF(req, res) {
   try {
     const { idAlumno } = req.params;
-    const esAlumno = String(req.user.rol).trim().toUpperCase() === 'ALUMNO';
 
-    if (esAlumno && req.user.id_alumno !== Number(idAlumno)) {
-      return res.status(403).json({ ok: false, message: 'No puedes generar el historial de otro alumno' });
-    }
+    const denegado = await denegarSiNoEsAlumnoPropio(req, idAlumno, 'No puedes generar el historial de otro alumno');
+    if (denegado) return res.status(denegado.status).json({ ok: false, message: denegado.message });
 
     const { filePath, fileName, folio, totalMaterias } = await academicPDFService.generarHistorialPDF(Number(idAlumno));
 

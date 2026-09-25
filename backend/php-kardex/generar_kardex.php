@@ -215,7 +215,7 @@ function obtenerHistorial(int $idAlumno): array
     $stmt = $pdo->prepare("
         SELECT
             kh.id_historial,
-            kh.calificacion,
+            COALESCE(kh.calificacion_final, kh.calificacion) AS calificacion,
             kh.creditos,
             kh.estado,
             kh.tipo_materia,
@@ -228,7 +228,7 @@ function obtenerHistorial(int $idAlumno): array
         LEFT JOIN periodos p ON p.id_periodo = kh.id_periodo
         LEFT JOIN materias m ON m.id_materia = kh.id_materia
         WHERE kh.id_alumno = ?
-        ORDER BY p.fecha_inicio DESC, kh.creado_en DESC
+        ORDER BY p.fecha_inicio DESC, kh.creado_en DESC, kh.id_historial ASC
     ");
     $stmt->execute([$idAlumno]);
     return $stmt->fetchAll();
@@ -368,8 +368,8 @@ ROW;
 <head>
 <meta charset="UTF-8">
 <style>
-    @page { margin: 0.3cm 0.7cm 1.2cm 0.7cm; size: letter; }
-    * { margin: 0; padding: 0; }
+    @page { margin: 2.54cm; size: letter; }
+    body, body * { margin: 0; padding: 0; }
     body {
         font-family: 'Helvetica', 'Arial', sans-serif;
         font-size: 9pt;
@@ -632,7 +632,7 @@ try {
     }
 
     // 4. Construir datos estructurados
-    $nombres = trim("{$alumnoRow['nombres']} {$alumnoRow['apellido_paterno']} {$alumnoRow['apellido_materno']}");
+    $nombres = trim("{$alumnoRow['apellido_paterno']} {$alumnoRow['apellido_materno']} {$alumnoRow['nombres']}");
     $fechaEmision = formatFechaMX();
     $zonaHoraria = 'America/Mexico_City';
     $creditosCubiertos = (float)($alumnoRow['creditos_acumulados'] ?? 0);

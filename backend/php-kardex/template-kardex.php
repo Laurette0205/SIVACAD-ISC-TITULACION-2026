@@ -134,8 +134,8 @@ ROW;
 <head>
 <meta charset="UTF-8">
 <style>
-    @page { margin: 2.54cm 2.54cm 3.0cm 3.0cm; size: letter; }
-    * { margin: 0; padding: 0; }
+    @page { margin: 2.54cm; size: letter; }
+    body, body * { margin: 0; padding: 0; }
     body {
         font-family: 'Helvetica', 'Arial', sans-serif;
         font-size: 12pt;

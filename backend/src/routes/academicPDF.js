@@ -15,6 +15,8 @@ const ctrl = require('../controllers/academicPDFController');
 // GET /api/academic-pdf/preboleta/:idAlumno/:idPeriodo
 router.get('/preboleta/:idAlumno/:idPeriodo',
   auth,
+  verifyRoleAgainstDB,
+  role('ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'ALUMNO'),
   ctrl.preboletaPDF
 );
 
@@ -22,6 +24,8 @@ router.get('/preboleta/:idAlumno/:idPeriodo',
 // GET /api/academic-pdf/boleta/:idAlumno/:idPeriodo
 router.get('/boleta/:idAlumno/:idPeriodo',
   auth,
+  verifyRoleAgainstDB,
+  role('ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'ALUMNO'),
   ctrl.boletaPDF
 );
 
@@ -47,6 +51,8 @@ router.get('/periodo/:idGrupo/:idPeriodo',
 // GET /api/academic-pdf/historial/:idAlumno
 router.get('/historial/:idAlumno',
   auth,
+  verifyRoleAgainstDB,
+  role('ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'ALUMNO'),
   ctrl.historialPDF
 );
 

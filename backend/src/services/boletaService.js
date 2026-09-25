@@ -7,6 +7,7 @@ const pool = require('../config/db');
 // ==============================
 const {
   roundGrade,
+  calculateAverage,
   calcularEstadoSimple,
   PASSING_GRADE
 } = require('./academicGradeService');
@@ -51,13 +52,14 @@ async function buildBoletaAlumno(idAlumno, idPeriodo) {
   const [materias] = await pool.execute(
     `SELECT h.*, m.nombre_materia, m.clave_materia, m.creditos, m.semestre_sugerido,
             g.nombre_grupo, g.turno, g.semestre, p.nombre_periodo,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM kardex_historial_academico h
      INNER JOIN materias m ON m.id_materia = h.id_materia
      INNER JOIN grupos g ON g.id_grupo = h.id_grupo
      INNER JOIN periodos p ON p.id_periodo = h.id_periodo
      LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE ${where}
      ORDER BY p.nombre_periodo, m.semestre_sugerido, m.nombre_materia`,
     params
@@ -80,12 +82,7 @@ async function buildBoletaAlumno(idAlumno, idPeriodo) {
   } catch (_) {}
 
   const materiasConDetalles = materias.map(m => {
-    const promedio = roundGrade(
-      [m.parcial_1, m.parcial_2, m.parcial_3].filter(g => g != null).length > 0
-        ? [m.parcial_1, m.parcial_2, m.parcial_3].filter(g => g != null).reduce((s, v) => s + v, 0) /
-          [m.parcial_1, m.parcial_2, m.parcial_3].filter(g => g != null).length
-        : null
-    );
+    const promedio = calculateAverage(m.parcial_1, m.parcial_2, m.parcial_3);
     const calFinal = roundGrade(m.calificacion_final) || promedio;
     const estado = calcularEstado(calFinal);
 
@@ -95,11 +92,16 @@ async function buildBoletaAlumno(idAlumno, idPeriodo) {
       clave_materia: m.clave_materia,
       creditos: m.creditos,
       semestre_sugerido: m.semestre_sugerido,
+      nombre_periodo: m.nombre_periodo,
+      nombre_grupo: m.nombre_grupo,
+      turno: m.turno,
+      semestre: m.semestre,
       nombre_docente: m.nombre_docente || '—',
       parcial_1: roundGrade(m.parcial_1),
       parcial_2: roundGrade(m.parcial_2),
       parcial_3: roundGrade(m.parcial_3),
       promedio: promedio,
+      promedio_parciales: m.promedio_parciales,
       calificacion_final: calFinal,
       estado_calificacion: m.estado_calificacion,
       estado: estado,

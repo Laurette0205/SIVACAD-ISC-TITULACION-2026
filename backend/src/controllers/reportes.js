@@ -36,10 +36,24 @@ async function getKardexIds(identifier) {
   } catch { return { id_kardex: null, id_alumno: null }; }
 }
 
+// Ownership: un ALUMNO solo puede acceder a su propio kardex.
+async function denegarKardexAjeno(req, k) {
+  const rol = String(req.user?.rol || '').trim().toUpperCase();
+  if (rol !== 'ALUMNO') return null;
+  if (k && Number(k.id_usuario) === Number(req.user.id_usuario)) return null;
+  return { status: 403, message: 'No puedes acceder al kardex de otro alumno' };
+}
+
 exports.exportKardexDompdfPDF = async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!id) return res.status(400).json({ ok: false, message: 'ID inválido' });
+
+    const k = await reportesService.getKardexData(id);
+    if (!k) return res.status(404).json({ ok: false, message: 'Kardex no encontrado' });
+
+    const denegado = await denegarKardexAjeno(req, k);
+    if (denegado) return res.status(denegado.status).json({ ok: false, message: denegado.message });
 
     const baseUrl = getBaseUrl(req);
     const { pdfBuffer, folio } = await reportesService.generatePdfWithDompdf(id, baseUrl);
@@ -103,6 +117,9 @@ exports.previewKardex = async (req, res) => {
     const k = await reportesService.getKardexData(id);
     if (!k) return res.status(404).json({ ok: false, message: 'Kardex no encontrado' });
 
+    const denegado = await denegarKardexAjeno(req, k);
+    if (denegado) return res.status(denegado.status).json({ ok: false, message: denegado.message });
+
     const data = await reportesService.buildPreviewData(k, baseUrl);
 
     await registrarAuditoria({
@@ -123,6 +140,12 @@ exports.exportKardexPDF = async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!id) return res.status(400).json({ ok: false, message: 'ID inválido' });
+
+    const k = await reportesService.getKardexData(id);
+    if (!k) return res.status(404).json({ ok: false, message: 'Kardex no encontrado' });
+
+    const denegado = await denegarKardexAjeno(req, k);
+    if (denegado) return res.status(denegado.status).json({ ok: false, message: denegado.message });
 
     const { pdfBuffer, folio } = await reportesService.generateKardexPDF(id);
     const ids = await getKardexIds(id);
@@ -150,6 +173,12 @@ exports.exportKardexExcel = async (req, res) => {
   try {
     const id = Number(req.params.id);
     if (!id) return res.status(400).json({ ok: false, message: 'ID inválido' });
+
+    const k = await reportesService.getKardexData(id);
+    if (!k) return res.status(404).json({ ok: false, message: 'Kardex no encontrado' });
+
+    const denegado = await denegarKardexAjeno(req, k);
+    if (denegado) return res.status(denegado.status).json({ ok: false, message: denegado.message });
 
     const { excelBuffer, folio } = await reportesService.generateExcelWithPhp(id);
     const ids = await getKardexIds(id);

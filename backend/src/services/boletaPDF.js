@@ -62,7 +62,7 @@ function generarBoletaHTML(data) {
 
   return `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><style>
-  @page { size: letter portrait; margin: 12mm 15mm; }
+  @page { size: letter portrait; margin: 2.54cm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: Arial, Helvetica, sans-serif; color: #1f2937; font-size: 10px; }
   .header { text-align: center; border-bottom: 3px solid #1e40af; padding-bottom: 10px; margin-bottom: 12px; }

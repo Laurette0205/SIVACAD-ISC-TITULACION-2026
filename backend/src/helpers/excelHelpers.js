@@ -62,6 +62,11 @@ function generarFolio(prefix = 'SIV') {
 // INSTITUTIONAL HELPERS
 // ==============================
 
+// ==============================
+// CONSTANTES APA — Fuente única: exportStandards
+// ==============================
+const { APA, excelPageSetup } = require('./exportStandards');
+
 const INSTITUTIONAL = {
   tesi: 'TECNOLÓGICO DE ESTUDIOS SUPERIORES DE IXTAPALUCA (TESI)',
   carrera: 'Ingeniería en Sistemas Computacionales',
@@ -83,7 +88,13 @@ const ESTADO_COLORS = {
   BORRADOR: INSTITUTIONAL.amarillo,
   VALIDADA: INSTITUTIONAL.azulClaro,
   CERRADA: INSTITUTIONAL.gris,
-  SIN_CALIFICACION: 'FFFFF1F2'
+  SIN_CALIFICACION: 'FFFFF1F2',
+  Acreditada: INSTITUTIONAL.verde,
+  'No Acreditada': 'FFFEE2E2',
+  Pendiente: INSTITUTIONAL.amarillo,
+  'Sin Calificación': 'FFF1F5F9',
+  Borrador: INSTITUTIONAL.amarillo,
+  Validada: INSTITUTIONAL.azulClaro
 };
 
 // ==============================
@@ -97,6 +108,11 @@ function createWorkbook(title, subject, creator = 'SIVACAD') {
   wb.title = title;
   wb.subject = subject;
   return wb;
+}
+
+function applyAPAMargins(ws, options = {}) {
+  const { orientation = 'landscape' } = options;
+  return excelPageSetup(ws, { orientation });
 }
 
 function styleHeaderRow(row, options = {}) {
@@ -243,13 +259,14 @@ async function getCalificacionesByAlumnoPeriodo(idAlumno, idPeriodo, onlyPublica
   const [rows] = await pool.execute(
     `SELECT h.*, m.nombre_materia, m.clave_materia, m.creditos, m.semestre_sugerido,
             g.nombre_grupo, g.turno, p.nombre_periodo,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM kardex_historial_academico h
      INNER JOIN materias m ON m.id_materia = h.id_materia
      INNER JOIN grupos g ON g.id_grupo = h.id_grupo
      INNER JOIN periodos p ON p.id_periodo = h.id_periodo
      LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE ${where}
      ORDER BY p.nombre_periodo, m.semestre_sugerido, m.nombre_materia`,
     params
@@ -272,7 +289,9 @@ async function registrarExportAudit(idUsuario, accion, descripcion, req = null) 
       nivel: 'INFO',
       req
     });
-  } catch (_) {}
+  } catch (error) {
+    console.error('[EXPORT-AUDIT] Error registrando auditoría de exportación:', error.message);
+  }
 }
 
 // ==============================
@@ -302,10 +321,14 @@ module.exports = {
   formatFechaMX,
   formatFechaLargaMX,
   generarFolio,
+  // APA constants
+  APA,
+  applyAPAMargins,
   INSTITUTIONAL,
   ESTADO_COLORS,
   // Excel helpers
   createWorkbook,
+  applyAPAMargins,
   styleHeaderRow,
   styleDataRow,
   applyEstadoColor,

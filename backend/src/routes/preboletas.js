@@ -13,6 +13,8 @@ const preboletas = require('../controllers/preboletas');
 // 1. Preboleta de un alumno por período
 router.get('/alumno/:idAlumno/periodo/:idPeriodo',
   auth,
+  verifyRoleAgainstDB,
+  role('ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'ALUMNO'),
   preboletas.getPreboletaAlumno
 );
 
@@ -35,6 +37,8 @@ router.post('/generar',
 // 4. Exportar preboleta Excel (alumno)
 router.get('/export/excel/alumno/:idAlumno',
   auth,
+  verifyRoleAgainstDB,
+  role('ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'ALUMNO'),
   preboletas.exportPreboletaExcelAlumno
 );
 
@@ -46,12 +50,20 @@ router.get('/export/excel/grupo/:idGrupo/periodo/:idPeriodo',
   preboletas.exportPreboletaExcelGrupo
 );
 
-// 6. Exportar preboleta PDF
+// 6. Exportar preboleta PDF (snapshot guardado)
 router.get('/export/pdf/:idPreboleta',
   auth,
   verifyRoleAgainstDB,
   role('ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'ALUMNO'),
   preboletas.exportPreboletaPDF
+);
+
+// 6b. Exportar preboleta PDF (alumno, por período — datos vivos de BD)
+router.get('/export/pdf/alumno/:idAlumno',
+  auth,
+  verifyRoleAgainstDB,
+  role('ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'ALUMNO'),
+  preboletas.exportPreboletaPDFAlumno
 );
 
 // =====================================================
@@ -61,12 +73,16 @@ router.get('/export/pdf/:idPreboleta',
 // 7. Exportar boleta Excel (alumno)
 router.get('/export/boleta/excel/:idAlumno',
   auth,
+  verifyRoleAgainstDB,
+  role('ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'ALUMNO'),
   preboletas.exportBoletaExcelAlumno
 );
 
 // 8. Exportar boleta PDF (alumno)
 router.get('/export/boleta/pdf/:idAlumno',
   auth,
+  verifyRoleAgainstDB,
+  role('ADMINISTRADOR', 'COORDINADOR', 'DOCENTE', 'ALUMNO'),
   preboletas.exportBoletaPDFAlumno
 );
 

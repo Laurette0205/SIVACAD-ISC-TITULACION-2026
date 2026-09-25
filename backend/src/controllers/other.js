@@ -128,6 +128,78 @@ function buildReportNarrative(metrics, query) {
   ];
 }
 
+async function getScopedReportDetails(query, idInstitucion) {
+  const detalles = [];
+  const inst = idInstitucion || 1;
+
+  if (query.tipo === 'alumno' && query.alumnoId) {
+    const [al] = await pool.execute(
+      `SELECT a.matricula, a.nombres, a.apellido_paterno, a.apellido_materno,
+              a.semestre_actual, c.nombre_carrera, k.promedio_general, k.creditos_acumulados
+       FROM alumnos a
+       LEFT JOIN carreras c ON c.id_carrera = a.id_carrera
+       LEFT JOIN kardex_alumno k ON k.id_alumno = a.id_alumno
+       WHERE a.id_alumno = ? AND a.id_institucion = ?
+       LIMIT 1`,
+      [query.alumnoId, inst]
+    );
+    if (!al.length) {
+      const err = new Error('Alumno no encontrado para los filtros indicados.');
+      err.status = 404;
+      throw err;
+    }
+    const a = al[0];
+    const [cnt] = await pool.execute(
+      'SELECT COUNT(*) AS materias FROM kardex_historial_academico WHERE id_alumno = ?',
+      [query.alumnoId]
+    );
+    detalles.push(
+      { campo: 'Alumno filtrado', valor: `${a.apellido_paterno || ''} ${a.apellido_materno || ''} ${a.nombres || ''}`.replace(/\s+/g, ' ').trim() },
+      { campo: 'Matrícula', valor: a.matricula || '—' },
+      { campo: 'Carrera', valor: a.nombre_carrera || '—' },
+      { campo: 'Semestre', valor: a.semestre_actual != null ? String(a.semestre_actual) : '—' },
+      { campo: 'Promedio general', valor: a.promedio_general != null ? Number(a.promedio_general).toFixed(2) : '—' },
+      { campo: 'Créditos acumulados', valor: String(Number(a.creditos_acumulados || 0)) },
+      { campo: 'Materias en historial', valor: String(cnt[0]?.materias ?? 0) }
+    );
+  } else if (query.tipo === 'grupo' && query.grupoId) {
+    const [g] = await pool.execute(
+      `SELECT g.nombre_grupo, g.turno, c.nombre_carrera
+       FROM grupos g
+       LEFT JOIN carreras c ON c.id_carrera = g.id_carrera
+       WHERE g.id_grupo = ? AND g.id_institucion = ?
+       LIMIT 1`,
+      [query.grupoId, inst]
+    );
+    if (!g.length) {
+      const err = new Error('Grupo no encontrado para los filtros indicados.');
+      err.status = 404;
+      throw err;
+    }
+    const grupo = g[0];
+    const [alumnosCnt] = await pool.execute(
+      "SELECT COUNT(*) AS total FROM grupos_alumnos WHERE id_grupo = ? AND estado = 'ACTIVO'",
+      [query.grupoId]
+    );
+    const [pub] = await pool.execute(
+      `SELECT COUNT(*) AS publicadas, AVG(calificacion_final) AS promedio
+       FROM kardex_historial_academico
+       WHERE id_grupo = ? AND estado_calificacion = 'PUBLICADA'`,
+      [query.grupoId]
+    );
+    detalles.push(
+      { campo: 'Grupo filtrado', valor: grupo.nombre_grupo || '—' },
+      { campo: 'Turno', valor: grupo.turno || '—' },
+      { campo: 'Carrera', valor: grupo.nombre_carrera || '—' },
+      { campo: 'Alumnos activos', valor: String(alumnosCnt[0]?.total ?? 0) },
+      { campo: 'Calificaciones publicadas', valor: String(pub[0]?.publicadas ?? 0) },
+      { campo: 'Promedio del grupo', valor: pub[0]?.promedio != null ? Number(pub[0].promedio).toFixed(2) : '—' }
+    );
+  }
+
+  return detalles;
+}
+
 async function getDashboardMetrics(idInstitucion) {
   const whereInstitucion = idInstitucion ? `WHERE a.id_institucion = ${Number(idInstitucion)}` : '';
   const whereInstitucionD = idInstitucion ? `WHERE d.id_institucion = ${Number(idInstitucion)}` : '';
@@ -440,6 +512,8 @@ exports.reportPdf = async (req, res) => {
   try {
     const query = getReportQuery(req);
     const metrics = await getDashboardMetrics(req.user?.id_institucion);
+    const scoped = await getScopedReportDetails(query, req.user?.id_institucion);
+    const { registrarExportAudit } = require('../helpers/excelHelpers');
 
     const generatedAt = new Date();
     const generatedBy =
@@ -482,6 +556,13 @@ exports.reportPdf = async (req, res) => {
       }
     ];
 
+    if (scoped.length) {
+      sections.splice(1, 0, {
+        title: 'Detalle del filtro aplicado',
+        metrics: scoped.map(d => ({ label: d.campo, value: d.valor }))
+      });
+    }
+
     const file = await createPdf(
       `reporte-${Date.now()}.pdf`,
       'SIVACAD - Reporte Institucional',
@@ -518,10 +599,17 @@ exports.reportPdf = async (req, res) => {
       }
     );
 
+    await registrarExportAudit(
+      req.user?.id_usuario,
+      'REPORTE_PDF',
+      `Reporte institucional PDF — tipo: ${query.tipo} — alumnoId: ${query.alumnoId || 'N/D'} — grupoId: ${query.grupoId || 'N/D'}`,
+      req
+    );
+
     return res.download(file);
   } catch (error) {
     console.error('Error al generar PDF:', error);
-    return res.status(500).json({
+    return res.status(error.status || 500).json({
       ok: false,
       message: error?.message || 'Error al generar PDF'
     });
@@ -535,6 +623,8 @@ exports.reportExcel = async (req, res) => {
   try {
     const query = getReportQuery(req);
     const metrics = await getDashboardMetrics(req.user?.id_institucion);
+    const scoped = await getScopedReportDetails(query, req.user?.id_institucion);
+    const { registrarExportAudit } = require('../helpers/excelHelpers');
 
     const generatedAt = new Date();
     const generatedBy =
@@ -548,6 +638,9 @@ exports.reportExcel = async (req, res) => {
         .trim() || 'Sistema SIVACAD';
 
     const detailRows = buildReportMetricsRows(metrics, query);
+    if (scoped.length) {
+      detailRows.push(...scoped);
+    }
 
     const file = await createExcel(
       `reporte-${Date.now()}.xlsx`,
@@ -571,10 +664,17 @@ exports.reportExcel = async (req, res) => {
       }
     );
 
+    await registrarExportAudit(
+      req.user?.id_usuario,
+      'REPORTE_EXCEL',
+      `Reporte institucional Excel — tipo: ${query.tipo} — alumnoId: ${query.alumnoId || 'N/D'} — grupoId: ${query.grupoId || 'N/D'}`,
+      req
+    );
+
     return res.download(file);
   } catch (error) {
     console.error('Error al generar Excel:', error);
-    return res.status(500).json({
+    return res.status(error.status || 500).json({
       ok: false,
       message: error?.message || 'Error al generar Excel'
     });

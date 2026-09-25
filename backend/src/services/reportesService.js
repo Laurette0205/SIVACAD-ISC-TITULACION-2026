@@ -70,7 +70,7 @@ async function getHistorial(idAlumno) {
        LEFT JOIN periodos p ON p.id_periodo = kh.id_periodo
        LEFT JOIN materias m ON m.id_materia = kh.id_materia
        WHERE kh.id_alumno = ?
-       ORDER BY p.fecha_inicio DESC, kh.creado_en DESC`,
+       ORDER BY p.fecha_inicio DESC, kh.creado_en DESC, kh.id_historial ASC`,
       [idAlumno]
     );
     return rows;
@@ -102,7 +102,7 @@ async function buildPreviewData(k, baseUrl) {
   }
 
   const tz = getTzInfo();
-  const nombreCompleto = `${k.nombres || ''} ${k.apellido_paterno || ''} ${k.apellido_materno || ''}`.replace(/\s+/g, ' ').trim();
+  const nombreCompleto = `${k.apellido_paterno || ''} ${k.apellido_materno || ''} ${k.nombres || ''}`.replace(/\s+/g, ' ').trim();
   const creditosCubiertos = Number(k.creditos_acumulados || 0);
   const promedio = Number(k.promedio_general || 0);
   const fotografiaRel = k.foto_institucional || k.foto_alumno || k.fotografia;
@@ -122,14 +122,17 @@ async function buildPreviewData(k, baseUrl) {
   const historial = await getHistorial(k.id_alumno);
   const sellosDB = await getSellos();
 
-  const historialRows = historial.map(h => ({
-    periodo: h.nombre_periodo || '—',
-    clave: h.clave_materia || '—',
-    materia: h.nombre_materia || '—',
-    calificacion: h.calificacion != null ? Number(h.calificacion).toFixed(1) : '—',
-    creditos: h.creditos || h.creditos_materia || 0,
-    estado: h.estado || '—'
-  }));
+  const historialRows = historial.map(h => {
+    const calif = h.calificacion_final ?? h.calificacion;
+    return {
+      periodo: h.nombre_periodo || '—',
+      clave: h.clave_materia || '—',
+      materia: h.nombre_materia || '—',
+      calificacion: calif != null ? Number(calif).toFixed(1) : '—',
+      creditos: h.creditos || h.creditos_materia || 0,
+      estado: h.estado || '—'
+    };
+  });
 
   const sellos = (sellosDB && sellosDB.length > 0 ? sellosDB : [
     { tipo: 'sivacad', titulo: 'Sello SIVACAD', descripcion: 'Sello oficial del Sistema Integral de Validación y Control Académico' },
@@ -213,16 +216,16 @@ async function getMFAEvents(fechaInicio, fechaFin) {
   let where = "WHERE a.accion IN ('MFA_ENABLED','MFA_DISABLED','MFA_ENABLE_FAILED','MFA_LOGIN_SUCCESS','MFA_LOGIN_FAILED')";
   const params = [];
 
-  if (fechaInicio) { where += ' AND a.fecha_hora >= ?'; params.push(fechaInicio); }
-  if (fechaFin) { where += ' AND a.fecha_hora <= ?'; params.push(fechaFin); }
+  if (fechaInicio) { where += ' AND a.creado_en >= ?'; params.push(fechaInicio); }
+  if (fechaFin) { where += ' AND a.creado_en <= ?'; params.push(fechaFin); }
 
   const [eventos] = await pool.execute(
-    `SELECT a.id_bitacora, u.nombres, u.apellidos, u.correo_institucional,
-            a.accion, a.tabla, a.ip_origen, a.fecha_hora
+    `SELECT a.id_bitacora, u.nombres, CONCAT(u.apellido_paterno, ' ', u.apellido_materno) AS apellidos, u.correo_institucional,
+            a.accion, a.modulo AS tabla, a.ip AS ip_origen, a.creado_en AS fecha_hora
      FROM bitacora_auditoria a
      LEFT JOIN usuarios u ON a.id_usuario = u.id_usuario
      ${where}
-     ORDER BY a.fecha_hora DESC`,
+     ORDER BY a.creado_en DESC`,
     params
   );
 
@@ -239,8 +242,8 @@ async function getMFAEvents(fechaInicio, fechaFin) {
 
 async function getSuspiciousActivity(horas = 24) {
   const [actividades] = await pool.execute(
-    `SELECT a.id_bitacora, u.nombres, u.apellidos, u.correo_institucional,
-            a.accion, a.tabla, a.ip_origen, a.fecha_hora,
+    `SELECT a.id_bitacora, u.nombres, CONCAT(u.apellido_paterno, ' ', u.apellido_materno) AS apellidos, u.correo_institucional,
+            a.accion, a.modulo AS tabla, a.ip AS ip_origen, a.creado_en AS fecha_hora,
             CASE
               WHEN a.accion IN ('MFA_LOGIN_FAILED') THEN 'Intento MFA fallido'
               WHEN a.accion IN ('REAUTH_FAILED') THEN 'Reautenticación fallida'
@@ -251,8 +254,8 @@ async function getSuspiciousActivity(horas = 24) {
      FROM bitacora_auditoria a
      LEFT JOIN usuarios u ON a.id_usuario = u.id_usuario
      WHERE a.accion IN ('MFA_LOGIN_FAILED','REAUTH_FAILED','NEW_DEVICE_LOGIN','LOGIN')
-       AND a.fecha_hora >= NOW() - INTERVAL ? HOUR
-     ORDER BY a.fecha_hora DESC`,
+       AND a.creado_en >= NOW() - INTERVAL ? HOUR
+     ORDER BY a.creado_en DESC`,
     [Number(horas)]
   );
 
@@ -264,7 +267,7 @@ async function getSuspiciousActivity(horas = 24) {
        COUNT(*) AS total_eventos
      FROM bitacora_auditoria
      WHERE accion IN ('MFA_LOGIN_FAILED','REAUTH_FAILED','NEW_DEVICE_LOGIN')
-       AND fecha_hora >= NOW() - INTERVAL ? HOUR`,
+       AND creado_en >= NOW() - INTERVAL ? HOUR`,
     [Number(horas)]
   );
 
@@ -281,12 +284,14 @@ async function getKnownDevices(usuarioId) {
   }
 
   const [dispositivos] = await pool.execute(
-    `SELECT sa.id_sesion, u.nombres, u.apellidos, u.correo_institucional,
-            sa.ip_origen, sa.dispositivo, sa.fecha_inicio, sa.ultima_actividad, sa.estado
+    `SELECT sa.id_sesion, u.nombres, CONCAT(u.apellido_paterno, ' ', u.apellido_materno) AS apellidos, u.correo_institucional,
+            sa.ip_origen, sa.dispositivo_hash AS dispositivo, sa.fecha_inicio,
+            sa.ultimo_acceso AS ultima_actividad,
+            CASE WHEN sa.fecha_cierre IS NULL THEN 'activa' ELSE 'cerrada' END AS estado
      FROM sesiones_activas sa
      LEFT JOIN usuarios u ON sa.id_usuario = u.id_usuario
      ${where}
-     ORDER BY sa.ultima_actividad DESC
+     ORDER BY sa.ultimo_acceso DESC
      LIMIT 200`,
     params
   );
@@ -295,8 +300,8 @@ async function getKnownDevices(usuarioId) {
     `SELECT
        COUNT(DISTINCT id_usuario) AS usuarios_unicos,
        COUNT(*) AS total_sesiones,
-       COUNT(CASE WHEN estado = 'activa' THEN 1 END) AS sesiones_activas
-     FROM sesiones_activas
+       COUNT(CASE WHEN fecha_cierre IS NULL THEN 1 END) AS sesiones_activas
+     FROM sesiones_activas sa
      ${where}`,
     params
   );

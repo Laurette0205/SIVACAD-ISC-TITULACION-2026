@@ -50,6 +50,20 @@ function validateReportQuery(req, res, next) {
     });
   }
 
+  if (tipo === 'alumno' && !alumnoId) {
+    return res.status(400).json({
+      ok: false,
+      message: 'Para tipo "alumno" es obligatorio enviar alumnoId.'
+    });
+  }
+
+  if (tipo === 'grupo' && !grupoId) {
+    return res.status(400).json({
+      ok: false,
+      message: 'Para tipo "grupo" es obligatorio enviar grupoId.'
+    });
+  }
+
   req.reportQuery = {
     tipo,
     alumnoId,

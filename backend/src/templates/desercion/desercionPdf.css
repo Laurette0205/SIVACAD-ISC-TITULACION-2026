@@ -3,8 +3,8 @@
    =================================================== */
 
 @page {
-  margin: 0;
-  size: A4;
+  margin: 2.54cm;
+  size: letter;
 }
 
 * {
@@ -27,8 +27,8 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 210mm;
-  height: 297mm;
+  width: 215.9mm;
+  height: 279.4mm;
   pointer-events: none;
   z-index: -1;
   background-repeat: no-repeat;
@@ -41,8 +41,8 @@ body {
 
 .page {
   position: relative;
-  width: 210mm;
-  min-height: 297mm;
+  width: 215.9mm;
+  min-height: 279.4mm;
   padding: 25mm 18mm 22mm 18mm;
   page-break-after: always;
 }

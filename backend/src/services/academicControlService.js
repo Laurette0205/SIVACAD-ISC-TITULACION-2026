@@ -57,9 +57,10 @@ async function getGruposByPeriodo(idPeriodo) {
 async function getDocentesByPeriodo(idPeriodo) {
   const [rows] = await pool.execute(
     `SELECT DISTINCT dn.id_docente,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM cargas_academicas ca
      INNER JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE ca.id_periodo = ? AND ca.estado = 'ACTIVA'
      ORDER BY nombre_docente`, [idPeriodo]
   );
@@ -135,7 +136,7 @@ async function getParcial(idPeriodo, parcial, filtros = {}) {
             g.nombre_grupo, g.turno, g.semestre,
             CONCAT(a.apellido_paterno, ' ', a.apellido_materno, ' ', a.nombres) AS nombre_alumno,
             a.matricula, a.id_alumno,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente,
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente,
             h.fecha_registro, h.fecha_modificacion
      FROM kardex_historial_academico h
      INNER JOIN materias m ON m.id_materia = h.id_materia
@@ -143,6 +144,7 @@ async function getParcial(idPeriodo, parcial, filtros = {}) {
      INNER JOIN alumnos a ON a.id_alumno = h.id_alumno
      LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE ${where}
      ORDER BY a.apellido_paterno, a.apellido_materno, a.nombres`,
     params
@@ -212,12 +214,13 @@ async function getMateria(idPeriodo, idMateria, filtros = {}) {
             g.nombre_grupo, g.turno, g.semestre,
             CONCAT(a.apellido_paterno, ' ', a.apellido_materno, ' ', a.nombres) AS nombre_alumno,
             a.matricula, a.id_alumno,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM kardex_historial_academico h
      INNER JOIN grupos g ON g.id_grupo = h.id_grupo
      INNER JOIN alumnos a ON a.id_alumno = h.id_alumno
      LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE ${where}
      ORDER BY g.nombre_grupo, a.apellido_paterno, a.apellido_materno, a.nombres`,
     params
@@ -256,9 +259,10 @@ async function getMateria(idPeriodo, idMateria, filtros = {}) {
   // Docentes asignados
   const [docentes] = await pool.execute(
     `SELECT DISTINCT dn.id_docente,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM cargas_academicas ca
      INNER JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE ca.id_periodo = ? AND ca.id_materia = ?
      ORDER BY nombre_docente`, [idPeriodo, idMateria]
   );
@@ -322,10 +326,11 @@ async function getGrupo(idPeriodo, idGrupo, filtros = {}) {
 
   const [materias] = await pool.execute(
     `SELECT ca.id_materia, m.nombre_materia, m.clave_materia,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM cargas_academicas ca
      INNER JOIN materias m ON m.id_materia = ca.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE ca.id_grupo = ? AND ca.id_periodo = ? AND ca.estado = 'ACTIVA'
      ORDER BY m.nombre_materia`,
     [idGrupo, idPeriodo]
@@ -336,12 +341,13 @@ async function getGrupo(idPeriodo, idGrupo, filtros = {}) {
             CONCAT(a.apellido_paterno, ' ', a.apellido_materno, ' ', a.nombres) AS nombre_alumno,
             a.matricula, a.id_alumno,
             m.nombre_materia, m.clave_materia,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM kardex_historial_academico h
      INNER JOIN alumnos a ON a.id_alumno = h.id_alumno
      INNER JOIN materias m ON m.id_materia = h.id_materia
      LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE ${where}
      ORDER BY a.apellido_paterno, a.apellido_materno, a.nombres, m.nombre_materia`,
     params
@@ -446,13 +452,14 @@ async function getPeriodo(idPeriodo, filtros = {}) {
             a.matricula, a.id_alumno,
             m.nombre_materia, m.clave_materia,
             g.nombre_grupo, g.semestre, g.turno,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM kardex_historial_academico h
      INNER JOIN alumnos a ON a.id_alumno = h.id_alumno
      INNER JOIN materias m ON m.id_materia = h.id_materia
      INNER JOIN grupos g ON g.id_grupo = h.id_grupo
      LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE ${where}
      ORDER BY g.nombre_grupo, a.apellido_paterno, a.apellido_materno, a.nombres, m.nombre_materia`,
     params
@@ -543,13 +550,14 @@ async function getSemestre(idPeriodo, semestre, filtros = {}) {
             a.matricula, a.id_alumno,
             m.nombre_materia, m.clave_materia,
             g.nombre_grupo, g.turno, g.semestre,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM kardex_historial_academico h
      INNER JOIN alumnos a ON a.id_alumno = h.id_alumno
      INNER JOIN materias m ON m.id_materia = h.id_materia
      INNER JOIN grupos g ON g.id_grupo = h.id_grupo
      LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE ${where}
      ORDER BY g.nombre_grupo, a.apellido_paterno, a.apellido_materno, a.nombres, m.nombre_materia`,
     params
@@ -614,13 +622,14 @@ async function getHistorialAlumno(idAlumno, filtros = {}) {
             m.nombre_materia, m.clave_materia, m.creditos, m.semestre_sugerido,
             g.nombre_grupo, g.semestre, g.turno,
             p.nombre_periodo, p.ciclo_escolar,
-            CONCAT(dn.apellido_paterno, ' ', dn.apellido_materno, ' ', dn.nombres) AS nombre_docente
+            CONCAT(du.apellido_paterno, ' ', du.apellido_materno, ' ', du.nombres) AS nombre_docente
      FROM kardex_historial_academico h
      INNER JOIN materias m ON m.id_materia = h.id_materia
      INNER JOIN grupos g ON g.id_grupo = h.id_grupo
      INNER JOIN periodos p ON p.id_periodo = h.id_periodo
      LEFT JOIN cargas_academicas ca ON ca.id_grupo = h.id_grupo AND ca.id_periodo = h.id_periodo AND ca.id_materia = h.id_materia
      LEFT JOIN docentes dn ON dn.id_docente = ca.id_docente
+     LEFT JOIN usuarios du ON du.id_usuario = dn.id_usuario
      WHERE ${where}
      ORDER BY p.nombre_periodo DESC, m.semestre_sugerido, m.nombre_materia`,
     params

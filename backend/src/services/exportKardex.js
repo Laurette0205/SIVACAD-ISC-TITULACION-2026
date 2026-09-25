@@ -15,6 +15,8 @@ Handlebars.registerHelper('eq', function (a, b) {
 const puppeteer = require('puppeteer');
 const ExcelJS = require('exceljs');
 const pool = require('../config/db');
+const { applyAPAMargins } = require('../helpers/excelHelpers');
+const { tryInsertExcelLogo } = require('./files');
 
 const TEMPLATES_DIR = path.join(__dirname, 'templates');
 const ASSETS_DIR = path.resolve(__dirname, '..', '..', '..', 'frontend', 'src', 'assets');
@@ -142,7 +144,7 @@ async function getHistorial(idAlumno) {
        LEFT JOIN periodos p ON p.id_periodo = kh.id_periodo
        LEFT JOIN materias m ON m.id_materia = kh.id_materia
        WHERE kh.id_alumno = ?
-       ORDER BY p.fecha_inicio DESC, kh.creado_en DESC`,
+       ORDER BY p.fecha_inicio DESC, kh.creado_en DESC, kh.id_historial ASC`,
       [idAlumno]
     );
     return rows;
@@ -166,7 +168,7 @@ async function generateKardexPDF(id) {
   }
 
   const tz = getTzInfo();
-  const nombreCompleto = `${k.nombres || ''} ${k.apellido_paterno || ''} ${k.apellido_materno || ''}`.replace(/\s+/g, ' ').trim();
+  const nombreCompleto = `${k.apellido_paterno || ''} ${k.apellido_materno || ''} ${k.nombres || ''}`.replace(/\s+/g, ' ').trim();
   const creditosCubiertos = Number(k.creditos_acumulados || 0);
   const promedio = Number(k.promedio_general || 0).toFixed(2);
 
@@ -214,7 +216,7 @@ async function generateKardexPDF(id) {
     periodo: h.nombre_periodo || '—',
     clave: h.clave_materia || '—',
     materia: h.nombre_materia || '—',
-    calificacion: h.calificacion != null ? h.calificacion.toFixed(1) : '—',
+    calificacion: (h.calificacion_final ?? h.calificacion) != null ? Number(h.calificacion_final ?? h.calificacion).toFixed(1) : '—',
     creditos: h.creditos || h.creditos_materia || 0,
     estado: h.estado || '—'
   }));
@@ -277,7 +279,6 @@ async function generateKardexPDF(id) {
         body { font-family: Arial, Helvetica, sans-serif; font-size: 12pt; line-height: 1.5; text-align: justify; color: #0f172a; }
         .header-apa { position: running(header); }
         .footer-apa { position: running(footer); }
-        @page { @top-right { content: counter(page); font-family: Arial; font-size: 10pt; } }
       `
     });
     const pdfBuffer = await page.pdf({
@@ -301,7 +302,7 @@ async function generateKardexExcel(id) {
 
   const folio = k.folio_kardex || generarFolio();
   const tz = getTzInfo();
-  const nombreCompleto = `${k.nombres || ''} ${k.apellido_paterno || ''} ${k.apellido_materno || ''}`.replace(/\s+/g, ' ').trim();
+  const nombreCompleto = `${k.apellido_paterno || ''} ${k.apellido_materno || ''} ${k.nombres || ''}`.replace(/\s+/g, ' ').trim();
   const creditosCubiertos = Number(k.creditos_acumulados || 0);
   const promedio = Number(k.promedio_general || 0).toFixed(2);
   const historial = await getHistorial(k.id_alumno);
@@ -325,10 +326,7 @@ async function generateKardexExcel(id) {
 
   function addLogo(sheet, filePath, col, row, w, h) {
     if (fs.existsSync(filePath)) {
-      try {
-        const id = workbook.addImage(filePath);
-        sheet.addImage(id, { tl: { col, row }, ext: { width: w, height: h } });
-      } catch (e) { /* skip */ }
+      tryInsertExcelLogo(workbook, sheet, filePath, { tl: { col, row }, ext: { width: w, height: h } });
     }
   }
 
@@ -339,10 +337,7 @@ async function generateKardexExcel(id) {
   ws1.headerFooter.oddHeader = '&C&"Arial"&8 SIVACAD - Kardex del Alumno';
   ws1.headerFooter.oddFooter = `&L${formatFechaMX(new Date())}&CFolio: ${folio}&R${tz.zona_horaria}`;
 
-  ws1.pageSetup.margins = {
-    top: 1.91, bottom: 1.91, left: 1.78, right: 1.78,
-    header: 0, footer: 0
-  };
+  applyAPAMargins(ws1, { orientation: 'landscape' });
 
   const colWidths = [3, 22, 55, 15, 15, 15, 15, 15, 15];
   colWidths.forEach((w, i) => { ws1.getColumn(i + 1).width = w; });
@@ -389,7 +384,7 @@ async function generateKardexExcel(id) {
     ['CURP:', k.curp || '—'],
     ['Carrera:', k.nombre_carrera || '—'],
     ['Semestre:', String(k.semestre_actual || '—')],
-    ['Promedio:', promedio],
+    ['Promedio General:', promedio],
     ['Créditos cubiertos:', String(creditosCubiertos)],
     ['Estatus:', k.estatus || 'Vigente']
   ];
@@ -494,7 +489,7 @@ async function generateKardexExcel(id) {
       ws2.getCell(`B${dr}`).value = h.nombre_periodo || '—';
       ws2.getCell(`C${dr}`).value = h.clave_materia || '—';
       ws2.getCell(`D${dr}`).value = h.nombre_materia || '—';
-      ws2.getCell(`E${dr}`).value = h.calificacion != null ? h.calificacion.toFixed(1) : '—';
+      ws2.getCell(`E${dr}`).value = (h.calificacion_final ?? h.calificacion) != null ? Number(h.calificacion_final ?? h.calificacion).toFixed(1) : '—';
       ws2.getCell(`F${dr}`).value = h.creditos || h.creditos_materia || 0;
       ws2.getCell(`G${dr}`).value = h.estado || '—';
 
@@ -517,14 +512,7 @@ async function generateKardexExcel(id) {
   }
 
   // Print settings
-  ws2.pageSetup = {
-    orientation: 'landscape',
-    fitToPage: true,
-    fitToWidth: 1,
-    fitToHeight: 0,
-    paperSize: 9,
-    margins: { top: 0.5, right: 0.5, bottom: 0.5, left: 0.5 }
-  };
+  applyAPAMargins(ws2, { orientation: 'landscape' });
 
   return { workbook, folio };
 }
