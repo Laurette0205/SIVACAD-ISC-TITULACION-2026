@@ -12,6 +12,7 @@ const compression = require('compression');
 const { rateLimiter, xssSanitizer, securityHeaders, ipBlockCheck } = require('./middleware/seguridad');
 const { auth } = require('./middleware/auth');
 const pool = require('./config/db');
+const { isDbConnectionError, DB_UNAVAILABLE_MESSAGE } = pool;
 
 const app = express();
 
@@ -182,6 +183,12 @@ app.use((req, res) => {
 // Manejo global de errores
 app.use((err, req, res, next) => {
   console.error('Error global:', err);
+  if (isDbConnectionError(err)) {
+    return res.status(503).json({
+      ok: false,
+      message: DB_UNAVAILABLE_MESSAGE
+    });
+  }
   const isProd = process.env.NODE_ENV === 'production';
   return res.status(err.status || 500).json({
     ok: false,

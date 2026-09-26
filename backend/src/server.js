@@ -71,3 +71,9 @@ function gracefulShutdown(signal) {
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Una promesa rechazada sin manejar (p. ej. BD caída en un handler async de Express 4)
+// ya no tumba el backend: se registra y el servidor sigue respondiendo.
+process.on('unhandledRejection', (reason) => {
+  console.error('⚠️ Promesa rechazada sin manejar (el servidor sigue activo):', reason);
+});

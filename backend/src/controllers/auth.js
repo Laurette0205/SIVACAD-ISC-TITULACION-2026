@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const pool = require('../config/db');
+const { isDbConnectionError, DB_UNAVAILABLE_MESSAGE } = pool;
 const { sendPasswordResetEmail } = require('../services/mailer');
 const { signToken, signRefreshToken, verifyRefreshToken } = require('../services/jwt');
 const { validatePassword } = require('../security/passwordPolicy');
@@ -629,6 +630,12 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+    if (isDbConnectionError(error)) {
+      return res.status(503).json({
+        ok: false,
+        message: DB_UNAVAILABLE_MESSAGE
+      });
+    }
     return res.status(500).json({
       ok: false,
       message: 'Error al iniciar sesión'
